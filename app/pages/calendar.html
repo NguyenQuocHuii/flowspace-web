@@ -1,0 +1,53 @@
+<!-- ============================================================
+     FlowSpace — Calendar Page
+     ============================================================ -->
+<div class="page-enter" id="calendar-page">
+
+  <div class="fs-page-header">
+    <div>
+      <h1 class="fs-page-title">Lịch</h1>
+      <p class="fs-page-subtitle">Xem task theo ngày, tuần và tháng</p>
+    </div>
+    <div class="d-flex gap-2">
+      <select class="fs-filter-select" id="cal-filter-project">
+        <option value="">Tất cả dự án</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="fs-card" style="padding:0;overflow:hidden">
+    <div id="calendar-el" style="padding:16px"></div>
+  </div>
+
+</div>
+
+<style>
+/* FullCalendar custom overrides */
+.fc { font-family: var(--fs-font) !important; font-size: 13px; }
+.fc-toolbar-title { font-size: 16px !important; font-weight: 700 !important; color: var(--fs-text) !important; }
+.fc-button {
+  background: var(--fs-bg) !important;
+  border: 1.5px solid var(--fs-border) !important;
+  color: var(--fs-text-secondary) !important;
+  font-size: 12px !important;
+  border-radius: var(--fs-radius) !important;
+  padding: 5px 12px !important;
+  font-family: var(--fs-font) !important;
+  font-weight: 500 !important;
+  transition: var(--fs-transition) !important;
+  box-shadow: none !important;
+}
+.fc-button:hover { background: var(--fs-bg-tertiary) !important; color: var(--fs-accent) !important; }
+.fc-button-active, .fc-button:active {
+  background: var(--fs-accent-light) !important;
+  color: var(--fs-accent) !important;
+  border-color: var(--fs-accent) !important;
+}
+.fc-daygrid-day-number { color: var(--fs-text-secondary) !important; font-size: 12px !important; }
+.fc-day-today { background: var(--fs-accent-light) !important; }
+.fc-day-today .fc-daygrid-day-number { color: var(--fs-accent) !important; font-weight: 700 !important; }
+.fc-col-header-cell-cushion { color: var(--fs-text-muted) !important; font-size: 11px !important; font-weight: 600 !important; text-transform: uppercase !important; letter-spacing: 0.5px !important; }
+.fc-event { border-radius: var(--fs-radius-sm) !important; border: none !important; font-size: 11px !important; font-weight: 500 !important; cursor: pointer !important; }
+.fc-event:hover { opacity: 0.85 !important; }
+.fc-daygrid-event-dot { display: none !important; }
+</style>

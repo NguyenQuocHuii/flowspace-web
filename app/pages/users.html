@@ -1,0 +1,39 @@
+<!-- FlowSpace — Users Management Page -->
+<div class="page-enter" id="users-page">
+  <div class="fs-page-header">
+    <div>
+      <h1 class="fs-page-title">Quản lý Người dùng</h1>
+      <p class="fs-page-subtitle" id="users-count-label">Đang tải...</p>
+    </div>
+  </div>
+
+  <div class="fs-filters">
+    <input type="text" class="fs-search-input" id="users-search" placeholder="Tìm người dùng...">
+    <select class="fs-filter-select" id="users-filter-role">
+      <option value="">Tất cả vai trò</option>
+      <option value="employee">Nhân viên</option>
+      <option value="team_lead">Trưởng nhóm</option>
+      <option value="manager">Quản lý</option>
+      <option value="director">Ban GĐ</option>
+    </select>
+  </div>
+
+  <div class="fs-card" style="padding:0;overflow:hidden">
+    <table class="fs-table">
+      <thead>
+        <tr>
+          <th>Người dùng</th>
+          <th>Email</th>
+          <th>Vai trò</th>
+          <th>Dự án</th>
+          <th>Tasks</th>
+          <th>Giờ làm</th>
+          <th style="width:80px">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody id="users-table-body">
+        <tr><td colspan="7"><div class="fs-empty"><div class="fs-spinner mx-auto"></div></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>

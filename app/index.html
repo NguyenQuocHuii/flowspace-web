@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- SEO Meta Tags -->
+  <title>FlowSpace — Không gian làm việc tối giản cho đội ngũ hiệu suất cao</title>
+  <meta name="description"
+    content="FlowSpace kết hợp quản lý dự án, công việc, Kanban, Gantt, Lịch, Chat và Tài liệu trong một giao diện tối giản kiểu Notion. Trải nghiệm không gian làm việc tập trung ngay hôm nay.">
+  <meta name="keywords"
+    content="quản lý công việc, quản lý dự án, notion style, kanban, gantt chart, time tracking, chat nội bộ, flowspace">
+  <meta name="author" content="FlowSpace Team">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/dashboard_mockup.png">
+
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="css/landing.css">
+</head>
+
+<body>
+
+  <!-- ════════════════════════════════════════
+       HEADER
+  ════════════════════════════════════════ -->
+  <header class="landing-header">
+    <div class="header-container">
+      <a href="#" class="brand" title="FlowSpace Trang chủ">
+        <div class="brand-logo">F</div>
+        <span>FlowSpace</span>
+      </a>
+
+      <nav class="nav-links" aria-label="Main Navigation">
+        <a href="#features" class="nav-link">Tính năng</a>
+        <a href="#solutions" class="nav-link">Giải pháp</a>
+        <a href="#quote" class="nav-link">Triết lý</a>
+      </nav>
+
+      <div class="header-actions">
+        <a href="login.html" class="cta-button" id="header-cta-btn" title="Truy cập Demo App FlowSpace">
+          Vào Demo App <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ════════════════════════════════════════
+       HERO SECTION
+  ════════════════════════════════════════ -->
+  <section class="hero-section">
+    <div class="hero-container">
+      <div class="badge-new">
+        <span class="badge-dot" style="width:6px;height:6px;background:var(--fs-accent);border-radius:50%"></span>
+        Mới: FlowSpace v2.0 Notion-Style
+      </div>
+
+      <h1 class="hero-title">Một không gian làm việc.<br>Tối giản & hiệu suất cao.</h1>
+
+      <p class="hero-subtitle">
+        Kết hợp quản lý dự án, Kanban, Gantt, Lịch, Chat nội bộ và Tài liệu nhóm trong một giao diện duy nhất. Lấy cảm
+        hứng từ Notion giúp đội ngũ của bạn tập trung làm việc, bớt họp hành.
+      </p>
+
+      <div class="hero-ctas">
+        <a href="login.html" class="cta-button" title="Bắt đầu trải nghiệm bản Demo">
+          Trải nghiệm Demo ngay <i class="bi bi-rocket-takeoff"></i>
+        </a>
+        <a href="#features" class="cta-button outline" title="Xem danh sách tính năng">
+          Tìm hiểu thêm
+        </a>
+      </div>
+    </div>
+
+    <!-- Interface Mockup -->
+    <div class="mockup-container" id="app-mockup">
+      <div class="mockup-header">
+        <div class="mockup-dot"></div>
+        <div class="mockup-dot"></div>
+        <div class="mockup-dot"></div>
+        <div class="mockup-url-bar"
+          style="flex:1;background:var(--fs-bg);height:24px;border-radius:4px;border:1px solid var(--fs-border);font-size:11px;color:var(--fs-text-muted);display:flex;align-items:center;padding:0 12px;margin:0 40px">
+          <i class="bi bi-lock-fill" style="margin-right:6px;font-size:10px"></i>
+          https://flowspace.demo/app
+        </div>
+      </div>
+      <div class="mockup-body">
+        <img src="assets/dashboard_mockup.png" alt="Giao diện Dashboard tối giản của FlowSpace" class="mockup-image">
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════
+       FEATURES SECTION
+  ════════════════════════════════════════ -->
+  <section class="features-section" id="features">
+    <div class="section-header">
+      <h2 class="section-title">Đầy đủ công cụ trong một nơi</h2>
+      <p class="section-desc">Không còn phải chuyển đổi tab liên tục giữa nhiều công cụ rời rạc. FlowSpace mang lại trải
+        nghiệm hợp nhất hoàn hảo.</p>
+    </div>
+
+    <div class="features-grid">
+      <!-- 1. Quản lý Dự án -->
+      <div class="feature-card">
+        <div class="feature-icon"><i class="bi bi-folder2-open"></i></div>
+        <h3 class="feature-title">Quản lý Dự án & Tiến độ</h3>
+        <p class="feature-desc">Theo dõi toàn diện các dự án đang chạy với thanh phần trăm tiến độ cập nhật tự động dựa
+          trên số lượng công việc hoàn thành.</p>
+      </div>
+
+      <!-- 2. Kanban Board -->
+      <div class="feature-card">
+        <div class="feature-icon"><i class="bi bi-kanban"></i></div>
+        <h3 class="feature-title">Kanban kéo thả</h3>
+        <p class="feature-desc">Quản lý trực quan với SortableJS. Kéo thả các thẻ công việc qua 4 cột trạng thái: Chưa
+          bắt đầu, Đang làm, Chờ duyệt, Hoàn thành.</p>
+      </div>
+
+      <!-- 3. Gantt Chart -->
+      <div class="feature-card">
+        <div class="feature-icon"><i class="bi bi-bar-chart-steps"></i></div>
+        <h3 class="feature-title">Gantt Chart Timeline</h3>
+        <p class="feature-desc">Xem tổng quan lịch trình, mối liên quan thời gian giữa các dự án và đầu việc cụ thể trên
+          một dòng thời gian trực quan.</p>
+      </div>
+
+      <!-- 4. Lịch biểu -->
+      <div class="feature-card">
+        <div class="feature-icon"><i class="bi bi-calendar3"></i></div>
+        <h3 class="feature-title">Lịch tích hợp</h3>
+        <p class="feature-desc">Tích hợp FullCalendar hiển thị tất cả hạn công việc và các cuộc họp nội bộ quan trọng
+          của nhóm trong giao diện lịch tháng/tuần/ngày.</p>
+      </div>
+
+      <!-- 5. Chat nội bộ -->
+      <div class="feature-card">
+        <div class="feature-icon"><i class="bi bi-chat-dots"></i></div>
+        <h3 class="feature-title">Kênh Chat & DM</h3>
+        <p class="feature-desc">Trao đổi trực tiếp ngay trong ứng dụng với các kênh thảo luận chung (#general,
+          #dev-team) hoặc nhắn tin riêng (Direct Messages).</p>
+      </div>
+
+      <!-- 6. Tài liệu lưu trữ -->
+      <div class="feature-card">
+        <div class="feature-icon"><i class="bi bi-file-earmark-richtext"></i></div>
+        <h3 class="feature-title">Tài liệu nhóm</h3>
+        <p class="feature-desc">Lưu trữ các ghi chú cuộc họp, quy trình làm việc chung (SOP) với cấu trúc cây thư mục
+          phân cấp rõ ràng chuẩn Notion.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════
+       SOLUTIONS / WORKFLOWS SECTION
+  ════════════════════════════════════════ -->
+  <section class="solutions-section" id="solutions">
+    <div class="section-header">
+      <h2 class="section-title">Workflow mượt mà không độ trễ</h2>
+      <p class="section-desc">Từ lập kế hoạch đến thực thi, mọi hành động của bạn đều được đồng bộ hóa tức thì.</p>
+    </div>
+
+    <!-- Carousel: 3 steps -->
+    <div class="solutions-carousel">
+      <!-- Step 1 -->
+      <div class="solution-step active" id="step-1">
+        <div class="step-content">
+          <div class="step-number">01</div>
+          <h3 class="step-title">Đăng nhập dễ dàng</h3>
+          <p class="step-desc">Đăng nhập nhanh với các tài khoản Demo được phân quyền sẵn: Employee, TeamLead, Manager,
+            Director. Thử nghiệm ngay các tính năng đặc thù cho từng vai trò.</p>
+          <a href="login.html" class="step-link">Đi tới trang Đăng nhập <i class="bi bi-arrow-right-short"></i></a>
+        </div>
+        <div class="step-media">
+          <img src="assets/step1_login.png" alt="Màn hình đăng nhập FlowSpace">
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="solution-step" id="step-2">
+        <div class="step-content">
+          <div class="step-number">02</div>
+          <h3 class="step-title">Quản lý trực quan với Kanban</h3>
+          <p class="step-desc">Theo dõi trạng thái công việc của từng thành viên qua bảng Kanban trực quan. Kéo thả thẻ
+            để cập nhật trạng thái tức thời và đồng bộ với cả đội ngũ.</p>
+          <a href="login.html" class="step-link">Trải nghiệm Kanban <i class="bi bi-arrow-right-short"></i></a>
+        </div>
+        <div class="step-media">
+          <img src="assets/step2_kanban.png" alt="Bảng Kanban công việc FlowSpace">
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="solution-step" id="step-3">
+        <div class="step-content">
+          <div class="step-number">03</div>
+          <h3 class="step-title">Báo cáo & Dashboard hợp nhất</h3>
+          <p class="step-desc">Cung cấp cái nhìn toàn cảnh về hiệu suất làm việc của dự án, tổng thời gian ghi nhận
+            (Time Log) và tiến độ chung của toàn công ty theo thời gian thực.</p>
+          <a href="login.html" class="step-link">Xem Dashboard Demo <i class="bi bi-arrow-right-short"></i></a>
+        </div>
+        <div class="step-media">
+          <img src="assets/step3_dashboard.png" alt="Giao diện Dashboard FlowSpace">
+        </div>
+      </div>
+
+      <!-- Step Controls -->
+      <div class="carousel-indicators">
+        <button class="indicator active" data-target="step-1" aria-label="Slide 1"></button>
+        <button class="indicator" data-target="step-2" aria-label="Slide 2"></button>
+        <button class="indicator" data-target="step-3" aria-label="Slide 3"></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════
+       PHILOSOPHY QUOTE
+  ════════════════════════════════════════ -->
+  <section class="quote-section" id="quote">
+    <div class="quote-container">
+      <blockquote class="philosophical-quote">
+        "Sự phức tạp làm tiêu hao năng lượng. Sự tối giản tạo ra sự tập trung và dòng chảy (Flow) công việc tối thượng."
+      </blockquote>
+      <div class="quote-author">— FlowSpace Design Philosophy</div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════
+       FOOTER
+  ════════════════════════════════════════ -->
+  <footer class="landing-footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="brand">
+          <div class="brand-logo">F</div>
+          <span>FlowSpace</span>
+        </div>
+        <p class="footer-slogan">Không gian làm việc tối giản cho đội ngũ hiệu suất cao.</p>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 FlowSpace. Bản quyền thuộc về đội ngũ phát triển.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Script for interactive element (Workflow Carousel) -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const indicators = document.querySelectorAll('.carousel-indicators .indicator');
+      const steps = document.querySelectorAll('.solutions-carousel .solution-step');
+
+      indicators.forEach(indicator => {
+        indicator.addEventListener('click', () => {
+          // Remove active class from all indicators
+          indicators.forEach(ind => ind.classList.remove('active'));
+          // Add active class to clicked indicator
+          indicator.classList.add('active');
+
+          const targetId = indicator.getAttribute('data-target');
+
+          // Show/Hide steps — display is controlled entirely by CSS
+          // (.solution-step / .solution-step.active) so the grid
+          // layout and fade-in animation stay intact on every switch.
+          steps.forEach(step => {
+            step.classList.remove('active');
+          });
+          const targetStep = document.getElementById(targetId);
+          // Trigger reflow so the fade-in animation replays every time
+          void targetStep.offsetWidth;
+          targetStep.classList.add('active');
+        });
+      });
+
+      // Auto rotation every 7 seconds
+      let currentIndex = 0;
+      setInterval(() => {
+        currentIndex = (currentIndex + 1) % indicators.length;
+        indicators[currentIndex].click();
+      }, 7000);
+    });
+  </script>
+
+</body>
+
+</html>

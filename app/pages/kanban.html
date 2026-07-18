@@ -1,0 +1,130 @@
+<!-- ============================================================
+     FlowSpace — Kanban Board Page
+     ============================================================ -->
+<div class="page-enter" id="kanban-page">
+
+  <!-- Page Header -->
+  <div class="fs-page-header">
+    <div>
+      <h1 class="fs-page-title">Kanban Board</h1>
+      <p class="fs-page-subtitle" id="kanban-subtitle">Kéo thả để cập nhật trạng thái công việc</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <select class="fs-filter-select" id="kanban-filter-project">
+        <option value="">Tất cả dự án</option>
+      </select>
+      <select class="fs-filter-select" id="kanban-filter-employee">
+        <option value="">Tất cả nhân viên</option>
+      </select>
+      <select class="fs-filter-select" id="kanban-filter-department">
+        <option value="">Tất cả phòng ban</option>
+      </select>
+      <button class="btn btn-primary btn-sm" id="kanban-new-btn">
+        <i class="bi bi-plus-lg"></i> Thêm task
+      </button>
+    </div>
+  </div>
+
+  <!-- Kanban Board -->
+  <div id="kanban-board" style="display:flex;gap:16px;overflow-x:auto;padding-bottom:16px;align-items:flex-start;min-height:calc(100vh - 200px)">
+    <!-- Columns rendered by JS -->
+  </div>
+
+</div>
+
+<style>
+/* Kanban specific styles */
+.kanban-col {
+  min-width: 280px;
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 200px);
+}
+.kanban-col-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: var(--fs-radius-md) var(--fs-radius-md) 0 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+.kanban-col-body {
+  flex: 1;
+  background: var(--fs-bg-secondary);
+  border: 1.5px solid var(--fs-border);
+  border-top: none;
+  border-radius: 0 0 var(--fs-radius-md) var(--fs-radius-md);
+  padding: 10px;
+  overflow-y: auto;
+  min-height: 200px;
+}
+.kanban-card {
+  background: var(--fs-bg);
+  border: 1.5px solid var(--fs-border);
+  border-radius: var(--fs-radius);
+  padding: 12px;
+  margin-bottom: 8px;
+  cursor: grab;
+  transition: var(--fs-transition);
+  user-select: none;
+}
+.kanban-card:hover {
+  box-shadow: var(--fs-shadow);
+  transform: translateY(-2px);
+  border-color: var(--fs-accent);
+}
+.kanban-card:active { cursor: grabbing; }
+.kanban-card.sortable-ghost {
+  opacity: 0.4;
+  background: var(--fs-accent-light);
+  border: 2px dashed var(--fs-accent);
+}
+.kanban-card.sortable-drag {
+  box-shadow: var(--fs-shadow-lg);
+  transform: rotate(2deg);
+}
+.kanban-card-title {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+.kanban-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.kanban-add-btn {
+  width: 100%;
+  padding: 8px;
+  border: 1.5px dashed var(--fs-border);
+  border-radius: var(--fs-radius);
+  background: transparent;
+  color: var(--fs-text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: var(--fs-transition);
+  font-family: var(--fs-font);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+.kanban-add-btn:hover {
+  border-color: var(--fs-accent);
+  color: var(--fs-accent);
+  background: var(--fs-accent-light);
+}
+.kanban-col-count {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 99px;
+  background: rgba(255,255,255,0.3);
+}
+</style>

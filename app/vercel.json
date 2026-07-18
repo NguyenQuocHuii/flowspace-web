@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "routes": [
+    {
+      "src": "/app.html",
+      "headers": {
+        "cache-control": "no-store, no-cache, must-revalidate, proxy-revalidate"
+      },
+      "dest": "/app.html"
+    },
+    {
+      "src": "/js/core/auth.js",
+      "headers": {
+        "cache-control": "no-store"
+      },
+      "dest": "/js/core/auth.js"
+    }
+  ]
+}

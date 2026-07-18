@@ -1,0 +1,50 @@
+<!-- FlowSpace — System Logs Page -->
+<div class="page-enter" id="logs-page">
+  <div class="fs-page-header">
+    <div>
+      <h1 class="fs-page-title">Nhật ký hệ thống</h1>
+      <p class="fs-page-subtitle">Theo dõi mọi hoạt động trong hệ thống</p>
+    </div>
+    <button class="btn btn-ghost btn-sm" id="logs-refresh-btn">
+      <i class="bi bi-arrow-clockwise"></i> Làm mới
+    </button>
+  </div>
+
+  <div class="fs-filters">
+    <input type="text" class="fs-search-input" id="logs-search" placeholder="Tìm trong nhật ký...">
+    <select class="fs-filter-select" id="logs-filter-action">
+      <option value="">Tất cả hành động</option>
+      <option value="LOGIN">Đăng nhập</option>
+      <option value="LOGOUT">Đăng xuất</option>
+      <option value="CREATE">Tạo mới</option>
+      <option value="UPDATE">Cập nhật</option>
+      <option value="ASSIGN">Phân công</option>
+      <option value="APPROVE">Phê duyệt</option>
+    </select>
+    <select class="fs-filter-select" id="logs-filter-user">
+      <option value="">Tất cả người dùng</option>
+    </select>
+  </div>
+
+  <div class="fs-card" style="padding:0;overflow:hidden">
+    <table class="fs-table">
+      <thead>
+        <tr>
+          <th style="width:140px">Thời gian</th>
+          <th>Người dùng</th>
+          <th>Hành động</th>
+          <th>Module</th>
+          <th>Chi tiết</th>
+          <th>IP</th>
+        </tr>
+      </thead>
+      <tbody id="logs-table-body">
+        <tr><td colspan="6"><div class="fs-empty"><div class="fs-spinner mx-auto"></div></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="d-flex align-items-center justify-content-between mt-3">
+    <span class="fs-small" id="logs-info"></span>
+    <div id="logs-pagination" class="d-flex gap-1"></div>
+  </div>
+</div>

@@ -1,0 +1,167 @@
+<!-- FlowSpace — Documents Page -->
+<div class="page-enter" id="documents-page" style="display:flex;gap:16px;min-height:calc(100vh - 200px)">
+
+  <!-- Folder tree -->
+  <div style="width:240px;flex-shrink:0">
+    <div class="fs-card" style="padding:0;overflow:hidden;height:100%">
+      <div style="padding:12px 14px;border-bottom:1px solid var(--fs-border);display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--fs-text-muted)">Thư mục</span>
+        <button class="btn btn-ghost btn-icon btn-sm" id="doc-new-folder-btn" title="Thư mục mới"><i class="bi bi-folder-plus"></i></button>
+      </div>
+      <div id="doc-tree" style="padding:8px 6px"></div>
+    </div>
+  </div>
+
+  <!-- File list -->
+  <div style="flex:1;min-width:0">
+    <div class="fs-card" style="padding:0;overflow:hidden;height:100%">
+      <div style="padding:12px 16px;border-bottom:1px solid var(--fs-border);display:flex;align-items:center;gap:12px">
+        <input type="text" class="fs-search-input" id="doc-search" placeholder="Tìm tài liệu..." style="flex:1;max-width:300px">
+        <div class="ms-auto d-flex gap-2">
+          <button class="btn btn-outline btn-sm" id="doc-upload-btn">
+            <i class="bi bi-cloud-upload"></i> Upload
+          </button>
+          <button class="btn btn-primary btn-sm" id="doc-new-doc-btn">
+            <i class="bi bi-plus-lg"></i> Tạo tài liệu
+          </button>
+        </div>
+      </div>
+
+      <!-- Breadcrumb -->
+      <div id="doc-breadcrumb" style="padding:8px 16px;font-size:12px;color:var(--fs-text-muted);border-bottom:1px solid var(--fs-border);display:flex;align-items:center;gap:4px">
+        <i class="bi bi-house"></i> Tất cả
+      </div>
+
+      <!-- Files grid -->
+      <div id="doc-files" style="padding:16px">
+        <div class="fs-empty"><div class="fs-spinner mx-auto"></div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modals -->
+<div class="fs-modal-overlay" id="doc-share-modal" style="display:none">
+  <div class="fs-modal" style="max-width:400px">
+    <div class="fs-modal-header">
+      <h5 class="fs-h5 m-0">Chia sẻ tài liệu</h5>
+      <button class="btn btn-ghost btn-icon btn-sm" onclick="this.closest('.fs-modal-overlay').style.display='none'"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="fs-modal-body">
+      <input type="hidden" id="doc-share-id">
+      <div class="fs-form-group">
+        <label class="fs-form-label">Chọn người dùng</label>
+        <select class="fs-input" id="doc-share-users" multiple size="5" style="padding:4px">
+          <!-- Render dynamically -->
+        </select>
+        <div class="fs-small mt-1" style="color:var(--fs-text-muted)">Giữ Ctrl/Cmd để chọn nhiều người</div>
+      </div>
+    </div>
+    <div class="fs-modal-footer">
+      <button class="btn btn-outline" onclick="this.closest('.fs-modal-overlay').style.display='none'">Hủy</button>
+      <button class="btn btn-primary" id="doc-share-save-btn">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<div class="fs-modal-overlay" id="doc-versions-modal" style="display:none">
+  <div class="fs-modal" style="max-width:500px">
+    <div class="fs-modal-header">
+      <h5 class="fs-h5 m-0">Lịch sử phiên bản</h5>
+      <button class="btn btn-ghost btn-icon btn-sm" onclick="this.closest('.fs-modal-overlay').style.display='none'"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="fs-modal-body" style="padding:0;max-height:400px;overflow-y:auto">
+      <input type="hidden" id="doc-versions-id">
+      <div id="doc-versions-list">
+        <!-- Render dynamically -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.doc-tree-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: var(--fs-radius);
+  cursor: pointer;
+  transition: var(--fs-transition);
+  font-size: 13px;
+  color: var(--fs-text-secondary);
+  margin-bottom: 1px;
+}
+.doc-tree-item:hover { background: var(--fs-bg-secondary); color: var(--fs-text); }
+.doc-tree-item.active { background: var(--fs-accent-light); color: var(--fs-accent-dark); font-weight: 600; }
+.doc-tree-item i { font-size: 14px; color: var(--fs-warning); flex-shrink: 0; }
+.doc-tree-item.active i { color: var(--fs-accent); }
+
+.doc-file-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  border: 1.5px solid var(--fs-border);
+  border-radius: var(--fs-radius-md);
+  cursor: pointer;
+  transition: var(--fs-transition);
+  text-align: center;
+  background: var(--fs-bg);
+  position: relative;
+}
+.doc-file-card:hover {
+  border-color: var(--fs-accent);
+  box-shadow: var(--fs-shadow);
+  transform: translateY(-2px);
+}
+.doc-file-icon {
+  width: 48px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  border-radius: var(--fs-radius);
+}
+.doc-file-name { font-size: 12px; font-weight: 500; line-height: 1.3; word-break: break-word; color: var(--fs-text); }
+.doc-file-meta { font-size: 10px; color: var(--fs-text-muted); }
+
+.doc-file-actions {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.doc-file-card:hover .doc-file-actions {
+  opacity: 1;
+}
+.doc-action-btn {
+  background: var(--fs-bg);
+  border: 1px solid var(--fs-border);
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fs-text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+}
+.doc-action-btn:hover {
+  background: var(--fs-bg-secondary);
+  color: var(--fs-accent);
+}
+.doc-version-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--fs-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.doc-version-item:last-child { border-bottom: none; }
+</style>

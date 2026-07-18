@@ -1,0 +1,57 @@
+<!-- FlowSpace — Requests Page -->
+<div class="page-enter" id="requests-page">
+  <div class="fs-page-header">
+    <div>
+      <h1 class="fs-page-title">Yêu cầu</h1>
+      <p class="fs-page-subtitle" id="req-count-label">Đang tải...</p>
+    </div>
+    <button class="btn btn-primary btn-sm" id="req-new-btn">
+      <i class="bi bi-plus-lg"></i> Tạo yêu cầu
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="fs-tabs" id="req-tabs">
+    <button class="fs-tab active" data-tab="all">Tất cả</button>
+    <button class="fs-tab" data-tab="pending">Chờ duyệt</button>
+    <button class="fs-tab" data-tab="approved">Đã duyệt</button>
+    <button class="fs-tab" data-tab="rejected">Từ chối</button>
+  </div>
+
+  <div id="req-list">
+    <div class="fs-empty"><div class="fs-spinner mx-auto"></div></div>
+  </div>
+</div>
+
+<!-- New Request Modal -->
+<div class="fs-modal-overlay" id="req-modal-overlay" style="display:none">
+  <div class="fs-modal">
+    <div class="fs-modal-header">
+      <h5 class="fs-h5 m-0">Tạo yêu cầu mới</h5>
+      <button class="btn btn-ghost btn-icon btn-sm" id="req-modal-close"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="fs-modal-body">
+      <div class="fs-form-group">
+        <label class="fs-label-text">Loại yêu cầu</label>
+        <select class="fs-select" id="req-modal-type">
+          <option value="leave">Nghỉ phép</option>
+          <option value="overtime">Tăng ca</option>
+          <option value="purchase">Mua sắm</option>
+          <option value="remote">Làm remote</option>
+        </select>
+      </div>
+      <div class="fs-form-group">
+        <label class="fs-label-text" for="req-modal-title">Tiêu đề</label>
+        <input type="text" class="fs-input" id="req-modal-title" placeholder="Mô tả ngắn yêu cầu...">
+      </div>
+      <div class="fs-form-group">
+        <label class="fs-label-text" for="req-modal-desc">Chi tiết</label>
+        <textarea class="fs-textarea" id="req-modal-desc" rows="4" placeholder="Mô tả chi tiết yêu cầu, lý do, thời gian..."></textarea>
+      </div>
+    </div>
+    <div class="fs-modal-footer">
+      <button class="btn btn-ghost btn-sm" id="req-modal-cancel">Hủy</button>
+      <button class="btn btn-primary btn-sm" id="req-modal-save"><i class="bi bi-send"></i> Gửi yêu cầu</button>
+    </div>
+  </div>
+</div>

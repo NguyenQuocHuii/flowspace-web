@@ -1,0 +1,70 @@
+<!-- FlowSpace — Reports Page -->
+<div class="page-enter" id="reports-page">
+  <div class="fs-page-header">
+    <div>
+      <h1 class="fs-page-title">Báo cáo & Phân tích</h1>
+      <p class="fs-page-subtitle">Tổng hợp dữ liệu dự án, năng suất nhóm</p>
+    </div>
+    <div class="d-flex gap-2">
+      <div class="dropdown">
+        <button class="btn btn-outline btn-sm dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-download"></i> Xuất báo cáo</button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="#" id="report-export-excel"><i class="bi bi-file-earmark-excel text-success"></i> Xuất Excel (.xlsx)</a></li>
+          <li><a class="dropdown-item" href="#" id="report-export-pdf"><i class="bi bi-file-earmark-pdf text-danger"></i> Xuất PDF</a></li>
+          <li><a class="dropdown-item" href="#" id="report-export-csv"><i class="bi bi-filetype-csv text-primary"></i> Xuất CSV</a></li>
+        </ul>
+      </div>
+      <select class="fs-filter-select" id="report-period">
+        <option value="month">Tháng này</option>
+        <option value="quarter">Quý này</option>
+        <option value="all">Tất cả</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- KPI Row -->
+  <div class="row g-3 mb-4" id="report-kpis">
+    <!-- Rendered by JS -->
+  </div>
+
+  <!-- Charts Row -->
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-lg-8">
+      <div class="fs-card">
+        <div class="fs-card-header">
+          <h6 class="fs-h6 m-0"><i class="bi bi-bar-chart-line me-2" style="color:var(--fs-accent)"></i>Tiến độ dự án</h6>
+        </div>
+        <canvas id="report-project-chart" style="max-height:260px"></canvas>
+      </div>
+    </div>
+    <div class="col-12 col-lg-4">
+      <div class="fs-card">
+        <div class="fs-card-header">
+          <h6 class="fs-h6 m-0"><i class="bi bi-pie-chart me-2" style="color:var(--fs-accent)"></i>Phân bố task</h6>
+        </div>
+        <div style="height:260px;display:flex;align-items:center;justify-content:center">
+          <canvas id="report-status-chart" style="max-width:200px;max-height:200px"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12 col-lg-6">
+      <div class="fs-card">
+        <div class="fs-card-header">
+          <h6 class="fs-h6 m-0"><i class="bi bi-people me-2" style="color:var(--fs-accent)"></i>Giờ làm theo người dùng</h6>
+        </div>
+        <canvas id="report-user-chart" style="max-height:220px"></canvas>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="fs-card">
+        <div class="fs-card-header">
+          <h6 class="fs-h6 m-0"><i class="bi bi-graph-up me-2" style="color:var(--fs-accent)"></i>Xu hướng hoàn thành task</h6>
+        </div>
+        <canvas id="report-trend-chart" style="max-height:220px"></canvas>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="FlowSpace.Api/FlowSpace.Api.csproj" />
+  <Project Path="FlowSpace.Application/FlowSpace.Application.csproj" />
+  <Project Path="FlowSpace.Domain/FlowSpace.Domain.csproj" />
+  <Project Path="FlowSpace.Infrastructure/FlowSpace.Infrastructure.csproj" />
+  <Project Path="FlowSpace.Persistence/FlowSpace.Persistence.csproj" />
+</Solution>

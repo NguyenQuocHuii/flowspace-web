@@ -1,0 +1,231 @@
+/* ============================================================
+   FlowSpace Login Page — login.css
+   ============================================================ */
+
+.fs-login-page {
+  min-height: 100vh;
+  background: var(--fs-bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Gradient orbs background */
+.fs-login-page::before,
+.fs-login-page::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.12;
+  pointer-events: none;
+}
+.fs-login-page::before {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, #6366f1, transparent);
+  top: -100px;
+  right: -100px;
+}
+.fs-login-page::after {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, #8b5cf6, transparent);
+  bottom: -80px;
+  left: -80px;
+}
+
+.fs-login-wrapper {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 440px;
+}
+
+/* Brand */
+.fs-login-brand {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.fs-login-logo {
+  width: 52px;
+  height: 52px;
+  background: var(--fs-accent);
+  border-radius: var(--fs-radius-lg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #fff;
+  font-weight: 800;
+  margin-bottom: 14px;
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35);
+}
+.fs-login-brand h1 {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--fs-text);
+}
+.fs-login-brand p {
+  font-size: var(--fs-text-sm);
+  color: var(--fs-text-muted);
+  margin-top: 4px;
+}
+
+/* Card */
+.fs-login-card {
+  background: var(--fs-bg);
+  border-radius: var(--fs-radius-xl);
+  border: 1.5px solid var(--fs-border);
+  box-shadow: var(--fs-shadow-lg);
+  padding: 32px;
+  animation: fs-modal-in 0.3s ease;
+}
+
+.fs-login-card h2 {
+  font-size: var(--fs-text-xl);
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: var(--fs-text);
+}
+.fs-login-card .subtitle {
+  font-size: var(--fs-text-sm);
+  color: var(--fs-text-muted);
+  margin-bottom: 24px;
+}
+
+/* Input with icon */
+.fs-input-group {
+  position: relative;
+  margin-bottom: 14px;
+}
+.fs-input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--fs-text-muted);
+  font-size: 15px;
+  pointer-events: none;
+}
+.fs-input-group .fs-input {
+  padding-left: 38px;
+}
+.fs-input-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--fs-text-muted);
+  font-size: 15px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 2px;
+  transition: var(--fs-transition);
+}
+.fs-input-toggle:hover { color: var(--fs-text); }
+
+/* Error message */
+.fs-input-error {
+  font-size: var(--fs-text-xs);
+  color: var(--fs-danger);
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Login button */
+.fs-login-btn {
+  width: 100%;
+  padding: 11px;
+  font-size: var(--fs-text-md);
+  border-radius: var(--fs-radius-md);
+  margin-top: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.fs-login-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Demo accounts section */
+.fs-demo-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--fs-border);
+}
+.fs-demo-title {
+  font-size: var(--fs-text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--fs-text-muted);
+  text-align: center;
+  margin-bottom: 12px;
+}
+.fs-demo-accounts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.fs-demo-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border: 1.5px solid var(--fs-border);
+  border-radius: var(--fs-radius);
+  cursor: pointer;
+  transition: var(--fs-transition);
+  background: var(--fs-bg-secondary);
+  font-family: var(--fs-font);
+  text-align: left;
+}
+.fs-demo-btn:hover {
+  border-color: var(--fs-accent);
+  background: var(--fs-accent-light);
+  transform: translateY(-1px);
+  box-shadow: var(--fs-shadow-sm);
+}
+.fs-demo-info { min-width: 0; }
+.fs-demo-name { font-size: var(--fs-text-xs); font-weight: 600; color: var(--fs-text); }
+.fs-demo-role { font-size: 10px; color: var(--fs-text-muted); margin-top: 1px; }
+
+/* Alert error */
+.fs-login-alert {
+  background: var(--fs-danger-light);
+  border: 1px solid #fca5a5;
+  border-radius: var(--fs-radius);
+  padding: 10px 14px;
+  font-size: var(--fs-text-sm);
+  color: #991b1b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  display: none;
+}
+.fs-login-alert.show { display: flex; animation: fs-modal-in 0.2s ease; }
+
+/* Footer */
+.fs-login-footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: var(--fs-text-xs);
+  color: var(--fs-text-muted);
+}
+
+@media (max-width: 480px) {
+  .fs-demo-accounts { grid-template-columns: 1fr; }
+  .fs-login-card { padding: 24px 20px; }
+}

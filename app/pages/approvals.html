@@ -1,0 +1,26 @@
+<!-- FlowSpace — Approvals Page -->
+<div class="page-enter" id="approvals-page">
+  <div class="fs-page-header">
+    <div>
+      <h1 class="fs-page-title">Phê duyệt</h1>
+      <p class="fs-page-subtitle">Xét duyệt yêu cầu từ nhân viên</p>
+    </div>
+    <div class="d-flex gap-2">
+      <span class="fs-badge badge-warning fs-badge-lg" id="approvals-pending-badge">0 chờ duyệt</span>
+    </div>
+  </div>
+
+  <!-- Quick filter -->
+  <div class="fs-filters">
+    <select class="fs-filter-select" id="approvals-filter">
+      <option value="pending">⏳ Chờ duyệt</option>
+      <option value="approved">✅ Đã phê duyệt</option>
+      <option value="rejected">❌ Đã từ chối</option>
+      <option value="">Tất cả</option>
+    </select>
+  </div>
+
+  <div id="approvals-list">
+    <div class="fs-empty"><div class="fs-spinner mx-auto"></div></div>
+  </div>
+</div>

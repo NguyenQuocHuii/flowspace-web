@@ -1,0 +1,139 @@
+<!-- ============================================================
+     FlowSpace — Tasks Page
+     ============================================================ -->
+<div class="page-enter" id="tasks-page">
+
+  <!-- Page Header -->
+  <div class="fs-page-header">
+    <div>
+      <h1 class="fs-page-title">Quản lý Công việc</h1>
+      <p class="fs-page-subtitle" id="tasks-count-label">Đang tải...</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-primary btn-sm" id="task-new-btn">
+        <i class="bi bi-plus-lg"></i> Tạo công việc
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="fs-filters">
+    <input type="text" class="fs-search-input" id="task-search" placeholder="Tìm công việc...">
+    <select class="fs-filter-select" id="task-filter-status">
+      <option value="">Tất cả trạng thái</option>
+      <option value="todo">Chưa bắt đầu</option>
+      <option value="in_progress">Đang làm</option>
+      <option value="review">Chờ duyệt</option>
+      <option value="done">Hoàn thành</option>
+    </select>
+    <select class="fs-filter-select" id="task-filter-priority">
+      <option value="">Tất cả ưu tiên</option>
+      <option value="high">Cao</option>
+      <option value="medium">Trung bình</option>
+      <option value="low">Thấp</option>
+    </select>
+    <select class="fs-filter-select" id="task-filter-project">
+      <option value="">Tất cả dự án</option>
+    </select>
+    <select class="fs-filter-select" id="task-filter-assignee">
+      <option value="">Tất cả người thực hiện</option>
+    </select>
+    <button class="btn btn-ghost btn-sm" id="task-filter-reset" style="color:var(--fs-text-muted)">
+      <i class="bi bi-x-circle"></i> Xoá lọc
+    </button>
+  </div>
+
+  <!-- Tasks Table -->
+  <div class="fs-card" style="padding:0;overflow:hidden">
+    <table class="fs-table" id="tasks-table">
+      <thead>
+        <tr>
+          <th style="width:40px"></th>
+          <th>Tiêu đề</th>
+          <th>Dự án</th>
+          <th>Người thực hiện</th>
+          <th>Độ ưu tiên</th>
+          <th>Trạng thái</th>
+          <th>Hạn hoàn thành</th>
+          <th style="width:60px">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody id="tasks-table-body">
+        <tr><td colspan="8"><div class="fs-empty"><div class="fs-spinner mx-auto"></div></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="d-flex align-items-center justify-content-between mt-3">
+    <span class="fs-small" id="tasks-pagination-info"></span>
+    <div class="d-flex gap-1" id="tasks-pagination-btns"></div>
+  </div>
+
+</div>
+
+<!-- Create/Edit Task Modal -->
+<div class="fs-modal-overlay" id="task-modal-overlay" style="display:none">
+  <div class="fs-modal" style="max-width:580px">
+    <div class="fs-modal-header">
+      <h5 class="fs-h5 m-0" id="task-modal-title">Tạo công việc mới</h5>
+      <button class="btn btn-ghost btn-icon btn-sm" id="task-modal-close"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="fs-modal-body">
+      <input type="hidden" id="task-modal-id">
+      <div class="fs-form-group">
+        <label class="fs-label-text" for="task-modal-name">Tiêu đề *</label>
+        <input type="text" class="fs-input" id="task-modal-name" placeholder="Mô tả ngắn về công việc...">
+      </div>
+      <div class="fs-form-group">
+        <label class="fs-label-text" for="task-modal-desc">Mô tả chi tiết</label>
+        <textarea class="fs-textarea" id="task-modal-desc" rows="3" placeholder="Chi tiết yêu cầu, điều kiện hoàn thành..."></textarea>
+      </div>
+      <div class="row g-3">
+        <div class="col-6 fs-form-group">
+          <label class="fs-label-text" for="task-modal-project">Dự án</label>
+          <select class="fs-select" id="task-modal-project"></select>
+        </div>
+        <div class="col-6 fs-form-group">
+          <label class="fs-label-text" for="task-modal-assignee">Người thực hiện</label>
+          <select class="fs-select" id="task-modal-assignee"></select>
+        </div>
+        <div class="col-6 fs-form-group">
+          <label class="fs-label-text" for="task-modal-priority">Độ ưu tiên</label>
+          <select class="fs-select" id="task-modal-priority">
+            <option value="high">Cao</option>
+            <option value="medium" selected>Trung bình</option>
+            <option value="low">Thấp</option>
+          </select>
+        </div>
+        <div class="col-6 fs-form-group">
+          <label class="fs-label-text" for="task-modal-status">Trạng thái</label>
+          <select class="fs-select" id="task-modal-status">
+            <option value="todo">Chưa bắt đầu</option>
+            <option value="in_progress">Đang làm</option>
+            <option value="review">Chờ duyệt</option>
+            <option value="done">Hoàn thành</option>
+          </select>
+        </div>
+        <div class="col-6 fs-form-group">
+          <label class="fs-label-text" for="task-modal-start">Ngày bắt đầu</label>
+          <input type="date" class="fs-input" id="task-modal-start">
+        </div>
+        <div class="col-6 fs-form-group">
+          <label class="fs-label-text" for="task-modal-due">Hạn hoàn thành</label>
+          <input type="date" class="fs-input" id="task-modal-due">
+        </div>
+        <div class="col-6 fs-form-group">
+          <label class="fs-label-text" for="task-modal-est">Ước tính (giờ)</label>
+          <input type="number" class="fs-input" id="task-modal-est" placeholder="0" min="0">
+        </div>
+      </div>
+    </div>
+    <div class="fs-modal-footer">
+      <button class="btn btn-ghost btn-sm" id="task-modal-cancel">Hủy</button>
+      <button class="btn btn-primary btn-sm" id="task-modal-save">
+        <i class="bi bi-check2"></i> Lưu
+      </button>
+    </div>
+  </div>
+</div>

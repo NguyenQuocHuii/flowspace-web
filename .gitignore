@@ -1,0 +1,24 @@
+# Build outputs
+**/bin/
+**/obj/
+[Dd]ebug/
+[Rr]elease/
+
+# Package management
+node_modules/
+jspm_packages/
+web_packages/
+.npm/
+
+# Local configurations & secrets
+**/appsettings.Development.json
+**/*.user
+**/*.suo
+.vs/
+.idea/
+.vscode/
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,105 @@
+<!-- ============================================================
+     FlowSpace — Gantt Chart Page
+     ============================================================ -->
+<div class="page-enter" id="gantt-page">
+
+  <div class="fs-page-header">
+    <div>
+      <h1 class="fs-page-title">Gantt Chart</h1>
+      <p class="fs-page-subtitle">Timeline dự án và phân công công việc</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <select class="fs-filter-select" id="gantt-filter-project">
+        <option value="">Tất cả dự án</option>
+      </select>
+      <div class="d-flex" style="border:1.5px solid var(--fs-border);border-radius:var(--fs-radius);overflow:hidden">
+        <button class="btn btn-ghost btn-sm gantt-zoom active" data-zoom="week" style="border-radius:0;font-size:12px">Tuần</button>
+        <button class="btn btn-ghost btn-sm gantt-zoom" data-zoom="month" style="border-radius:0;border-left:1px solid var(--fs-border);font-size:12px">Tháng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gantt Container -->
+  <div class="fs-card" style="padding:0;overflow:hidden;position:relative">
+    <svg id="gantt-svg-layer" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:4;overflow:visible"></svg>
+    <div id="gantt-container" style="overflow-x:auto;position:relative;z-index:2">
+      <!-- Rendered by JS -->
+    </div>
+  </div>
+
+</div>
+
+<style>
+.gantt-table { min-width: 100%; border-collapse: collapse; }
+.gantt-task-col { width: 260px; min-width: 260px; }
+.gantt-header-row { background: var(--fs-bg-secondary); position: sticky; top: 0; z-index: 5; }
+.gantt-header-cell {
+  padding: 10px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--fs-text-muted);
+  border-bottom: 1.5px solid var(--fs-border);
+  white-space: nowrap;
+  text-align: center;
+}
+.gantt-task-header {
+  padding: 10px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--fs-text-muted);
+  border-bottom: 1.5px solid var(--fs-border);
+  border-right: 1.5px solid var(--fs-border);
+  background: var(--fs-bg-secondary);
+}
+.gantt-row { border-bottom: 1px solid var(--fs-border); transition: var(--fs-transition); }
+.gantt-row:hover { background: var(--fs-bg-hover); }
+.gantt-task-cell {
+  padding: 10px 14px;
+  border-right: 1.5px solid var(--fs-border);
+  vertical-align: middle;
+}
+.gantt-task-name { font-size: 12px; font-weight: 500; color: var(--fs-text); }
+.gantt-task-meta { font-size: 11px; color: var(--fs-text-muted); margin-top: 2px; }
+.gantt-day-cell { position: relative; height: 42px; border-right: 1px solid var(--fs-border); min-width: 32px; }
+.gantt-day-cell.today { background: #eef2ff; }
+.gantt-bar-wrapper { position: absolute; top: 50%; transform: translateY(-50%); height: 18px; }
+.gantt-bar {
+  height: 100%;
+  border-radius: 4px;
+  opacity: 0.9;
+  cursor: ew-resize;
+  user-select: none;
+  transition: opacity 0.15s, border 0.15s;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  font-size: 10px;
+  color: #fff;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.gantt-bar:hover { opacity: 1; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+.gantt-bar.critical {
+  border: 2px solid #ef4444;
+  box-shadow: 0 0 8px rgba(239,68,68,0.5);
+  opacity: 1;
+}
+.gantt-project-row { background: var(--fs-bg-tertiary); }
+.gantt-project-row .gantt-task-name { font-weight: 700; color: var(--fs-accent); font-size: 13px; }
+.gantt-today-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--fs-danger);
+  opacity: 0.6;
+  z-index: 3;
+  pointer-events: none;
+}
+</style>
