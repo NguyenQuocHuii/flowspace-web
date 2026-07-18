@@ -125,6 +125,22 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+// Automatically migrate and seed database (SQLite)
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<FlowSpace.Persistence.Contexts.FlowSpaceDbContext>();
+        FlowSpace.Persistence.DbInitializer.Initialize(context);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the SQLite database.");
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
