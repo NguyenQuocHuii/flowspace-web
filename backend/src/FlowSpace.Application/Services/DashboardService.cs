@@ -7,6 +7,7 @@ using FlowSpace.Domain.Entities;
 using FlowSpace.Domain.Enums;
 using FlowSpace.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using TaskStatus = FlowSpace.Domain.Enums.TaskStatus;
 
 namespace FlowSpace.Application.Services
 {
@@ -39,9 +40,9 @@ namespace FlowSpace.Application.Services
             var activeProjects = await projectQuery.CountAsync(p => p.Status == ProjectStatus.Active);
 
             var totalTasks = await taskQuery.CountAsync();
-            var completedTasks = await taskQuery.CountAsync(t => t.Status == TaskItemStatus.Done);
-            var pendingTasks = await taskQuery.CountAsync(t => t.Status != TaskItemStatus.Done);
-            var overdueTasks = await taskQuery.CountAsync(t => t.Status != TaskItemStatus.Done && t.DueDate < now);
+            var completedTasks = await taskQuery.CountAsync(t => t.Status == TaskStatus.Done);
+            var pendingTasks = await taskQuery.CountAsync(t => t.Status != TaskStatus.Done);
+            var overdueTasks = await taskQuery.CountAsync(t => t.Status != TaskStatus.Done && t.DueDate < now);
 
             var pendingApprovalsCount = await requestQuery.CountAsync(r => r.Status == RequestStatus.Pending);
             var totalLoggedHours = await timeLogQuery.SumAsync(tl => (decimal?)tl.Hours) ?? 0m;
