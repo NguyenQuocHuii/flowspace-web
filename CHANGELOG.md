@@ -106,3 +106,9 @@ Tài liệu này ghi lại toàn bộ lịch sử cập nhật cấu trúc mã n
 - **Hoàn thành 100% Roadmap**: Toàn bộ 7 Modules nghiệp vụ (Auth, Projects, Tasks/Kanban, Time Tracking, Requests/Approvals, Workspace Chat/Documents, Dashboard) đã được triển khai hoàn chỉnh trên cả Backend .NET 8 Clean Architecture và Frontend Single Page Application.
 - **Nghiệm thu Hệ thống**: Đã thực hiện **Final Production Review** thành công. Toàn bộ tài liệu kỹ thuật, API specification, Database schema và Source code đồng bộ 100%.
 
+## [2026-07-19] - Redesign Landing Page & Tích hợp Auth State (Landing Page v2.0)
+
+### Frontend
+- **Viết lại**: Tệp [index.html](file:///e:/flowspace-fe/app/index.html) redesign hoàn toàn trang chủ đạt chuẩn SaaS hiện đại. Nhúng jQuery 3.7.1 + `auth.js` để đồng bộ trạng thái đăng nhập thật với Backend. Thêm Open Graph và Twitter Card meta tags.
+- **Viết lại**: Tệp [landing.css](file:///e:/flowspace-fe/app/css/landing.css) redesign toàn bộ CSS với hiệu ứng gradient glow, glassmorphism header, carousel progress-bar indicators và responsive tối ưu cho 375/768/1440px.
+- **Tạo mới**: Tệp [landing.js](file:///e:/flowspace-fe/app/js/pages/landing.js) module JS theo đúng convention dự án — xử lý auth-state UI toggle (Guest vs Authenticated), carousel workflow, smooth scroll và header scroll effect. Loại bỏ hoàn toàn inline script khỏi index.html.
