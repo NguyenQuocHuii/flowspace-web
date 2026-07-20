@@ -1,10 +1,10 @@
+using System;
+using System.Net;
+using System.Net.Mail;
+using System.Threading.Tasks;
 using FlowSpace.Application.Interfaces;
-using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using MimeKit;
-using System;
-using System.Threading.Tasks;
 
 namespace FlowSpace.Infrastructure.Services
 {
@@ -39,17 +39,32 @@ namespace FlowSpace.Infrastructure.Services
                 return;
             }
 
-            var email = new MimeMessage();
-            email.From.Add(MailboxAddress.Parse(from));
-            email.To.Add(MailboxAddress.Parse(to));
-            email.Subject = subject;
-            email.Body = new TextPart("html") { Text = htmlBody };
+            try
+            {
+                using (var client = new SmtpClient(host, port))
+                {
+                    client.UseDefaultCredentials = false;
+                    client.Credentials = new NetworkCredential(user, password);
+                    client.EnableSsl = enableSsl;
 
-            using var smtp = new SmtpClient();
-            await smtp.ConnectAsync(host, port, enableSSsl);
-            await smtp.AuthenticateAsync(user, password);
-            await smtp.SendAsync(email);
-            await smtp.DisconnectAsync(true);
+                    var mailMessage = new MailMessage
+                    {
+                        From = new MailAddress(from),
+                        Subject = subject,
+                        Body = htmlBody,
+                        IsBodyHtml = true
+                    };
+                    mailMessage.To.Add(to);
+
+                    await client.SendMailAsync(mailMessage);
+                    _logger.LogInformation("Email sent successfully to {To}", to);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send email to {To}. Error: {Message}", to, ex.Message);
+                throw;
+            }
         }
     }
 }
