@@ -315,19 +315,19 @@
 
 .fs-topbar-badge {
   position: absolute;
-  top: 0;
-  right: 0;
-  transform: translate(50%, -50%);
+  top: 3px;
+  right: 3px;
+  transform: translate(20%, -20%);
   width: auto;
-  height: 16px;
-  min-width: 16px;
+  height: 15px;
+  min-width: 15px;
   padding: 0 4px;
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 16px;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
   color: #fff;
   background: var(--fs-danger);
-  border: 2px solid var(--fs-bg);
+  border: 1.5px solid var(--fs-bg);
   border-radius: 999px;
   display: flex;
   align-items: center;
