@@ -234,9 +234,9 @@
         status: $('#task-modal-status').val() || 'todo',
         startDate: $('#task-modal-start').val() ? new Date($('#task-modal-start').val()).toISOString() : null,
         dueDate: $('#task-modal-due').val() ? new Date($('#task-modal-due').val()).toISOString() : null,
-        estimatedHours: parseInt($('#task-modal-est').val()) || 0
       };
 
+      try {
         let response;
         if (isNew) {
           response = await FS.apiCall({

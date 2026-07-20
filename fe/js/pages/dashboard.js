@@ -399,4 +399,4 @@
       });
     },
   };
-})((window.FS = window.FS || {}));
+})((window.FS = window.FS || {}), jQuery);
