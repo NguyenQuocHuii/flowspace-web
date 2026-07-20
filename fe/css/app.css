@@ -315,24 +315,25 @@
 
 .fs-topbar-badge {
   position: absolute;
-  top: 3px;
-  right: 3px;
-  transform: translate(20%, -20%);
+  top: 2px;
+  right: 2px;
+  transform: translate(25%, -25%);
   width: auto;
-  height: 15px;
-  min-width: 15px;
+  height: 16px;
+  min-width: 16px;
   padding: 0 4px;
   font-size: 9px;
   font-weight: 700;
-  line-height: 1;
+  line-height: 12px;
   color: #fff;
   background: var(--fs-danger);
   border: 1.5px solid var(--fs-bg);
-  border-radius: 999px;
-  display: flex;
+  border-radius: 10px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   z-index: 10;
+  box-sizing: border-box;
 }
 
 .fs-topbar-divider {
