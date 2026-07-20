@@ -166,21 +166,21 @@ namespace FlowSpace.Api.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<ApiResponse<AuthResponse>>> Login([FromBody] LoginRequest request)
+        public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
             
             if (user == null)
             {
                 await CreateAuditLogAsync(null, "LoginFailed", $"Failed login attempt for non-existing email: {request.Email}");
-                return FailResponse<AuthResponse>("Email hoặc mật khẩu không chính xác.");
+                return BadRequest(ApiResponse<object>.FailResult("Email hoặc mật khẩu không chính xác."));
             }
 
             // 1. Kiểm tra Lockout
             if (user.LockoutEndAt.HasValue && user.LockoutEndAt.Value > DateTime.UtcNow)
             {
                 var remaining = user.LockoutEndAt.Value - DateTime.UtcNow;
-                return FailResponse<AuthResponse>($"Tài khoản của bạn tạm thời bị khóa, vui lòng thử lại sau {Math.Ceiling(remaining.TotalMinutes)} phút.");
+                return BadRequest(ApiResponse<object>.FailResult($"Tài khoản của bạn tạm thời bị khóa, vui lòng thử lại sau {Math.Ceiling(remaining.TotalMinutes)} phút."));
             }
 
             // 2. Bắt buộc kiểm tra IsEmailVerified trước (Tạm thời bỏ chặn để đăng nhập trực tiếp ngay)
@@ -224,12 +224,12 @@ namespace FlowSpace.Api.Controllers
                 }
 
                 await _context.SaveChangesAsync();
-                return FailResponse<AuthResponse>("Email hoặc mật khẩu không chính xác.");
+                return BadRequest(ApiResponse<object>.FailResult("Email hoặc mật khẩu không chính xác."));
             }
 
             if (!user.Active)
             {
-                return FailResponse<AuthResponse>("Tài khoản của bạn đã bị vô hiệu hóa.");
+                return BadRequest(ApiResponse<object>.FailResult("Tài khoản của bạn đã bị vô hiệu hóa."));
             }
 
             // Đăng nhập đúng: reset
@@ -262,7 +262,7 @@ namespace FlowSpace.Api.Controllers
                 User = _mapper.Map<UserDto>(user)
             };
 
-            return OkResponse(response, "Đăng nhập thành công.");
+            return Ok(response);
         }
 
         [Authorize]
@@ -294,18 +294,18 @@ namespace FlowSpace.Api.Controllers
         }
 
         [HttpPost("refresh-token")]
-        public async Task<ActionResult<ApiResponse<AuthResponse>>> RefreshToken([FromBody] TokenRefreshRequest request)
+        public async Task<ActionResult<AuthResponse>> RefreshToken([FromBody] TokenRefreshRequest request)
         {
             var principal = _tokenGenerator.GetPrincipalFromExpiredToken(request.AccessToken);
             if (principal == null)
             {
-                return FailResponse<AuthResponse>("Access token không hợp lệ.");
+                return BadRequest(ApiResponse<object>.FailResult("Access token không hợp lệ."));
             }
 
             var userIdStr = principal.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
             {
-                return FailResponse<AuthResponse>("Token không hợp lệ.");
+                return BadRequest(ApiResponse<object>.FailResult("Token không hợp lệ."));
             }
 
             var savedRefreshToken = await _context.UserRefreshTokens
@@ -313,7 +313,7 @@ namespace FlowSpace.Api.Controllers
 
             if (savedRefreshToken == null || !savedRefreshToken.IsActive)
             {
-                return FailResponse<AuthResponse>("Refresh token không hợp lệ hoặc đã hết hạn.");
+                return BadRequest(ApiResponse<object>.FailResult("Refresh token không hợp lệ hoặc đã hết hạn."));
             }
 
             savedRefreshToken.RevokedAt = DateTime.UtcNow;
@@ -322,7 +322,7 @@ namespace FlowSpace.Api.Controllers
             var user = await _context.Users.FindAsync(userId);
             if (user == null || !user.Active)
             {
-                return FailResponse<AuthResponse>("Người dùng không tồn tại hoặc đã bị khóa.");
+                return BadRequest(ApiResponse<object>.FailResult("Người dùng không tồn tại hoặc đã bị khóa."));
             }
 
             var newAccessToken = _tokenGenerator.GenerateAccessToken(user);
@@ -348,7 +348,7 @@ namespace FlowSpace.Api.Controllers
                 User = _mapper.Map<UserDto>(user)
             };
 
-            return OkResponse(response, "Làm mới mã token thành công.");
+            return Ok(response);
         }
 
         [HttpPost("forgot-password")]
