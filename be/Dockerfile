@@ -27,11 +27,10 @@ ENV ASPNETCORE_URLS=http://*:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
 # --- Memory-safety net for constrained hosts (Render free tier = 512MB) ---
-# Force Workstation GC
+# Force Workstation GC to minimize idle memory
 ENV DOTNET_gcServer=0
 ENV DOTNET_gcConcurrent=0
-# Hard-cap the GC heap so it can never try to grow past the container limit
-ENV DOTNET_GCHeapHardLimit=0x14000000
+# Allow runtime to use more default heap space up to container limit without hard-cap crash
 # Avoids a known W^X memory-protection crash on some constrained/low-memory Linux containers during JIT.
 ENV DOTNET_EnableWriteXorExecute=0
 
