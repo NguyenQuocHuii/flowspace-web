@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "outputDirectory": "app",
+  "outputDirectory": "fe",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/app/$1" }
+    { "source": "/(.*)", "destination": "/fe/$1" }
   ]
 }

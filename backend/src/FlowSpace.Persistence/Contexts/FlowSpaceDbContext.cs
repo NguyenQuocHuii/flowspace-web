@@ -23,6 +23,8 @@ namespace FlowSpace.Persistence.Contexts
         public DbSet<EmailVerificationToken> EmailVerificationTokens => Set<EmailVerificationToken>();
         public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+        public DbSet<ChatChannel> ChatChannels => Set<ChatChannel>();
+        public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -199,6 +201,24 @@ namespace FlowSpace.Persistence.Contexts
                       .WithMany()
                       .HasForeignKey(a => a.UserId)
                       .OnDelete(DeleteBehavior.SetNull); // Audit log stays even if user is deleted
+            });
+
+            modelBuilder.Entity<ChatChannel>(entity =>
+            {
+                entity.ToTable("ChatChannels");
+            });
+
+            modelBuilder.Entity<ChatMessage>(entity =>
+            {
+                entity.ToTable("ChatMessages");
+                entity.HasOne(m => m.Channel)
+                      .WithMany()
+                      .HasForeignKey(m => m.ChannelId)
+                      .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(m => m.Sender)
+                      .WithMany()
+                      .HasForeignKey(m => m.SenderId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(FlowSpaceDbContext).Assembly);

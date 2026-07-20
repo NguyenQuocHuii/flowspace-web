@@ -204,5 +204,37 @@ namespace FlowSpace.Application.Services
 
             return await GetRequestByIdAsync(request.Id);
         }
+
+        public async Task<RequestResponse?> UpdateRequestAsync(Guid id, CreateRequestInput input, Guid userId)
+        {
+            var request = await _unitOfWork.Repository<Request>().GetQueryable()
+                .Include(r => r.Approvals)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (request == null) return null;
+            if (request.RequesterId != userId) return null; // Chỉ chủ sở hữu được sửa
+            if (request.Status != RequestStatus.Pending) return null; // Chỉ được sửa khi đang chờ duyệt
+
+            request.Title = input.Title;
+            request.Description = input.Description;
+            request.Type = Enum.TryParse<RequestType>(input.Type, true, out var type) ? type : request.Type;
+            request.UpdatedAt = DateTime.UtcNow;
+
+            _unitOfWork.Repository<Request>().Update(request);
+            await _unitOfWork.SaveChangesAsync();
+
+            return await GetRequestByIdAsync(request.Id);
+        }
+
+        public async Task<bool> DeleteRequestAsync(Guid id, Guid userId)
+        {
+            var request = await _unitOfWork.Repository<Request>().GetByIdAsync(id);
+            if (request == null) return false;
+            if (request.RequesterId != userId) return false; // Chỉ chủ sở hữu được xóa
+            if (request.Status != RequestStatus.Pending) return false; // Chỉ được xóa khi đang chờ duyệt
+
+            _unitOfWork.Repository<Request>().Delete(request);
+            return await _unitOfWork.SaveChangesAsync() > 0;
+        }
     }
 }

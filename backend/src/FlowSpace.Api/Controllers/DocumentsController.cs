@@ -95,5 +95,100 @@ namespace FlowSpace.Api.Controllers
 
             return File(document.ContentData, document.ContentType ?? "application/octet-stream", document.Name);
         }
+
+        [HttpGet]
+        public async Task<ActionResult<ApiResponse<object>>> GetAll()
+        {
+            var documents = await _context.Documents
+                .Select(d => new
+                {
+                    id = d.Id,
+                    name = d.Name,
+                    size = d.Size,
+                    type = d.Type,
+                    url = d.Url,
+                    uploadedAt = d.CreatedAt,
+                    createdBy = d.CreatedBy
+                })
+                .OrderByDescending(d => d.uploadedAt)
+                .ToListAsync();
+
+            return OkResponse<object>(documents, "Documents retrieved successfully.");
+        }
+
+        [HttpGet("{id:guid}")]
+        public async Task<ActionResult<ApiResponse<object>>> GetById(Guid id)
+        {
+            var document = await _context.Documents.FirstOrDefaultAsync(d => d.Id == id);
+            if (document == null)
+            {
+                return FailResponse<object>("Document not found.", StatusCodes.Status404NotFound);
+            }
+
+            var result = new
+            {
+                id = document.Id,
+                name = document.Name,
+                size = document.Size,
+                type = document.Type,
+                url = document.Url,
+                uploadedAt = document.CreatedAt,
+                createdBy = document.CreatedBy
+            };
+
+            return OkResponse<object>(result, "Document metadata retrieved successfully.");
+        }
+
+        [HttpPut("{id:guid}")]
+        public async Task<ActionResult<ApiResponse<object>>> Update(Guid id, [FromBody] UpdateDocumentRequest request)
+        {
+            var document = await _context.Documents.FirstOrDefaultAsync(d => d.Id == id);
+            if (document == null)
+            {
+                return FailResponse<object>("Document not found.", StatusCodes.Status404NotFound);
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Name))
+            {
+                return FailResponse<object>("Document name is required.", StatusCodes.Status400BadRequest);
+            }
+
+            document.Name = request.Name;
+            _context.Documents.Update(document);
+            await _context.SaveChangesAsync();
+
+            var result = new
+            {
+                id = document.Id,
+                name = document.Name,
+                size = document.Size,
+                type = document.Type,
+                url = document.Url,
+                uploadedAt = document.CreatedAt,
+                createdBy = document.CreatedBy
+            };
+
+            return OkResponse<object>(result, "Document updated successfully.");
+        }
+
+        [HttpDelete("{id:guid}")]
+        public async Task<ActionResult<ApiResponse<string>>> Delete(Guid id)
+        {
+            var document = await _context.Documents.FirstOrDefaultAsync(d => d.Id == id);
+            if (document == null)
+            {
+                return FailResponse<string>("Document not found.", StatusCodes.Status404NotFound);
+            }
+
+            _context.Documents.Remove(document);
+            await _context.SaveChangesAsync();
+
+            return OkResponse("Document deleted successfully.");
+        }
+    }
+
+    public class UpdateDocumentRequest
+    {
+        public string Name { get; set; } = string.Empty;
     }
 }

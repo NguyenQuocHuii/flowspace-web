@@ -60,5 +60,23 @@ namespace FlowSpace.Api.Controllers
             }
             return OkResponse("Time log deleted successfully.");
         }
+
+        [HttpPut("logs/{id:guid}")]
+        public async Task<ActionResult<ApiResponse<TimeLogDto>>> UpdateLog(Guid id, [FromBody] CreateTimeLogRequest request)
+        {
+            var userIdStr = _currentUser.UserId;
+            if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
+            {
+                return FailResponse<TimeLogDto>("Invalid user credentials.", StatusCodes.Status401Unauthorized);
+            }
+
+            var updatedLog = await _timeLogService.UpdateTimeLogAsync(id, request, userId);
+            if (updatedLog == null)
+            {
+                return FailResponse<TimeLogDto>("Time log not found or not owned by current user.", StatusCodes.Status400BadRequest);
+            }
+
+            return OkResponse(updatedLog, "Time log updated successfully.");
+        }
     }
 }

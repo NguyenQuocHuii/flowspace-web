@@ -103,5 +103,35 @@ namespace FlowSpace.Application.Services
             await _unitOfWork.SaveChangesAsync();
             return true;
         }
+
+        public async Task<TimeLogDto?> UpdateTimeLogAsync(Guid id, CreateTimeLogRequest request, Guid userId)
+        {
+            var log = await _unitOfWork.Repository<TimeLog>().GetByIdAsync(id);
+            if (log == null) return null;
+            if (log.UserId != userId) return null; // Chỉ người log mới được sửa
+
+            var task = await _unitOfWork.Repository<TaskItem>().GetByIdAsync(log.TaskId);
+            if (task != null)
+            {
+                // Trừ đi số giờ cũ và cộng thêm số giờ mới vào Task tương ứng
+                task.LoggedHours = Math.Max(0, task.LoggedHours - log.Hours + request.Hours);
+                _unitOfWork.Repository<TaskItem>().Update(task);
+            }
+
+            log.Hours = request.Hours;
+            log.Note = request.Description;
+            log.Date = request.LoggedDate ?? DateTime.UtcNow.Date;
+
+            _unitOfWork.Repository<TimeLog>().Update(log);
+            await _unitOfWork.SaveChangesAsync();
+
+            var updatedLog = await _unitOfWork.Repository<TimeLog>().GetQueryable()
+                .Include(tl => tl.Task)
+                .Include(tl => tl.User)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(tl => tl.Id == log.Id);
+
+            return _mapper.Map<TimeLogDto>(updatedLog);
+        }
     }
 }
