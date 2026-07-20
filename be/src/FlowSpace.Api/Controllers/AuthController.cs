@@ -118,8 +118,21 @@ namespace FlowSpace.Api.Controllers
                 CreatedAt = DateTime.UtcNow
             };
 
-            await _context.EmailVerificationTokens.AddAsync(verificationToken);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.EmailVerificationTokens.AddAsync(verificationToken);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException dbEx)
+            {
+                _logger.LogError(dbEx, "Lỗi khi lưu dữ liệu đăng ký người dùng mới vào database. Email: {Email}", user.Email);
+                return FailResponse<UserDto>("Không thể tạo tài khoản do lỗi cơ sở dữ liệu. Vui lòng kiểm tra lại thông tin hoặc thử lại sau.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi hệ thống trong tiến trình đăng ký tài khoản. Email: {Email}", user.Email);
+                return FailResponse<UserDto>("Đã xảy ra lỗi không mong muốn trong quá trình đăng ký.");
+            }
 
             // Ghi Audit Log thành công
             await CreateAuditLogAsync(user.Id, "Register", $"User registered successfully. Email: {user.Email}");

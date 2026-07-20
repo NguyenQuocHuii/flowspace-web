@@ -182,6 +182,24 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+// Tự động chạy Migration cập nhật DB schema khi startup (PostgreSQL)
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<FlowSpace.Persistence.Contexts.FlowSpaceDbContext>();
+        context.Database.Migrate();
+        // Seed dữ liệu mẫu an toàn
+        FlowSpace.Persistence.DbInitializer.Initialize(context);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Đã xảy ra lỗi trong tiến trình tự động Migrate/Seed Database PostgreSQL.");
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
