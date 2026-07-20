@@ -20,45 +20,7 @@
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   }
 
-  /* ── Users ─────────────────────────────────────────────── */
-  const USERS = [
-    {
-      id: 'u1', name: 'Nguyễn Văn An', email: 'nhanvien@flowspace.demo',
-      password: '123456', role: 'employee', avatar: 'NV',
-      color: 'av-teal', department: 'Kỹ thuật', position: 'Nhân viên',
-      phone: '0901234567', joinDate: '2023-03-15', active: true
-    },
-    {
-      id: 'u2', name: 'Trần Thị Bình', email: 'truongnhom@flowspace.demo',
-      password: '123456', role: 'team_lead', avatar: 'TB',
-      color: 'av-violet', department: 'Kỹ thuật', position: 'Trưởng nhóm',
-      phone: '0912345678', joinDate: '2022-01-10', active: true
-    },
-    {
-      id: 'u3', name: 'Lê Minh Cường', email: 'truongphong@flowspace.demo',
-      password: '123456', role: 'manager', avatar: 'LC',
-      color: 'av-orange', department: 'Kỹ thuật', position: 'Trưởng phòng',
-      phone: '0923456789', joinDate: '2021-05-20', active: true
-    },
-    {
-      id: 'u4', name: 'Phạm Thanh Dung', email: 'admin@flowspace.demo',
-      password: '123456', role: 'director', avatar: 'PD',
-      color: 'av-rose', department: 'Ban lãnh đạo', position: 'Ban giám đốc',
-      phone: '0934567890', joinDate: '2020-01-01', active: true
-    },
-    {
-      id: 'u5', name: 'Hoàng Văn Em', email: 'hoangemail@flowspace.demo',
-      password: '123456', role: 'employee', avatar: 'HE',
-      color: 'av-cyan', department: 'Marketing', position: 'Nhân viên',
-      phone: '0945678901', joinDate: '2023-06-01', active: true
-    },
-    {
-      id: 'u6', name: 'Vũ Thị Phương', email: 'vuphong@flowspace.demo',
-      password: '123456', role: 'employee', avatar: 'VP',
-      color: 'av-pink', department: 'Thiết kế', position: 'Nhân viên',
-      phone: '0956789012', joinDate: '2023-09-01', active: true
-    }
-  ];
+
 
   /* ── Projects ───────────────────────────────────────────── */
   const PROJECTS = [
@@ -523,12 +485,7 @@
     { key: 'request_reject', name: 'Từ chối yêu cầu', subject: 'Yêu cầu bị từ chối: {request_title}', body: 'Chào {user_name},\n\nYêu cầu "{request_title}" của bạn đã bị từ chối.\nNgười duyệt: {approver_name}.\nGhi chú/Lý do: {note}' }
   ];
 
-  /* ── Demo accounts (single source of truth) ──────────────
-   * The Login page's "Demo Accounts" UI reads from FS.getDemoAccounts()
-   * below — it must NEVER hardcode credentials itself. These IDs point
-   * at real entries in USERS above, one per role level.
-   */
-  const DEMO_USER_IDS = ['u1', 'u2', 'u3', 'u4'];
+
 
   /* ── Main seed function ─────────────────────────────────── */
   FS.seedData = function () {
@@ -546,15 +503,15 @@
       localStorage.setItem('fs_notification_templates', JSON.stringify(DEFAULT_NOTIFICATION_TEMPLATES));
     }
 
+    // Đảm bảo fs_users luôn tồn tại (mảng rỗng nếu chưa có)
+    if (!localStorage.getItem('fs_users')) {
+      localStorage.setItem('fs_users', JSON.stringify([]));
+    }
+
     if (localStorage.getItem(SEED_KEY)) {
-      // Data already exists — never overwrite it. Only backfill any
-      // demo accounts that are missing so the Login page's demo
-      // buttons always have a real, matching user to log in as.
-      FS.ensureDemoUsers();
       return;
     }
 
-    localStorage.setItem('fs_users',       JSON.stringify(USERS));
     localStorage.setItem('fs_projects',    JSON.stringify(PROJECTS));
     localStorage.setItem('fs_tasks',       JSON.stringify(TASKS));
     localStorage.setItem('fs_kanban_cols', JSON.stringify(KANBAN_COLUMNS));
@@ -567,54 +524,9 @@
     localStorage.setItem('fs_settings',    JSON.stringify(SETTINGS));
 
     localStorage.setItem(SEED_KEY, '1');
-    console.log('[FlowSpace] Seed data initialized.');
   };
 
-  /**
-   * Ensures every demo account (DEMO_USER_IDS) exists in fs_users
-   * without touching or overwriting any existing user data.
-   */
-  FS.ensureDemoUsers = function () {
-    const users = JSON.parse(localStorage.getItem('fs_users') || '[]');
-    let changed = false;
-    DEMO_USER_IDS.forEach(id => {
-      const exists = users.some(u => u.id === id);
-      if (!exists) {
-        const seedUser = USERS.find(u => u.id === id);
-        if (seedUser) {
-          users.push(seedUser);
-          changed = true;
-        }
-      }
-    });
-    if (changed) {
-      localStorage.setItem('fs_users', JSON.stringify(users));
-    }
-  };
 
-  /**
-   * Single source of truth for the Login page's Demo Accounts UI.
-   * Always reflects the users actually stored in localStorage —
-   * never a separate hardcoded list — so displayed credentials
-   * are guaranteed to log in successfully.
-   */
-  FS.getDemoAccounts = function () {
-    const stored = JSON.parse(localStorage.getItem('fs_users') || '[]');
-    const source = stored.length ? stored : USERS;
-    return DEMO_USER_IDS.map(id => {
-      const u = source.find(x => x.id === id) || USERS.find(x => x.id === id);
-      if (!u) return null;
-      return {
-        email:     u.email,
-        password:  u.password,
-        name:      u.name,
-        role:      u.role,
-        roleLabel: (FS.ROLE_LABELS && FS.ROLE_LABELS[u.role]) || u.position || u.role,
-        avatar:    u.avatar,
-        color:     u.color
-      };
-    }).filter(Boolean);
-  };
 
   /* ── Data accessors (CRUD helpers) ─────────────────────── */
   FS.db = {

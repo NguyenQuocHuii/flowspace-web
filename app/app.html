@@ -238,6 +238,10 @@
   </div>
 
   <!-- ── JS Libraries ──────────────────────────────────────── -->
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- SignalR Client CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
   <!-- jQuery -->
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
   <!-- Bootstrap JS -->
@@ -298,7 +302,12 @@
 
       // Topbar user info
       const $topbarAvatar = $('#topbar-user-avatar');
-      $topbarAvatar.text(session.avatar).addClass(session.color || 'av-indigo');
+      $topbarAvatar.text(session.avatar);
+      if (session.color && session.color.startsWith('#')) {
+        $topbarAvatar.css('background-color', session.color);
+      } else {
+        $topbarAvatar.addClass(session.color || 'av-indigo');
+      }
       $('#topbar-user-name').text(session.name.split(' ').pop()); // Last name only
       $('#user-menu-email').text(session.email);
 
@@ -413,6 +422,11 @@
 
       // 11. Init router → load first page
       FS.router.init();
+
+      // 12. Initialize Lucide Icons
+      if (window.lucide) {
+        lucide.createIcons();
+      }
     });
   </script>
 

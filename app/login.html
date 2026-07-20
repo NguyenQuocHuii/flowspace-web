@@ -14,22 +14,75 @@
   <link rel="stylesheet" href="css/design-system.css">
   <link rel="stylesheet" href="css/login.css">
 </head>
-<body>
+<body class="fs-auth-body">
 
-<div class="fs-login-page">
-  <div class="fs-login-wrapper">
+<div class="fs-auth-container">
 
-    <!-- Brand -->
-    <div class="fs-login-brand">
-      <div class="fs-login-logo">F</div>
-      <h1>FlowSpace</h1>
-      <p>Quản lý công việc thông minh, hiệu quả hơn mỗi ngày</p>
+  <!-- BÊN TRÁI: BRANDING & ILLUSTRATION (50%) -->
+  <div class="fs-auth-left">
+    <div class="fs-left-brand">
+      <div class="fs-left-logo">F</div>
+      <h2>FlowSpace</h2>
     </div>
 
-    <!-- Login Card -->
-    <div class="fs-login-card">
+    <div class="fs-left-content">
+      <div class="fs-left-intro">
+        <h1>Một không gian.<br>Mọi dự án.</h1>
+        <p>Quản lý công việc thông minh, cộng tác thời gian thực và tự động hóa quy trình phê duyệt chỉ trên một nền tảng duy nhất.</p>
+      </div>
+
+      <!-- Floating Cards Area -->
+      <div class="fs-floating-cards">
+        <!-- Card 1: Tasks Done -->
+        <div class="fs-float-card card-task">
+          <div class="fs-card-icon">
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
+          <div class="fs-card-details">
+            <h5>24 Tasks Completed</h5>
+            <p>Hôm nay • Hiệu suất tăng 12%</p>
+          </div>
+        </div>
+
+        <!-- Card 2: Team Collaboration -->
+        <div class="fs-float-card card-team">
+          <div class="fs-card-icon">
+            <i class="bi bi-people-fill"></i>
+          </div>
+          <div class="fs-card-details">
+            <h5>Team Collaboration</h5>
+            <div class="fs-avatar-group">
+              <div class="fs-avatar-mini" style="background:#2ecc71">NV</div>
+              <div class="fs-avatar-mini" style="background:#9b59b6">TB</div>
+              <div class="fs-avatar-mini" style="background:#e67e22">LC</div>
+              <div class="fs-avatar-mini" style="background:#cbd5e1; font-size:7px">+3</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Project Progress -->
+        <div class="fs-float-card card-progress">
+          <div class="fs-card-icon">
+            <i class="bi bi-speedometer2"></i>
+          </div>
+          <div class="fs-card-details">
+            <h5>Progress 86%</h5>
+            <p>Dự án FlowSpace v2</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fs-left-footer">
+      &copy; 2026 FlowSpace. Tất cả quyền được bảo lưu.
+    </div>
+  </div>
+
+  <!-- BÊN PHẢI: FORM LOGIN (50%) -->
+  <div class="fs-auth-right">
+    <div class="fs-auth-card">
       <h2>Chào mừng trở lại</h2>
-      <p class="subtitle">Đăng nhập để tiếp tục</p>
+      <p class="subtitle">Đăng nhập để tiếp tục làm việc</p>
 
       <!-- Error Alert -->
       <div class="fs-login-alert" id="login-alert">
@@ -42,27 +95,31 @@
         <div class="fs-form-group">
           <label class="fs-label-text" for="email">Email</label>
           <div class="fs-input-group">
-            <i class="bi bi-envelope fs-input-icon"></i>
+            <span class="fs-input-icon">
+              <i class="bi bi-envelope"></i>
+            </span>
             <input
               type="email"
               id="email"
               class="fs-input"
-              placeholder="email@flowspace.demo"
+              placeholder="you@example.com"
               autocomplete="username"
               required
             >
           </div>
         </div>
 
-        <div class="fs-form-group" style="margin-bottom:4px">
+        <div class="fs-form-group">
           <label class="fs-label-text" for="password">Mật khẩu</label>
           <div class="fs-input-group">
-            <i class="bi bi-lock fs-input-icon"></i>
+            <span class="fs-input-icon">
+              <i class="bi bi-lock"></i>
+            </span>
             <input
               type="password"
               id="password"
               class="fs-input"
-              placeholder="Nhập mật khẩu"
+              placeholder="Nhập mật khẩu của bạn"
               autocomplete="current-password"
               required
             >
@@ -72,30 +129,28 @@
           </div>
         </div>
 
-        <div style="text-align:right;margin-bottom:4px">
-          <a href="#" style="font-size:12px;color:var(--fs-accent)">Quên mật khẩu?</a>
+        <!-- Action tools -->
+        <div class="fs-auth-actions">
+          <label class="fs-checkbox-label">
+            <input type="checkbox" class="fs-checkbox" id="remember-me">
+            Ghi nhớ đăng nhập
+          </label>
+          <a href="#" class="fs-forgot-link">Quên mật khẩu?</a>
         </div>
 
-        <button type="submit" class="btn btn-primary fs-login-btn" id="login-btn">
+        <button type="submit" class="fs-login-btn" id="login-btn">
           <i class="bi bi-box-arrow-in-right"></i>
           <span>Đăng nhập</span>
         </button>
       </form>
 
-      <!-- Demo accounts (rendered dynamically from FS.getDemoAccounts() — the
-           single source of truth in js/core/seed-data.js — so these always
-           match the real seeded/localStorage users and always log in) -->
-      <div class="fs-demo-section">
-        <div class="fs-demo-title">Tài khoản demo — nhấp để điền nhanh</div>
-        <div class="fs-demo-accounts" id="demo-accounts"></div>
+      <!-- Toggle page link -->
+      <div class="fs-auth-link">
+        Chưa có tài khoản? <a href="register.html">Đăng ký ngay</a>
       </div>
     </div>
-
-    <!-- Footer -->
-    <div class="fs-login-footer">
-      &copy; 2026 FlowSpace. Dữ liệu demo — không có backend.
-    </div>
   </div>
+
 </div>
 
 <!-- jQuery -->
@@ -108,40 +163,16 @@
 
 <script>
 $(function () {
-  // Khởi tạo seed data
   window.FS = window.FS || {};
   FS.seedData();
 
-  // Nếu đã đăng nhập → redirect
+  // Đã đăng nhập -> chuyển hướng
   if (FS.auth.isLoggedIn()) {
     window.location.href = 'app.html?page=dashboard';
     return;
   }
 
-  // Render Demo Accounts từ nguồn dữ liệu duy nhất (FS.getDemoAccounts)
-  // → luôn khớp với user thật trong localStorage, không hardcode ở đây.
-  (function renderDemoAccounts() {
-    const $wrap = $('#demo-accounts');
-    const accounts = FS.getDemoAccounts();
-    $wrap.empty();
-    accounts.forEach(function (acc) {
-      const $btn = $('<button>', {
-        type: 'button',
-        class: 'fs-demo-btn',
-        'data-email': acc.email,
-        'data-pwd': acc.password
-      }).append(
-        $('<div>', { class: 'fs-avatar fs-avatar-sm ' + acc.color, text: acc.avatar }),
-        $('<div>', { class: 'fs-demo-info' }).append(
-          $('<div>', { class: 'fs-demo-name', text: acc.name }),
-          $('<div>', { class: 'fs-demo-role', text: acc.roleLabel })
-        )
-      );
-      $wrap.append($btn);
-    });
-  })();
-
-  // Toggle password visibility
+  // Toggle show/hide password
   $('#toggle-pwd').on('click', function () {
     const $input = $('#password');
     const $icon  = $('#toggle-pwd-icon');
@@ -154,16 +185,7 @@ $(function () {
     }
   });
 
-  // Quick fill from demo buttons (delegated — buttons are rendered dynamically)
-  $('#demo-accounts').on('click', '.fs-demo-btn', function () {
-    $('#email').val($(this).data('email'));
-    $('#password').val($(this).data('pwd'));
-    $('#login-alert').removeClass('show');
-    // Auto submit
-    $('#login-form').trigger('submit');
-  });
-
-  // Login form submit
+  // Submit form
   $('#login-form').on('submit', async function (e) {
     e.preventDefault();
     const email = $('#email').val().trim();
@@ -174,9 +196,8 @@ $(function () {
       return;
     }
 
-    // Loading state
     const $btn = $('#login-btn');
-    $btn.prop('disabled', true).html('<span class="fs-spinner" style="width:16px;height:16px;border-width:2px;border-color:rgba(255,255,255,0.3);border-top-color:#fff"></span> Đang đăng nhập...');
+    $btn.prop('disabled', true).html('<span class="fs-spinner"></span> Đang đăng nhập...');
 
     const session = await FS.auth.login(email, pwd);
     if (session) {
@@ -187,7 +208,6 @@ $(function () {
     } else {
       $btn.prop('disabled', false).html('<i class="bi bi-box-arrow-in-right"></i> Đăng nhập');
       showError('Email hoặc mật khẩu không đúng. Vui lòng thử lại.');
-      // Shake effect
       $('#login-form').addClass('shake');
       setTimeout(() => $('#login-form').removeClass('shake'), 500);
     }
@@ -199,7 +219,7 @@ $(function () {
     setTimeout(() => $('#login-alert').removeClass('show'), 4000);
   }
 
-  // Enter key on email → focus password
+  // Phím Enter chuyển ô
   $('#email').on('keydown', function (e) {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -207,7 +227,7 @@ $(function () {
     }
   });
 
-  // Shake animation style
+  // Thêm style shake
   $('<style>')
     .text('@keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} } .shake{animation:shake 0.4s ease}')
     .appendTo('head');

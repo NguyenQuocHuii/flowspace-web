@@ -28,17 +28,20 @@
 
     async _loadSummary() {
       try {
-        const response = await $.ajax({
+        const response = await FS.apiCall({
           url: FS.API_BASE + '/api/v1/dashboard/summary',
-          type: 'GET',
-          headers: this._getAuthHeaders()
+          type: 'GET'
         });
 
         if (response && response.success && response.data) {
           this._summaryData = response.data;
+          $('#dashboard-offline-banner').remove();
         }
       } catch (err) {
-        console.warn('Dashboard summary API failed, falling back to LocalStorage:', err);
+        console.warn('Dashboard summary API failed:', err);
+        if (!$('#dashboard-offline-banner').length) {
+          $('#page-content').prepend('<div id="dashboard-offline-banner" class="fs-login-alert show" style="display:flex; margin-bottom:16px"><i class="bi bi-exclamation-triangle-fill"></i><span>Không thể kết nối máy chủ. Hiện đang hiển thị số liệu thống kê tạm thời ngoại tuyến.</span></div>');
+        }
       }
     },
 

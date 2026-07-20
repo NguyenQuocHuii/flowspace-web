@@ -2,7 +2,7 @@
 
 Tài liệu này là Kế hoạch Tổng thể điều phối toàn bộ quá trình phát triển và hoàn thiện hệ thống FlowSpace. 
 > **Lưu ý**: Tài liệu này **tích hợp và tham chiếu trực tiếp** tất cả các mục công việc dở dang từ file gốc [TODO.md](file:///e:/flowspace-fe/TODO.md), giữ nguyên tính kế thừa và mở rộng lộ trình chi tiết.
-> **QUYẾT ĐỊNH ĐÃ CHỐT**: Hệ thống sử dụng duy nhất **SQL SERVER** (chuyển provider từ `UseSqlite` sang `UseSqlServer`, kết nối SQL Server LocalDB/SSMS theo `DATABASE_SETUP.sql`).
+> **QUYẾT ĐỊNH ĐÃ CHỐT**: Hệ thống sử dụng duy nhất **POSTGRESQL** (chuyển provider từ `UseSqlite` sang `UseNpgsql`, cấu hình Render PostgreSQL Instance cho môi trường Production).
 
 ---
 

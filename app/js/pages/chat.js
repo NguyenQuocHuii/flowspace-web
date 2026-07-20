@@ -12,12 +12,103 @@
     _mentionUsers: [],
     _mentionIndex: -1,
 
-    init() {
+    _connection: null,
+
+    async init() {
       this._renderChannelList();
       this._bindEvents();
+      
       // Open first channel
       const channels = FS.db.get('channels').filter(c => c.type === 'channel');
       if (channels.length) this._openChannel(channels[0].id);
+
+      await this._initSignalR();
+    },
+
+    async _initSignalR() {
+      const session = FS.auth.getSession();
+      if (!session || !session.token) return;
+
+      const connectionUrl = FS.API_BASE + '/hubs/chat?access_token=' + encodeURIComponent(session.token);
+
+      this._connection = new signalR.HubConnectionBuilder()
+        .withUrl(connectionUrl)
+        .withAutomaticReconnect()
+        .build();
+
+      // Hiển thị banner khi đang kết nối lại
+      this._connection.onreconnecting((error) => {
+        console.warn('SignalR Reconnecting...', error);
+        if (!$('#chat-reconnect-banner').length) {
+          $('#page-content').prepend('<div id="chat-reconnect-banner" class="fs-login-alert show" style="display:flex; margin-bottom:16px; background:var(--fs-warning-light); border-color:var(--fs-warning)"><i class="bi bi-exclamation-triangle-fill" style="color:var(--fs-warning)"></i><span>Đang kết nối lại chat...</span></div>');
+        }
+      });
+
+      this._connection.onreconnected((connectionId) => {
+        console.log('SignalR Reconnected.', connectionId);
+        $('#chat-reconnect-banner').remove();
+        if (this._currentChannel) {
+          this._connection.invoke("JoinChannel", this._currentChannel).catch(err => console.error(err));
+        }
+      });
+
+      this._connection.onclose((error) => {
+        console.error('SignalR connection closed.', error);
+      });
+
+      // Lắng nghe sự kiện từ Hub
+      this._connection.on("ReceiveMessage", (channelId, userJson, messageJson, createdAt) => {
+        const msg = typeof messageJson === 'string' ? JSON.parse(messageJson) : messageJson;
+        
+        const messagesMap = FS.db.getMap('messages');
+        if (!messagesMap[channelId]) messagesMap[channelId] = [];
+        
+        // Tránh trùng lặp tin nhắn của chính mình
+        if (!messagesMap[channelId].some(m => m.id === msg.id)) {
+          messagesMap[channelId].push(msg);
+          FS.db.set('messages', messagesMap);
+        }
+
+        if (this._currentChannel === channelId) {
+          this._renderMessages(channelId);
+        }
+      });
+
+      this._connection.on("MessageRecalled", (channelId, msgId) => {
+        const messagesMap = FS.db.getMap('messages');
+        const channelMsgs = messagesMap[channelId] || [];
+        const msg = channelMsgs.find(m => m.id === msgId);
+        if (msg) {
+          msg.recalled = true;
+          FS.db.set('messages', messagesMap);
+          if (this._currentChannel === channelId) {
+            this._renderMessages(channelId);
+          }
+        }
+      });
+
+      this._connection.on("MessagePinned", (channelId, msgId, isPinned) => {
+        const messagesMap = FS.db.getMap('messages');
+        const channelMsgs = messagesMap[channelId] || [];
+        const msg = channelMsgs.find(m => m.id === msgId);
+        if (msg) {
+          msg.pinned = isPinned;
+          FS.db.set('messages', messagesMap);
+          if (this._currentChannel === channelId) {
+            this._renderMessages(channelId);
+          }
+        }
+      });
+
+      try {
+        await this._connection.start();
+        console.log('SignalR Chat Connected.');
+        if (this._currentChannel) {
+          await this._connection.invoke("JoinChannel", this._currentChannel);
+        }
+      } catch (err) {
+        console.error('SignalR start failed:', err);
+      }
     },
 
     _renderChannelList() {
@@ -44,6 +135,7 @@
     },
 
     _openChannel(channelId) {
+      const oldChannel = this._currentChannel;
       this._currentChannel = channelId;
       const channel = FS.db.get('channels').find(c => c.id === channelId);
       if (!channel) return;
@@ -70,6 +162,14 @@
 
       // Update active state
       this._renderChannelList();
+
+      // SignalR Group management
+      if (this._connection && this._connection.state === signalR.HubConnectionState.Connected) {
+        if (oldChannel) {
+          this._connection.invoke("LeaveChannel", oldChannel).catch(err => console.error(err));
+        }
+        this._connection.invoke("JoinChannel", channelId).catch(err => console.error(err));
+      }
     },
 
     _renderMessages(channelId) {
@@ -211,6 +311,7 @@
         pinned: false
       };
 
+      // Lưu local trước để phản hồi UI ngay lập tức
       const messagesMap = FS.db.getMap('messages');
       if (!messagesMap[this._currentChannel]) messagesMap[this._currentChannel] = [];
       messagesMap[this._currentChannel].push(msg);
@@ -222,6 +323,12 @@
       const $input = document.getElementById('chat-input');
       $input.value = '';
       $input.style.height = 'auto';
+
+      // Phát tin nhắn qua SignalR Hub
+      if (this._connection && this._connection.state === signalR.HubConnectionState.Connected) {
+        this._connection.invoke("SendMessage", this._currentChannel, session.username || session.email || 'User', JSON.stringify(msg))
+          .catch(err => console.error('Send SignalR message failed:', err));
+      }
     },
 
     _showMentionDropdown(query) {
@@ -354,6 +461,11 @@
              msg.recalled = true;
              FS.db.set('messages', messagesMap);
              self._renderMessages(self._currentChannel);
+
+             if (self._connection && self._connection.state === signalR.HubConnectionState.Connected) {
+                 self._connection.invoke("RecallMessage", self._currentChannel, msgId)
+                     .catch(err => console.error(err));
+             }
          }
       });
 
@@ -366,6 +478,11 @@
              msg.pinned = !msg.pinned;
              FS.db.set('messages', messagesMap);
              self._renderMessages(self._currentChannel);
+
+             if (self._connection && self._connection.state === signalR.HubConnectionState.Connected) {
+                 self._connection.invoke("PinMessage", self._currentChannel, msgId, msg.pinned)
+                     .catch(err => console.error(err));
+             }
          }
       });
 

@@ -12,7 +12,7 @@ namespace FlowSpace.Persistence
         public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<FlowSpaceDbContext>(options =>
-                options.UseSqlite(configuration.GetConnectionString("DefaultConnection"),
+                options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"),
                     b => b.MigrationsAssembly(typeof(FlowSpaceDbContext).Assembly.FullName)));
 
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));

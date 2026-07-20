@@ -29,10 +29,9 @@
 
     async _loadLogs() {
       try {
-        const response = await $.ajax({
+        const response = await FS.apiCall({
           url: FS.API_BASE + '/api/v1/timetracking/logs',
-          type: 'GET',
-          headers: this._getAuthHeaders()
+          type: 'GET'
         });
 
         if (response && response.success && Array.isArray(response.data)) {
@@ -47,12 +46,16 @@
             date: l.loggedDate,
             createdAt: l.createdAt
           }));
+          $('#timetracking-offline-banner').remove();
         } else {
           this._logsData = FS.db.get('time_logs') || [];
         }
       } catch (err) {
-        console.warn('Time logs API request failed, falling back to LocalStorage:', err);
+        console.warn('Time logs API request failed:', err);
         this._logsData = FS.db.get('time_logs') || [];
+        if (!$('#timetracking-offline-banner').length) {
+          $('#page-content').prepend('<div id="timetracking-offline-banner" class="fs-login-alert show" style="display:flex; margin-bottom:16px"><i class="bi bi-exclamation-triangle-fill"></i><span>Không thể kết nối máy chủ. Hiện đang hiển thị dữ liệu nhật ký tạm thời ngoại tuyến.</span></div>');
+        }
       }
     },
 
@@ -189,12 +192,10 @@
       };
 
       try {
-        const response = await $.ajax({
+        const response = await FS.apiCall({
           url: FS.API_BASE + '/api/v1/timetracking/logs',
           type: 'POST',
-          contentType: 'application/json',
-          headers: this._getAuthHeaders(),
-          data: JSON.stringify(payload)
+          data: payload
         });
 
         if (response && response.success) {
@@ -207,36 +208,13 @@
           this._renderLogs();
           this._renderChart();
           return;
+        } else {
+          FS.toast('Máy chủ phản hồi lỗi khi ghi nhận thời gian.', 'error');
         }
       } catch (err) {
-        console.warn('Save time log API failed, saving to LocalStorage fallback:', err);
+        console.error('Save time log API failed:', err);
+        FS.toast('Không thể lưu nhật ký thời gian lên máy chủ. Vui lòng thử lại!', 'error');
       }
-
-      // LocalStorage fallback
-      const session = FS.auth.getSession();
-      const task = FS.db.find('tasks', taskId);
-      const log = {
-        id: FS.db.newId(),
-        taskId,
-        userId: session?.userId,
-        projectId: task ? task.projectId : null,
-        hours,
-        date: new Date().toISOString(),
-        note
-      };
-      const logs = FS.db.get('time_logs') || [];
-      logs.unshift(log);
-      FS.db.set('time_logs', logs);
-
-      if (task) {
-        task.loggedHours = (task.loggedHours || 0) + hours;
-        FS.db.save('tasks', task);
-      }
-
-      FS.toast(`✅ Đã ghi nhận ${hours}h cho "${task ? task.title : 'Task'}"`, 'success');
-      await this._loadLogs();
-      this._renderLogs();
-      this._renderChart();
     },
 
     _getFilteredLogs() {

@@ -84,10 +84,19 @@
     _renderProfile() {
       const session = FS.auth.getSession();
       if (!session) return;
-      $('#settings-avatar').text(session.avatar).removeClass().addClass('fs-avatar').addClass(session.color);
+      
+      const $avatar = $('#settings-avatar');
+      $avatar.text(session.avatar).removeClass().addClass('fs-avatar');
+      if (session.color && session.color.startsWith('#')) {
+        $avatar.css('background-color', session.color);
+      } else {
+        $avatar.addClass(session.color || 'av-indigo');
+      }
+      
       $('#settings-name').text(session.name);
       $('#settings-email').text(session.email);
       $('#settings-display-name').val(session.name);
+      $('#settings-user-email').val(session.email);
       $('#settings-role-badge').html(`<span class="fs-badge badge-accent">${FS.auth.getRoleLabel(session.role)}</span>`);
     },
 
@@ -232,24 +241,24 @@
     /* ── 3. Cấu hình Admin: Workflow Engine CRUD ──────────── */
     _renderWorkflows() {
       const reqLabels = { leave: 'Nghỉ phép', overtime: 'Tăng ca', purchase: 'Mua sắm', remote: 'Làm remote' };
-      const roleLabels = { team_lead: 'Trưởng nhóm', manager: 'Trưởng phòng', director: 'Ban Giám đốc' };
-
+      
       if (!this._workflowRules.length) {
         $('#wf-rules-body').html('<tr><td colspan="5"><div class="fs-empty"><i class="bi bi-diagram-3"></i><p>Chưa có quy tắc phê duyệt nào</p></div></td></tr>');
         return;
       }
 
       $('#wf-rules-body').html(this._workflowRules.map(rule => {
+        const valueNum = parseInt(rule.value) || 0;
         const conditionText = rule.operator === 'gt' 
-          ? `Lớn hơn (>) ${rule.value.toLocaleString()}` 
-          : `Bằng (=) ${rule.value.toLocaleString()}`;
+          ? `Lớn hơn (>) ${valueNum.toLocaleString()}` 
+          : `Bằng (=) ${valueNum.toLocaleString()}`;
         
         return `
           <tr class="hover-row">
             <td style="font-weight:600;font-size:13px">${FS.str.escape(rule.name)}</td>
             <td><span class="fs-badge badge-neutral">${reqLabels[rule.reqType] || rule.reqType}</span></td>
             <td style="font-family:monospace;font-size:12px">${conditionText}</td>
-            <td><span class="fs-badge badge-accent">${roleLabels[rule.maxRole] || rule.maxRole}</span></td>
+            <td><span class="fs-badge badge-accent">${FS.str.escape(rule.maxRole)}</span></td>
             <td style="text-align:right">
               <button class="btn btn-ghost btn-icon btn-sm wf-edit-btn" data-id="${rule.id}" title="Sửa">
                 <i class="bi bi-pencil"></i>
@@ -262,13 +271,13 @@
       }).join(''));
     },
 
-    _saveWorkflowRule() {
+    async _saveWorkflowRule() {
       const id = $('#wf-modal-id').val();
       const name = $('#wf-modal-name').val().trim();
       const reqType = $('#wf-modal-req-type').val();
       const operator = $('#wf-modal-operator').val();
       const value = parseInt($('#wf-modal-value').val());
-      const maxRole = $('#wf-modal-role').val();
+      const maxRole = $('#wf-modal-role').val(); // Chứa chuỗi vai trò ví dụ "team_lead,manager"
 
       if (!name) {
         FS.toast('Vui lòng nhập tên quy tắc!', 'warning');
@@ -279,27 +288,69 @@
         return;
       }
 
-      const rule = { id: id || 'wf_rule_' + Math.random().toString(36).slice(2, 7), name, reqType, operator, value, maxRole };
+      const payload = {
+        requestType: reqType,
+        name: name,
+        minAmount: operator === 'gt' ? value : null,
+        maxAmount: null,
+        sequenceSteps: maxRole,
+        isActive: true
+      };
 
-      if (id) {
-        const idx = this._workflowRules.findIndex(x => x.id === id);
-        if (idx >= 0) this._workflowRules[idx] = rule;
-      } else {
-        this._workflowRules.push(rule);
+      try {
+        let response;
+        if (id && !id.startsWith('wf_rule_')) {
+          response = await FS.apiCall({
+            url: FS.API_BASE + '/api/v1/workflowrules/' + id,
+            type: 'PUT',
+            data: payload
+          });
+        } else {
+          response = await FS.apiCall({
+            url: FS.API_BASE + '/api/v1/workflowrules',
+            type: 'POST',
+            data: payload
+          });
+        }
+
+        if (response && response.success) {
+          FS.toast('Cập nhật quy tắc phê duyệt thành công!', 'success');
+          $('#wf-modal-overlay').hide();
+          await this._loadAdminData();
+          this._renderWorkflows();
+        } else {
+          FS.toast('Máy chủ báo lỗi khi cập nhật quy tắc.', 'error');
+        }
+      } catch (err) {
+        console.error('Save workflow rule error:', err);
+        FS.toast('Không thể cập nhật quy tắc lên máy chủ. Vui lòng thử lại!', 'error');
       }
-
-      localStorage.setItem('fs_workflow_rules', JSON.stringify(this._workflowRules));
-      $('#wf-modal-overlay').hide();
-      this._renderWorkflows();
-      FS.toast('Cập nhật quy tắc phê duyệt thành công!', 'success');
     },
 
-    _deleteWorkflowRule(id) {
-      FS.confirm('Xoá quy tắc phê duyệt này? Yêu cầu mới sẽ áp dụng quy trình mặc định.', () => {
-        this._workflowRules = this._workflowRules.filter(x => x.id !== id);
-        localStorage.setItem('fs_workflow_rules', JSON.stringify(this._workflowRules));
-        this._renderWorkflows();
-        FS.toast('Đã xoá quy tắc phê duyệt!', 'success');
+    async _deleteWorkflowRule(id) {
+      FS.confirm('Xoá quy tắc phê duyệt này? Yêu cầu mới sẽ áp dụng quy trình mặc định.', async () => {
+        if (id && !id.startsWith('wf_rule_')) {
+          try {
+            const response = await FS.apiCall({
+              url: FS.API_BASE + '/api/v1/workflowrules/' + id,
+              type: 'DELETE'
+            });
+            if (response && response.success) {
+              FS.toast('Đã xoá quy tắc phê duyệt!', 'success');
+              await this._loadAdminData();
+              this._renderWorkflows();
+              return;
+            }
+          } catch (err) {
+            console.error('Delete workflow rule failed:', err);
+          }
+          FS.toast('Không thể xoá quy tắc trên máy chủ.', 'error');
+        } else {
+          this._workflowRules = this._workflowRules.filter(x => x.id !== id);
+          localStorage.setItem('fs_workflow_rules', JSON.stringify(this._workflowRules));
+          this._renderWorkflows();
+          FS.toast('Đã xoá quy tắc phê duyệt!', 'success');
+        }
       }, { danger: true, confirmText: 'Xoá' });
     },
 
@@ -466,22 +517,77 @@
       // Profile save
       $('#settings-save-profile').off('click').on('click', function () {
         const name = $('#settings-display-name').val().trim();
-        if (!name) return;
+        const email = $('#settings-user-email').val().trim();
+        if (!name || !email) {
+          FS.toast('Vui lòng điền đầy đủ tên và email.', 'error');
+          return;
+        }
+        
+        // Email validation regex
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          FS.toast('Email không hợp lệ.', 'error');
+          return;
+        }
+
         const session = FS.auth.getSession();
         if (session) {
-          session.name = name;
-          sessionStorage.setItem('fs_session', JSON.stringify(session));
+          const avatar = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+          const updated = FS.auth.updateUser({ name, email, avatar });
           
-          // Cập nhật UI sidebar và topbar
-          $('#sidebar-user-name').text(name);
-          $('#topbar-user-name').text(name.split(' ').pop());
-          
-          // Ghi nhận log
-          FS.auth._appendLog && FS.auth._appendLog(session.userId, 'UPDATE', 'Settings', 'Cập nhật tên hiển thị hồ sơ cá nhân');
-          FS.toast('Đã cập nhật hồ sơ!', 'success');
-          
-          // Re-render
-          self._renderProfile();
+          if (updated) {
+            // Cập nhật UI sidebar và topbar
+            $('#sidebar-user-name').text(name);
+            $('#topbar-user-name').text(name.split(' ').pop());
+            $('#topbar-user-avatar').text(avatar);
+            
+            // Ghi nhận log
+            FS.auth._appendLog && FS.auth._appendLog(session.userId, 'UPDATE', 'Settings', 'Cập nhật thông tin hồ sơ cá nhân');
+            FS.toast('Đã cập nhật hồ sơ thành công!', 'success');
+            
+            // Re-render
+            self._renderProfile();
+          } else {
+            FS.toast('Cập nhật hồ sơ thất bại.', 'error');
+          }
+        }
+      });
+
+      // Change password
+      $('#settings-change-password').off('click').on('click', function () {
+        const oldPwd = $('#settings-old-password').val();
+        const newPwd = $('#settings-new-password').val();
+        const confirmPwd = $('#settings-confirm-password').val();
+
+        if (!oldPwd || !newPwd || !confirmPwd) {
+          FS.toast('Vui lòng điền đầy đủ thông tin mật khẩu.', 'error');
+          return;
+        }
+
+        if (newPwd.length < 8) {
+          FS.toast('Mật khẩu mới phải có tối thiểu 8 ký tự.', 'error');
+          return;
+        }
+
+        if (newPwd !== confirmPwd) {
+          FS.toast('Mật khẩu mới và mật khẩu xác nhận không khớp.', 'error');
+          return;
+        }
+
+        const verified = FS.auth.verifyPassword(oldPwd);
+        if (!verified) {
+          FS.toast('Mật khẩu hiện tại không chính xác.', 'error');
+          return;
+        }
+
+        const updated = FS.auth.updateUser({ password: newPwd });
+        if (updated) {
+          FS.toast('Đổi mật khẩu thành công!', 'success');
+          // Clear inputs
+          $('#settings-old-password').val('');
+          $('#settings-new-password').val('');
+          $('#settings-confirm-password').val('');
+        } else {
+          FS.toast('Không thể đổi mật khẩu.', 'error');
         }
       });
 

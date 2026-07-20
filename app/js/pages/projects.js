@@ -26,10 +26,9 @@
 
     async _loadData() {
       try {
-        const response = await $.ajax({
+        const response = await FS.apiCall({
           url: FS.API_BASE + '/api/v1/projects',
-          type: 'GET',
-          headers: this._getAuthHeaders()
+          type: 'GET'
         });
 
         if (response && response.success && Array.isArray(response.data)) {
@@ -48,13 +47,16 @@
             members: p.members || [],
             createdAt: p.createdAt
           }));
+          $('#projects-offline-banner').remove();
         } else {
-          // Fallback to local storage if API returns no data
           this._projectsData = FS.db.get('projects') || [];
         }
       } catch (err) {
-        console.warn('Projects API request failed, falling back to LocalStorage:', err);
+        console.warn('Projects API request failed:', err);
         this._projectsData = FS.db.get('projects') || [];
+        if (!$('#projects-offline-banner').length) {
+          $('#page-content').prepend('<div id="projects-offline-banner" class="fs-login-alert show" style="display:flex; margin-bottom:16px"><i class="bi bi-exclamation-triangle-fill"></i><span>Không thể kết nối máy chủ. Hiện đang hiển thị dữ liệu tạm thời ngoại tuyến.</span></div>');
+        }
       }
       this._render();
     },
@@ -259,20 +261,16 @@
       try {
         let response;
         if (isNew) {
-          response = await $.ajax({
+          response = await FS.apiCall({
             url: FS.API_BASE + '/api/v1/projects',
             type: 'POST',
-            contentType: 'application/json',
-            headers: this._getAuthHeaders(),
-            data: JSON.stringify(payload)
+            data: payload
           });
         } else {
-          response = await $.ajax({
+          response = await FS.apiCall({
             url: FS.API_BASE + '/api/v1/projects/' + id,
             type: 'PUT',
-            contentType: 'application/json',
-            headers: this._getAuthHeaders(),
-            data: JSON.stringify(payload)
+            data: payload
           });
         }
 
@@ -282,30 +280,13 @@
           await this._loadData();
           if (FS.syncSidebarProjects) FS.syncSidebarProjects();
           return;
+        } else {
+          FS.toast('Máy chủ phản hồi lỗi khi lưu dự án.', 'error');
         }
       } catch (err) {
-        console.warn('API save project failed, saving to LocalStorage fallback:', err);
+        console.error('API save project failed:', err);
+        FS.toast('Không thể lưu dự án lên máy chủ. Vui lòng thử lại!', 'error');
       }
-
-      // LocalStorage fallback
-      const project = {
-        id: id || FS.db.newId(),
-        code: payload.code,
-        name: payload.name,
-        description: payload.description,
-        status: payload.status,
-        priority: payload.priority,
-        startDate: payload.startDate,
-        endDate: payload.endDate,
-        progress: payload.progress,
-        ownerId: isNew ? FS.auth.getSession()?.userId : FS.db.find('projects', id)?.ownerId,
-        members: isNew ? [FS.auth.getSession()?.userId] : FS.db.find('projects', id)?.members,
-        createdAt: isNew ? new Date().toISOString() : FS.db.find('projects', id)?.createdAt
-      };
-      FS.db.save('projects', project);
-      $('#proj-modal-overlay').hide();
-      await this._loadData();
-      FS.toast(isNew ? 'Tạo dự án thành công!' : 'Cập nhật thành công!', 'success');
     },
 
     _bindEvents() {

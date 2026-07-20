@@ -25,10 +25,9 @@
 
     async _loadData() {
       try {
-        const response = await $.ajax({
+        const response = await FS.apiCall({
           url: FS.API_BASE + '/api/v1/tasks',
-          type: 'GET',
-          headers: this._getAuthHeaders()
+          type: 'GET'
         });
 
         if (response && response.success && Array.isArray(response.data)) {
@@ -54,12 +53,16 @@
             comments: t.comments || [],
             createdAt: t.createdAt
           }));
+          $('#tasks-offline-banner').remove();
         } else {
           this._tasksData = FS.db.get('tasks') || [];
         }
       } catch (err) {
-        console.warn('Tasks API request failed, falling back to LocalStorage:', err);
+        console.warn('Tasks API request failed:', err);
         this._tasksData = FS.db.get('tasks') || [];
+        if (!$('#tasks-offline-banner').length) {
+          $('#page-content').prepend('<div id="tasks-offline-banner" class="fs-login-alert show" style="display:flex; margin-bottom:16px"><i class="bi bi-exclamation-triangle-fill"></i><span>Không thể kết nối máy chủ. Hiện đang hiển thị dữ liệu tạm thời ngoại tuyến.</span></div>');
+        }
       }
       this._render();
     },
@@ -234,23 +237,18 @@
         estimatedHours: parseInt($('#task-modal-est').val()) || 0
       };
 
-      try {
         let response;
         if (isNew) {
-          response = await $.ajax({
+          response = await FS.apiCall({
             url: FS.API_BASE + '/api/v1/tasks',
             type: 'POST',
-            contentType: 'application/json',
-            headers: this._getAuthHeaders(),
-            data: JSON.stringify(payload)
+            data: payload
           });
         } else {
-          response = await $.ajax({
+          response = await FS.apiCall({
             url: FS.API_BASE + '/api/v1/tasks/' + id,
             type: 'PUT',
-            contentType: 'application/json',
-            headers: this._getAuthHeaders(),
-            data: JSON.stringify(payload)
+            data: payload
           });
         }
 
@@ -259,34 +257,13 @@
           $('#task-modal-overlay').hide();
           await this._loadData();
           return;
+        } else {
+          FS.toast('Máy chủ phản hồi lỗi khi lưu công việc.', 'error');
         }
       } catch (err) {
-        console.warn('Tasks API save failed, saving to LocalStorage fallback:', err);
+        console.error('API save task failed:', err);
+        FS.toast('Không thể lưu công việc lên máy chủ. Vui lòng thử lại!', 'error');
       }
-
-      // LocalStorage fallback
-      const task = {
-        id: id || FS.db.newId(),
-        code: payload.code,
-        title: payload.title,
-        description: payload.description,
-        projectId: payload.projectId,
-        assigneeId: payload.assigneeId,
-        priority: payload.priority,
-        status: payload.status,
-        startDate: payload.startDate,
-        dueDate: payload.dueDate,
-        estimatedHours: payload.estimatedHours,
-        loggedHours: isNew ? 0 : FS.db.find('tasks', id).loggedHours,
-        subtasks: isNew ? [] : FS.db.find('tasks', id).subtasks,
-        comments: isNew ? [] : FS.db.find('tasks', id).comments,
-        createdBy: isNew ? FS.auth.getSession()?.userId : FS.db.find('tasks', id).createdBy,
-        createdAt: isNew ? new Date().toISOString() : FS.db.find('tasks', id).createdAt
-      };
-      FS.db.save('tasks', task);
-      $('#task-modal-overlay').hide();
-      await this._loadData();
-      FS.toast(isNew ? 'Tạo công việc thành công!' : 'Cập nhật thành công!', 'success');
     },
 
     _bindEvents() {

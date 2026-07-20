@@ -12,7 +12,7 @@ namespace FlowSpace.Persistence
     {
         public static void Initialize(FlowSpaceDbContext context)
         {
-            context.Database.EnsureCreated();
+            context.Database.Migrate();
 
             if (context.Users.Any())
             {

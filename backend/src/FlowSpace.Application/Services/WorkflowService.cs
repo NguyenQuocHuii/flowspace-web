@@ -98,8 +98,56 @@ namespace FlowSpace.Application.Services
                 UpdatedAt = DateTime.UtcNow
             };
 
-            // Workflow engine: Create 4 approval levels
-            var roles = new[] { "team_lead", "manager", "manager", "director" };
+            // Dynamic Workflow Engine: Tra cứu quy tắc duyệt từ bảng WorkflowRules
+            var rulesQuery = _unitOfWork.Repository<WorkflowRule>().GetQueryable();
+            var activeRules = await rulesQuery.Where(r => r.IsActive).ToListAsync();
+
+            // Lấy loại request dạng chuỗi chữ thường
+            var typeString = request.Type.ToString().ToLower();
+
+            // Trích xuất số tiền ước lượng nếu là Purchase request (nằm trong description/title)
+            decimal? requestAmount = null;
+            if (typeString == "purchase")
+            {
+                var amountRegex = new System.Text.RegularExpressions.Regex(@"(?:(?:budget|tiền|giá trị|giá|với|khoảng|lên tới)\s*[:=]?\s*)(\d+(?:\.\d+)?)\s*(?:triệu|tr|đ|vnd|usd)?", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                var match = amountRegex.Match(request.Description + " " + request.Title);
+                if (match.Success && decimal.TryParse(match.Groups[1].Value, out var parsedAmount))
+                {
+                    requestAmount = parsedAmount;
+                    // Nếu ghi rõ "triệu", nhân thêm 1,000,000 để chuẩn hóa
+                    if (match.Value.Contains("triệu") || match.Value.Contains("tr"))
+                    {
+                        requestAmount *= 1000000;
+                    }
+                }
+            }
+
+            // Tìm quy tắc phù hợp nhất dựa trên loại và điều kiện ngân sách
+            var matchedRule = activeRules
+                .Where(r => r.RequestType.Equals(typeString, StringComparison.OrdinalIgnoreCase))
+                .FirstOrDefault(r => 
+                    (!r.MinAmount.HasValue || (requestAmount.HasValue && requestAmount.Value >= r.MinAmount.Value)) &&
+                    (!r.MaxAmount.HasValue || (requestAmount.HasValue && requestAmount.Value <= r.MaxAmount.Value))
+                );
+
+            string[] roles;
+            if (matchedRule != null && !string.IsNullOrWhiteSpace(matchedRule.SequenceSteps))
+            {
+                roles = matchedRule.SequenceSteps.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(r => r.Trim().ToLower()).ToArray();
+            }
+            else
+            {
+                // Fallback mặc định nếu không cấu hình rule cụ thể
+                roles = typeString switch
+                {
+                    "leave" => new[] { "team_lead", "manager" },
+                    "overtime" => new[] { "team_lead" },
+                    "purchase" => new[] { "team_lead", "manager", "director" },
+                    _ => new[] { "team_lead", "manager" }
+                };
+            }
+
             for (int i = 0; i < roles.Length; i++)
             {
                 request.Approvals.Add(new Approval

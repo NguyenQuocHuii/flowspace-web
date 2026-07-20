@@ -1,12 +1,14 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using FlowSpace.Application.Common.Dtos;
+using FlowSpace.Persistence.Contexts;
+using FlowSpace.Domain.Entities;
 
 namespace FlowSpace.Api.Controllers
 {
@@ -14,11 +16,11 @@ namespace FlowSpace.Api.Controllers
     [Route("api/v1/documents")]
     public class DocumentsController : BaseApiController
     {
-        private readonly IWebHostEnvironment _env;
+        private readonly FlowSpaceDbContext _context;
 
-        public DocumentsController(IWebHostEnvironment env)
+        public DocumentsController(FlowSpaceDbContext context)
         {
-            _env = env;
+            _context = context;
         }
 
         [HttpPost("upload")]
@@ -29,32 +31,69 @@ namespace FlowSpace.Api.Controllers
                 return FailResponse<object>("No file uploaded.", StatusCodes.Status400BadRequest);
             }
 
-            var uploadsFolder = Path.Combine(_env.ContentRootPath, "wwwroot", "uploads");
-            if (!Directory.Exists(uploadsFolder))
+            // Giới hạn dung lượng file tối đa 5MB trong database tạm thời
+            if (file.Length > 5 * 1024 * 1024)
             {
-                Directory.CreateDirectory(uploadsFolder);
+                return FailResponse<object>("File size exceeds the 5MB limit for binary storage.", StatusCodes.Status400BadRequest);
             }
 
-            var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
-            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var createdBy = Guid.Empty;
+            if (!string.IsNullOrEmpty(userIdString) && Guid.TryParse(userIdString, out var parsedId))
             {
-                await file.CopyToAsync(stream);
+                createdBy = parsedId;
             }
 
-            var relativePath = $"/uploads/{uniqueFileName}";
-            var result = new
+            byte[] fileBytes;
+            using (var memoryStream = new MemoryStream())
             {
-                id = Guid.NewGuid(),
-                name = file.FileName,
-                size = file.Length,
-                type = file.ContentType,
-                url = relativePath,
-                uploadedAt = DateTime.UtcNow
+                await file.CopyToAsync(memoryStream);
+                fileBytes = memoryStream.ToArray();
+            }
+
+            var documentId = Guid.NewGuid();
+            var relativePath = $"/api/v1/documents/file/{documentId}"; // API endpoint tải file thay thế cho physical URL
+
+            var document = new Document
+            {
+                Id = documentId,
+                Name = file.FileName,
+                Size = file.Length,
+                Type = file.ContentType,
+                Url = relativePath,
+                ContentData = fileBytes,
+                ContentType = file.ContentType,
+                CreatedBy = createdBy,
+                CreatedAt = DateTime.UtcNow
             };
 
-            return OkResponse<object>(result, "File uploaded successfully.");
+            await _context.Documents.AddAsync(document);
+            await _context.SaveChangesAsync();
+
+            var result = new
+            {
+                id = document.Id,
+                name = document.Name,
+                size = document.Size,
+                type = document.Type,
+                url = document.Url,
+                uploadedAt = document.CreatedAt
+            };
+
+            return OkResponse<object>(result, "File uploaded successfully to Database.");
+        }
+
+        [AllowAnonymous]
+        [HttpGet("file/{id}")]
+        public async Task<IActionResult> GetFile(Guid id)
+        {
+            var document = await _context.Documents.FirstOrDefaultAsync(d => d.Id == id);
+            if (document == null || document.ContentData == null)
+            {
+                return NotFound("File not found.");
+            }
+
+            return File(document.ContentData, document.ContentType ?? "application/octet-stream", document.Name);
         }
     }
 }

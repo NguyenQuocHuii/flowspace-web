@@ -22,5 +22,15 @@ namespace FlowSpace.Api.Hubs
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, channelId);
         }
+
+        public async Task RecallMessage(string channelId, string messageId)
+        {
+            await Clients.Group(channelId).SendAsync("MessageRecalled", channelId, messageId);
+        }
+
+        public async Task PinMessage(string channelId, string messageId, bool isPinned)
+        {
+            await Clients.Group(channelId).SendAsync("MessagePinned", channelId, messageId, isPinned);
+        }
     }
 }

@@ -18,6 +18,8 @@ namespace FlowSpace.Persistence.Contexts
         public DbSet<Approval> Approvals => Set<Approval>();
         public DbSet<TimeLog> TimeLogs => Set<TimeLog>();
         public DbSet<Comment> Comments => Set<Comment>();
+        public DbSet<Document> Documents => Set<Document>();
+        public DbSet<WorkflowRule> WorkflowRules => Set<WorkflowRule>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -155,6 +157,16 @@ namespace FlowSpace.Persistence.Contexts
                       .WithMany()
                       .HasForeignKey(a => a.ApproverId)
                       .OnDelete(DeleteBehavior.NoAction); // Fix for BUG-005 cascade loop
+            });
+
+            modelBuilder.Entity<Document>(entity =>
+            {
+                entity.ToTable("Documents");
+            });
+
+            modelBuilder.Entity<WorkflowRule>(entity =>
+            {
+                entity.ToTable("WorkflowRules");
             });
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(FlowSpaceDbContext).Assembly);

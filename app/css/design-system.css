@@ -8,42 +8,42 @@
 /* ─── Custom Properties ─────────────────────────────────── */
 :root {
   /* Accent */
-  --fs-accent:         #6366f1;
-  --fs-accent-hover:   #4f46e5;
-  --fs-accent-light:   #eef2ff;
-  --fs-accent-dark:    #4338ca;
+  --fs-accent:         #6366F1;
+  --fs-accent-hover:   #4F46E5;
+  --fs-accent-light:   rgba(99, 102, 241, 0.08);
+  --fs-accent-dark:    #4338CA;
   --fs-accent-rgb:     99, 102, 241;
 
   /* Backgrounds */
-  --fs-bg:             #ffffff;
-  --fs-bg-secondary:   #f8fafc;
-  --fs-bg-tertiary:    #f1f5f9;
-  --fs-bg-hover:       #f0f4ff;
+  --fs-bg:             #FFFFFF;
+  --fs-bg-secondary:   #F8FAFC;
+  --fs-bg-tertiary:    #F1F5F9;
+  --fs-bg-hover:       rgba(99, 102, 241, 0.04);
 
   /* Borders */
-  --fs-border:         #e2e8f0;
-  --fs-border-focus:   #6366f1;
+  --fs-border:         #E5E7EB;
+  --fs-border-focus:   #6366F1;
 
   /* Text */
-  --fs-text:           #0f172a;
+  --fs-text:           #0F172A;
   --fs-text-secondary: #475569;
-  --fs-text-muted:     #94a3b8;
+  --fs-text-muted:     #94A3B8;
 
   /* Semantic */
-  --fs-success:        #10b981;
-  --fs-success-light:  #d1fae5;
-  --fs-warning:        #f59e0b;
-  --fs-warning-light:  #fef3c7;
-  --fs-danger:         #ef4444;
-  --fs-danger-light:   #fee2e2;
-  --fs-info:           #3b82f6;
-  --fs-info-light:     #dbeafe;
+  --fs-success:        #22C55E;
+  --fs-success-light:  rgba(34, 197, 94, 0.1);
+  --fs-warning:        #F59E0B;
+  --fs-warning-light:  rgba(245, 158, 11, 0.1);
+  --fs-danger:         #EF4444;
+  --fs-danger-light:   rgba(239, 68, 68, 0.1);
+  --fs-info:           #3B82F6;
+  --fs-info-light:     rgba(59, 130, 246, 0.1);
 
   /* Priority colors */
-  --fs-priority-high:    #ef4444;
-  --fs-priority-medium:  #f59e0b;
-  --fs-priority-low:     #10b981;
-  --fs-priority-none:    #94a3b8;
+  --fs-priority-high:    #EF4444;
+  --fs-priority-medium:  #F59E0B;
+  --fs-priority-low:     #22C55E;
+  --fs-priority-none:    #94A3B8;
 
   /* Layout */
   --fs-sidebar-width:    240px;
@@ -51,21 +51,21 @@
   --fs-topbar-height:    56px;
 
   /* Radius */
-  --fs-radius-xs:    3px;
-  --fs-radius-sm:    5px;
-  --fs-radius:       8px;
-  --fs-radius-md:    10px;
-  --fs-radius-lg:    14px;
-  --fs-radius-xl:    20px;
+  --fs-radius-xs:    6px;
+  --fs-radius-sm:    10px;
+  --fs-radius:       14px; /* Input & Button border radius */
+  --fs-radius-md:    14px;
+  --fs-radius-lg:    24px; /* Card border radius */
+  --fs-radius-xl:    28px; /* Modal border radius */
   --fs-radius-full:  9999px;
 
-  /* Shadows */
-  --fs-shadow-xs:  0 1px 2px rgba(0,0,0,0.05);
-  --fs-shadow-sm:  0 1px 4px rgba(0,0,0,0.08);
-  --fs-shadow:     0 4px 12px rgba(0,0,0,0.09);
-  --fs-shadow-md:  0 6px 20px rgba(0,0,0,0.1);
-  --fs-shadow-lg:  0 16px 40px rgba(0,0,0,0.12);
-  --fs-shadow-xl:  0 24px 60px rgba(0,0,0,0.16);
+  /* Shadows (Modern & Smooth) */
+  --fs-shadow-xs:  0 1px 2px rgba(0,0,0,0.02);
+  --fs-shadow-sm:  0 2px 8px rgba(0,0,0,0.04);
+  --fs-shadow:     0 8px 24px rgba(0,0,0,0.06);
+  --fs-shadow-md:  0 12px 32px rgba(0,0,0,0.08);
+  --fs-shadow-lg:  0 20px 48px rgba(0,0,0,0.1);
+  --fs-shadow-xl:  0 32px 64px rgba(0,0,0,0.12);
 
   /* Typography */
   --fs-font:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -83,8 +83,8 @@
   --fs-text-4xl:  38px;
 
   /* Transitions */
-  --fs-transition:       all 0.15s ease;
-  --fs-transition-slow:  all 0.3s ease;
+  --fs-transition:       all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  --fs-transition-slow:  all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 
   /* Z-index layers */
   --fs-z-sidebar:  100;
@@ -662,6 +662,34 @@ img { max-width: 100%; display: block; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--fs-border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--fs-text-muted); }
+
+/* ─── Dark Mode Colors Override ───────────────────────────── */
+html.dark-mode {
+  --fs-bg:             #0F172A;
+  --fs-bg-secondary:   #1E293B;
+  --fs-bg-tertiary:    #334155;
+  --fs-bg-hover:       rgba(99, 102, 241, 0.12);
+
+  --fs-border:         #334155;
+  --fs-border-focus:   #8B5CF6;
+
+  --fs-text:           #F8FAFC;
+  --fs-text-secondary: #E2E8F0;
+  --fs-text-muted:     #64748B;
+
+  --fs-accent-light:   rgba(99, 102, 241, 0.15);
+  --fs-success-light:  rgba(34, 197, 94, 0.15);
+  --fs-warning-light:  rgba(245, 158, 11, 0.15);
+  --fs-danger-light:   rgba(239, 68, 68, 0.15);
+  --fs-info-light:     rgba(59, 130, 246, 0.15);
+
+  --fs-shadow-xs:  0 1px 2px rgba(0,0,0,0.2);
+  --fs-shadow-sm:  0 2px 8px rgba(0,0,0,0.3);
+  --fs-shadow:     0 8px 24px rgba(0,0,0,0.4);
+  --fs-shadow-md:  0 12px 32px rgba(0,0,0,0.5);
+  --fs-shadow-lg:  0 20px 48px rgba(0,0,0,0.6);
+  --fs-shadow-xl:  0 32px 64px rgba(0,0,0,0.7);
+}
 
 /* ─── Utility ────────────────────────────────────────────── */
 .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

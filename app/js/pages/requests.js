@@ -21,10 +21,9 @@
 
     async _loadData() {
       try {
-        const response = await $.ajax({
+        const response = await FS.apiCall({
           url: FS.API_BASE + '/api/v1/requests',
-          type: 'GET',
-          headers: this._getAuthHeaders()
+          type: 'GET'
         });
 
         if (response && response.success && Array.isArray(response.data)) {
@@ -49,12 +48,16 @@
               updatedAt: a.updatedAt
             }))
           }));
+          $('#requests-offline-banner').remove();
         } else {
           this._requestsData = FS.db.get('requests') || [];
         }
       } catch (err) {
-        console.warn('Requests API failed, falling back to LocalStorage:', err);
+        console.warn('Requests API failed:', err);
         this._requestsData = FS.db.get('requests') || [];
+        if (!$('#requests-offline-banner').length) {
+          $('#page-content').prepend('<div id="requests-offline-banner" class="fs-login-alert show" style="display:flex; margin-bottom:16px"><i class="bi bi-exclamation-triangle-fill"></i><span>Không thể kết nối máy chủ. Hiện đang hiển thị dữ liệu yêu cầu tạm thời ngoại tuyến.</span></div>');
+        }
       }
       this._render();
     },
@@ -213,41 +216,26 @@
 
       if (approvalId) {
         try {
-          const response = await $.ajax({
+          const response = await FS.apiCall({
             url: FS.API_BASE + '/api/v1/approvals/' + approvalId + '/action',
             type: 'POST',
-            contentType: 'application/json',
-            headers: this._getAuthHeaders(),
-            data: JSON.stringify({ status: decision, note: note })
+            data: { status: decision, note: note }
           });
 
           if (response && response.success) {
             FS.toast(decision === 'approved' ? '✅ Đã phê duyệt!' : '❌ Đã từ chối', decision === 'approved' ? 'success' : 'error');
             await this._loadData();
             return;
+          } else {
+            FS.toast('Lỗi phản hồi từ máy chủ khi duyệt yêu cầu.', 'error');
           }
         } catch (err) {
-          console.warn('Process approval API failed, falling back to LocalStorage:', err);
+          console.error('Process approval API failed:', err);
+          FS.toast('Không thể gửi quyết định phê duyệt lên máy chủ. Vui lòng thử lại!', 'error');
         }
+      } else {
+        FS.toast('Thiếu thông tin phê duyệt trên máy chủ.', 'error');
       }
-
-      // LocalStorage fallback
-      const r = FS.db.find('requests', reqId);
-      if (!r) return;
-      const pendingStep = r.approvals.find(a => a.status === 'pending');
-      if (pendingStep) {
-        pendingStep.status = decision;
-        pendingStep.approverId = FS.auth.getSession()?.userId;
-        pendingStep.note = note;
-        pendingStep.updatedAt = new Date().toISOString();
-        const stillPending = r.approvals.some(a => a.status === 'pending');
-        if (!stillPending) {
-          r.status = r.approvals.every(a => a.status === 'approved') ? 'approved' : 'rejected';
-        }
-        FS.db.save('requests', r);
-      }
-      await this._loadData();
-      FS.toast(decision === 'approved' ? '✅ Đã phê duyệt!' : '❌ Đã từ chối', decision === 'approved' ? 'success' : 'error');
     },
 
     _bindEvents() {
@@ -280,12 +268,10 @@
         const description = $('#req-modal-desc').val() || '';
 
         try {
-          const response = await $.ajax({
+          const response = await FS.apiCall({
             url: FS.API_BASE + '/api/v1/requests',
             type: 'POST',
-            contentType: 'application/json',
-            headers: self._getAuthHeaders(),
-            data: JSON.stringify({ type, title, description })
+            data: { type, title, description }
           });
 
           if (response && response.success) {
@@ -293,31 +279,13 @@
             $('#req-modal-overlay').hide();
             await self._loadData();
             return;
+          } else {
+            FS.toast('Máy chủ báo lỗi khi tạo yêu cầu.', 'error');
           }
         } catch (err) {
-          console.warn('Create request API failed, fallback to LocalStorage:', err);
+          console.error('Create request API failed:', err);
+          FS.toast('Không thể gửi yêu cầu lên máy chủ. Vui lòng thử lại!', 'error');
         }
-
-        // LocalStorage fallback
-        const session = FS.auth.getSession();
-        const chains = {
-          leave: [{ level: 1, role: 'team_lead' }, { level: 2, role: 'manager' }],
-          overtime: [{ level: 1, role: 'team_lead' }],
-          purchase: [{ level: 1, role: 'team_lead' }, { level: 2, role: 'manager' }, { level: 3, role: 'director' }],
-          remote: [{ level: 1, role: 'team_lead' }]
-        };
-        const req = {
-          id: FS.db.newId(), type, title, description,
-          requesterId: session?.userId,
-          status: 'pending',
-          approvals: (chains[type] || chains.leave).map(s => ({ ...s, approverId: null, status: 'pending', note: '', updatedAt: null })),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-        FS.db.save('requests', req);
-        $('#req-modal-overlay').hide();
-        await self._loadData();
-        FS.toast('Đã gửi yêu cầu thành công!', 'success');
       });
     }
   };

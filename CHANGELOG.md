@@ -4,6 +4,16 @@ Tài liệu này ghi lại toàn bộ lịch sử cập nhật cấu trúc mã n
 
 ---
 
+## [2026-07-20] - Xóa bỏ tài khoản Demo & Triển khai Đăng Ký / Đăng Nhập thật
+
+### Frontend
+- **Thay đổi**: Cập nhật [auth.js](file:///e:/flowspace-fe/app/js/core/auth.js) chuyển đổi từ `sessionStorage` sang `localStorage` để duy trì đăng nhập sau khi F5. Triển khai phương thức `register()` và hỗ trợ cơ chế offline login fallback lưu thông tin cục bộ trong `fs_users`.
+- **Thay đổi**: Cập nhật [seed-data.js](file:///e:/flowspace-fe/app/js/core/seed-data.js) loại bỏ toàn bộ dữ liệu người dùng demo và các hàm backfill tự động liên quan để đảm bảo không còn tài khoản mock.
+- **Thay đổi**: Cập nhật [login.html](file:///e:/flowspace-fe/app/login.html) và [login.css](file:///e:/flowspace-fe/app/css/login.css) loại bỏ hoàn toàn giao diện danh sách nút đăng nhập demo nhanh. Thêm đường dẫn trỏ tới trang đăng ký.
+- **Tạo mới**: Thiết lập [register.html](file:///e:/flowspace-fe/app/register.html) phục vụ tạo tài khoản mới với đầy đủ xác thực thông tin đầu vào.
+- **Thay đổi**: Cập nhật [settings.html](file:///e:/flowspace-fe/app/pages/settings.html) và [settings.js](file:///e:/flowspace-fe/app/js/pages/settings.js) bổ sung trường cập nhật Email và phân hệ đổi Mật khẩu trực tiếp.
+
+
 ## [2026-07-18] - Tích hợp Hệ thống Đăng nhập & Đăng ký (Module 1)
 
 ### Frontend

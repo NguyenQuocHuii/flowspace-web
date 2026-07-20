@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng ký — FlowSpace</title>
+  <meta name="description" content="Tạo tài khoản FlowSpace miễn phí — nền tảng quản lý công việc & dự án hiệu quả">
+
+  <!-- Bootstrap 5 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- FlowSpace CSS -->
+  <link rel="stylesheet" href="css/design-system.css">
+  <link rel="stylesheet" href="css/login.css">
+</head>
+<body class="fs-auth-body">
+
+<div class="fs-auth-container">
+
+  <!-- BÊN TRÁI: BRANDING & ILLUSTRATION (50%) -->
+  <div class="fs-auth-left">
+    <div class="fs-left-brand">
+      <div class="fs-left-logo">F</div>
+      <h2>FlowSpace</h2>
+    </div>
+
+    <div class="fs-left-content">
+      <div class="fs-left-intro">
+        <h1>Một không gian.<br>Mọi dự án.</h1>
+        <p>Quản lý công việc thông minh, cộng tác thời gian thực và tự động hóa quy trình phê duyệt chỉ trên một nền tảng duy nhất.</p>
+      </div>
+
+      <!-- Floating Cards Area -->
+      <div class="fs-floating-cards">
+        <!-- Card 1: Tasks Done -->
+        <div class="fs-float-card card-task">
+          <div class="fs-card-icon">
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
+          <div class="fs-card-details">
+            <h5>24 Tasks Completed</h5>
+            <p>Hôm nay • Hiệu suất tăng 12%</p>
+          </div>
+        </div>
+
+        <!-- Card 2: Team Collaboration -->
+        <div class="fs-float-card card-team">
+          <div class="fs-card-icon">
+            <i class="bi bi-people-fill"></i>
+          </div>
+          <div class="fs-card-details">
+            <h5>Team Collaboration</h5>
+            <div class="fs-avatar-group">
+              <div class="fs-avatar-mini" style="background:#2ecc71">NV</div>
+              <div class="fs-avatar-mini" style="background:#9b59b6">TB</div>
+              <div class="fs-avatar-mini" style="background:#e67e22">LC</div>
+              <div class="fs-avatar-mini" style="background:#cbd5e1; font-size:7px">+3</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Project Progress -->
+        <div class="fs-float-card card-progress">
+          <div class="fs-card-icon">
+            <i class="bi bi-speedometer2"></i>
+          </div>
+          <div class="fs-card-details">
+            <h5>Progress 86%</h5>
+            <p>Dự án FlowSpace v2</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fs-left-footer">
+      &copy; 2026 FlowSpace. Tất cả quyền được bảo lưu.
+    </div>
+  </div>
+
+  <!-- BÊN PHẢI: FORM REGISTER (50%) -->
+  <div class="fs-auth-right">
+    <div class="fs-auth-card">
+      <h2>Tạo tài khoản</h2>
+      <p class="subtitle">Đăng ký để bắt đầu làm việc cùng đồng nghiệp</p>
+
+      <!-- Error Alert -->
+      <div class="fs-login-alert" id="register-alert">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        <span id="register-alert-text">Đã xảy ra lỗi.</span>
+      </div>
+
+      <!-- Success Alert -->
+      <div class="fs-login-alert fs-success-alert" id="register-success" style="display:none">
+        <i class="bi bi-check-circle-fill"></i>
+        <span id="register-success-text">Đăng ký thành công!</span>
+      </div>
+
+      <!-- Form -->
+      <form id="register-form" novalidate autocomplete="off">
+        <div class="fs-form-group">
+          <label class="fs-label-text" for="fullname">Họ và tên</label>
+          <div class="fs-input-group">
+            <span class="fs-input-icon">
+              <i class="bi bi-person"></i>
+            </span>
+            <input
+              type="text"
+              id="fullname"
+              class="fs-input"
+              placeholder="Nguyễn Văn A"
+              autocomplete="name"
+              required
+            >
+          </div>
+          <div class="fs-input-error" id="err-fullname" style="display:none"></div>
+        </div>
+
+        <div class="fs-form-group">
+          <label class="fs-label-text" for="email">Email</label>
+          <div class="fs-input-group">
+            <span class="fs-input-icon">
+              <i class="bi bi-envelope"></i>
+            </span>
+            <input
+              type="email"
+              id="email"
+              class="fs-input"
+              placeholder="you@example.com"
+              autocomplete="email"
+              required
+            >
+          </div>
+          <div class="fs-input-error" id="err-email" style="display:none"></div>
+        </div>
+
+        <div class="fs-form-group">
+          <label class="fs-label-text" for="password">Mật khẩu</label>
+          <div class="fs-input-group">
+            <span class="fs-input-icon">
+              <i class="bi bi-lock"></i>
+            </span>
+            <input
+              type="password"
+              id="password"
+              class="fs-input"
+              placeholder="Tối thiểu 8 ký tự"
+              autocomplete="new-password"
+              required
+            >
+            <button type="button" class="fs-input-toggle" id="toggle-pwd" tabindex="-1">
+              <i class="bi bi-eye" id="toggle-pwd-icon"></i>
+            </button>
+          </div>
+          <div class="fs-input-error" id="err-password" style="display:none"></div>
+          
+          <!-- Password Strength Indicator -->
+          <div class="password-strength-meter mt-2" style="display:none">
+            <div class="progress fs-progress fs-progress-sm mb-1" style="height: 4px; background: var(--fs-bg-tertiary)">
+              <div class="progress-bar fs-progress-bar" id="strength-bar" style="width: 0%; background: #ef4444"></div>
+            </div>
+            <span class="fs-small" id="strength-text" style="color: var(--fs-text-muted)">Độ mạnh mật khẩu</span>
+          </div>
+        </div>
+
+        <div class="fs-form-group">
+          <label class="fs-label-text" for="confirm-password">Xác nhận mật khẩu</label>
+          <div class="fs-input-group">
+            <span class="fs-input-icon">
+              <i class="bi bi-lock"></i>
+            </span>
+            <input
+              type="password"
+              id="confirm-password"
+              class="fs-input"
+              placeholder="Nhập lại mật khẩu"
+              autocomplete="new-password"
+              required
+            >
+          </div>
+          <div class="fs-input-error" id="err-confirm" style="display:none"></div>
+        </div>
+
+        <button type="submit" class="fs-login-btn" id="register-btn">
+          <i class="bi bi-person-plus"></i>
+          <span>Đăng ký</span>
+        </button>
+      </form>
+
+      <!-- Toggle page link -->
+      <div class="fs-auth-link">
+        Đã có tài khoản? <a href="login.html">Đăng nhập</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- jQuery -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- FlowSpace Core -->
+<script src="js/core/seed-data.js"></script>
+<script src="js/core/auth.js"></script>
+
+<script>
+$(function () {
+  window.FS = window.FS || {};
+  FS.seedData();
+
+  // Đã đăng nhập -> chuyển hướng
+  if (FS.auth.isLoggedIn()) {
+    window.location.href = 'app.html?page=dashboard';
+    return;
+  }
+
+  // Toggle show/hide password
+  $('#toggle-pwd').on('click', function () {
+    const $input = $('#password');
+    const $icon  = $('#toggle-pwd-icon');
+    if ($input.attr('type') === 'password') {
+      $input.attr('type', 'text');
+      $icon.removeClass('bi-eye').addClass('bi-eye-slash');
+    } else {
+      $input.attr('type', 'password');
+      $icon.removeClass('bi-eye-slash').addClass('bi-eye');
+    }
+  });
+
+  // Validation helpers
+  function clearErrors() {
+    $('.fs-input-error').hide().text('');
+    $('.fs-input').removeClass('is-invalid');
+    $('#register-alert').removeClass('show');
+  }
+
+  function showFieldError(fieldId, msg) {
+    $('#err-' + fieldId).text(msg).show();
+    $('#' + (fieldId === 'confirm' ? 'confirm-password' : fieldId)).addClass('is-invalid');
+  }
+
+  function showError(msg) {
+    $('#register-alert-text').text(msg);
+    $('#register-alert').addClass('show');
+    setTimeout(() => $('#register-alert').removeClass('show'), 5000);
+  }
+
+  function validateEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  // Password strength meter
+  $('#password').on('input', function () {
+    const val = $(this).val();
+    const $meter = $('.password-strength-meter');
+    const $bar = $('#strength-bar');
+    const $text = $('#strength-text');
+
+    if (!val) {
+      $meter.hide();
+      return;
+    }
+
+    $meter.show();
+    let score = 0;
+    if (val.length >= 8) score += 25;
+    if (/[A-Z]/.test(val)) score += 25;
+    if (/[0-9]/.test(val)) score += 25;
+    if (/[^A-Za-z0-9]/.test(val)) score += 25;
+
+    $bar.css('width', score + '%');
+
+    if (score <= 25) {
+      $bar.css('background-color', '#ef4444');
+      $text.text('Mật khẩu yếu').css('color', '#ef4444');
+    } else if (score <= 75) {
+      $bar.css('background-color', '#f59e0b');
+      $text.text('Mật khẩu trung bình').css('color', '#f59e0b');
+    } else {
+      $bar.css('background-color', '#22c55e');
+      $text.text('Mật khẩu mạnh').css('color', '#22c55e');
+    }
+  });
+
+  // Form submit
+  $('#register-form').on('submit', async function (e) {
+    e.preventDefault();
+    clearErrors();
+
+    const fullname = $('#fullname').val().trim();
+    const email    = $('#email').val().trim();
+    const password = $('#password').val();
+    const confirm  = $('#confirm-password').val();
+
+    let hasError = false;
+
+    if (!fullname) {
+      showFieldError('fullname', 'Vui lòng nhập họ và tên.');
+      hasError = true;
+    } else if (fullname.length < 2) {
+      showFieldError('fullname', 'Họ và tên phải có ít nhất 2 ký tự.');
+      hasError = true;
+    }
+
+    if (!email) {
+      showFieldError('email', 'Vui lòng nhập email.');
+      hasError = true;
+    } else if (!validateEmail(email)) {
+      showFieldError('email', 'Email không hợp lệ.');
+      hasError = true;
+    }
+
+    if (!password) {
+      showFieldError('password', 'Vui lòng nhập mật khẩu.');
+      hasError = true;
+    } else if (password.length < 8) {
+      showFieldError('password', 'Mật khẩu phải có ít nhất 8 ký tự.');
+      hasError = true;
+    }
+
+    if (!confirm) {
+      showFieldError('confirm', 'Vui lòng xác nhận mật khẩu.');
+      hasError = true;
+    } else if (password !== confirm) {
+      showFieldError('confirm', 'Mật khẩu xác nhận không khớp.');
+      hasError = true;
+    }
+
+    if (hasError) return;
+
+    const $btn = $('#register-btn');
+    $btn.prop('disabled', true).html('<span class="fs-spinner"></span> Đang đăng ký...');
+
+    const result = await FS.auth.register({
+      name: fullname,
+      email: email,
+      password: password
+    });
+
+    if (result && result.error) {
+      $btn.prop('disabled', false).html('<i class="bi bi-person-plus"></i> Đăng ký');
+      showError(result.error);
+      $('#register-form').addClass('shake');
+      setTimeout(() => $('#register-form').removeClass('shake'), 500);
+    } else if (result && result.userId) {
+      $btn.html('<i class="bi bi-check-lg"></i> Thành công!');
+      $('#register-success').show();
+      setTimeout(() => {
+        window.location.href = 'app.html?page=dashboard';
+      }, 600);
+    } else {
+      $btn.prop('disabled', false).html('<i class="bi bi-person-plus"></i> Đăng ký');
+      showError('Đăng ký thất bại. Vui lòng thử lại.');
+    }
+  });
+
+  $('<style>')
+    .text('@keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} } .shake{animation:shake 0.4s ease} .is-invalid{border-color:#ef4444 !important}')
+    .appendTo('head');
+});
+</script>
+</body>
+</html>

@@ -10,10 +10,16 @@ services:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
       - key: ConnectionStrings__DefaultConnection
-        value: "Data Source=flowspace.db" # SQLite file inside the container (resets on redeploy since Render free tier has no persistent disk)
+        fromDatabase:
+          name: flowspace-db
+          property: connectionString
       - key: JwtSettings__Secret
         generateValue: true # Generates a random secure key automatically
       - key: JwtSettings__Issuer
         value: FlowSpaceProd
       - key: JwtSettings__Audience
         value: FlowSpaceProdUsers
+
+databases:
+  - name: flowspace-db
+    plan: free

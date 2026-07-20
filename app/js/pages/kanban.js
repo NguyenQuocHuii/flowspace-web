@@ -31,10 +31,9 @@
 
     async _loadData() {
       try {
-        const response = await $.ajax({
+        const response = await FS.apiCall({
           url: FS.API_BASE + '/api/v1/tasks',
-          type: 'GET',
-          headers: this._getAuthHeaders()
+          type: 'GET'
         });
 
         if (response && response.success && Array.isArray(response.data)) {
@@ -58,12 +57,16 @@
             comments: t.comments || [],
             createdAt: t.createdAt
           }));
+          $('#kanban-offline-banner').remove();
         } else {
           this._tasksData = FS.db.get('tasks') || [];
         }
       } catch (err) {
-        console.warn('Kanban Tasks API request failed, falling back to LocalStorage:', err);
+        console.warn('Kanban Tasks API request failed:', err);
         this._tasksData = FS.db.get('tasks') || [];
+        if (!$('#kanban-offline-banner').length) {
+          $('#page-content').prepend('<div id="kanban-offline-banner" class="fs-login-alert show" style="display:flex; margin-bottom:16px"><i class="bi bi-exclamation-triangle-fill"></i><span>Không thể kết nối máy chủ. Hiện đang hiển thị dữ liệu tạm thời ngoại tuyến.</span></div>');
+        }
       }
     },
 
@@ -157,25 +160,23 @@
               task.status = newStatus;
 
               // Send API update
-              $.ajax({
+              FS.apiCall({
                 url: FS.API_BASE + '/api/v1/tasks/' + taskId + '/status',
                 type: 'PATCH',
-                contentType: 'application/json',
-                headers: self._getAuthHeaders(),
-                data: JSON.stringify({ status: newStatus })
-              }).done(function (res) {
+                data: { status: newStatus }
+              }).then(function (res) {
                 if (res && res.success) {
                   self._updateColCount(evt.from.dataset.status);
                   self._updateColCount(newStatus);
                   FS.toast(`Đã chuyển sang "${COLUMNS.find(c => c.id === newStatus)?.label}"`, 'success');
+                } else {
+                  FS.toast('Lỗi cập nhật trạng thái từ máy chủ.', 'error');
+                  self._loadData().then(() => self._renderBoard());
                 }
-              }).fail(function () {
-                // Fallback to local storage
-                if (newStatus === 'done') task.completedAt = new Date().toISOString();
-                FS.db.save('tasks', task);
-                self._updateColCount(evt.from.dataset.status);
-                self._updateColCount(newStatus);
-                FS.toast(`Đã chuyển sang "${COLUMNS.find(c => c.id === newStatus)?.label}"`, 'success');
+              }).catch(function (err) {
+                console.error('Drag update failed:', err);
+                FS.toast('Không thể cập nhật trạng thái lên máy chủ. Vui lòng tải lại trang và thử lại!', 'error');
+                self._loadData().then(() => self._renderBoard());
               });
             }
           }

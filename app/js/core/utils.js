@@ -235,12 +235,9 @@
 
     let projects = [];
     try {
-      const session = FS.auth ? FS.auth.getSession() : null;
-      const headers = session && session.token ? { 'Authorization': 'Bearer ' + session.token } : {};
-      const response = await $.ajax({
+      const response = await FS.apiCall({
         url: FS.API_BASE + '/api/v1/projects',
-        type: 'GET',
-        headers: headers
+        type: 'GET'
       });
       if (response && response.success && Array.isArray(response.data)) {
         projects = response.data;
@@ -266,6 +263,82 @@
     }).join(''));
 
     $container.show();
+  };
+
+  /* ── API CALL WITH RETRY & COLD START DETECTOR ─────────── */
+  let _coldStartTimer = null;
+  let _coldStartHud = null;
+  let _isFirstRequest = true;
+
+  function showColdStartHud() {
+    if (_coldStartHud) return;
+    _coldStartHud = document.createElement('div');
+    _coldStartHud.className = 'fs-cold-start-hud';
+    _coldStartHud.style.cssText = 'position:fixed;bottom:20px;left:20px;background:#1e293b;color:#fff;padding:12px 18px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.25);z-index:9999;font-size:13px;font-weight:500;display:flex;align-items:center;gap:10px;animation:slideUp 0.3s ease;border:1px solid rgba(255,255,255,0.1)';
+    _coldStartHud.innerHTML = '<span class="fs-spinner" style="width:14px;height:14px;border-width:2px;border-top-color:#fff"></span> Đang đánh thức máy chủ (Render Free Tier có thể mất 30s-60s)...';
+    document.body.appendChild(_coldStartHud);
+  }
+
+  function hideColdStartHud() {
+    if (_coldStartHud) {
+      _coldStartHud.remove();
+      _coldStartHud = null;
+    }
+  }
+
+  FS.apiCall = function (options) {
+    const session = FS.auth ? FS.auth.getSession() : null;
+    const authHeaders = session && session.token ? { 'Authorization': 'Bearer ' + session.token } : {};
+    
+    const ajaxOptions = $.extend(true, {
+      timeout: 20000, // 20s
+      headers: authHeaders,
+      contentType: 'application/json'
+    }, options);
+
+    if (ajaxOptions.data && typeof ajaxOptions.data === 'object' && !(ajaxOptions.data instanceof FormData)) {
+      ajaxOptions.data = JSON.stringify(ajaxOptions.data);
+    }
+
+    let isRequestFinished = false;
+
+    // Start timer for cold-start warning on first request
+    if (_isFirstRequest) {
+      _coldStartTimer = setTimeout(() => {
+        if (!isRequestFinished) {
+          showColdStartHud();
+        }
+      }, 3000);
+      _isFirstRequest = false;
+    }
+
+    const executeRequest = (attempt) => {
+      return new Promise((resolve, reject) => {
+        $.ajax(ajaxOptions)
+          .done(res => {
+            isRequestFinished = true;
+            clearTimeout(_coldStartTimer);
+            hideColdStartHud();
+            resolve(res);
+          })
+          .fail((xhr, status, err) => {
+            // Check for retry if status is network failure / timeout and it's the first attempt
+            if (attempt === 1 && (status === 'timeout' || xhr.status === 0)) {
+              console.warn('API call failed/timeout, retrying in 1s...');
+              setTimeout(() => {
+                executeRequest(2).then(resolve).catch(reject);
+              }, 1000);
+            } else {
+              isRequestFinished = true;
+              clearTimeout(_coldStartTimer);
+              hideColdStartHud();
+              reject({ xhr, status, err });
+            }
+          });
+      });
+    };
+
+    return executeRequest(1);
   };
 
   /* ── Dropdown close on outside click ────────────────────── */
