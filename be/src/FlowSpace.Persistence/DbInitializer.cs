@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using FlowSpace.Domain.Entities;
 using FlowSpace.Domain.Enums;
 using FlowSpace.Persistence.Contexts;
@@ -14,11 +15,36 @@ namespace FlowSpace.Persistence
         {
             try
             {
-                if (context.Users.Any(u => u.Email == "admin@flowspace.demo"))
-                {
-                    return; // Đã seed sẵn
-                }
+                // Xóa sạch dữ liệu cũ để tránh trùng lặp email và tài khoản rác
+                context.TimeLogs.ExecuteDelete();
+                context.Subtasks.ExecuteDelete();
+                context.Comments.ExecuteDelete();
+                context.ChatMessages.ExecuteDelete();
+                context.ChatChannels.ExecuteDelete();
+                context.Approvals.ExecuteDelete();
+                context.Requests.ExecuteDelete();
+                context.Tasks.ExecuteDelete();
+                context.Projects.ExecuteDelete();
+                context.WorkflowRules.ExecuteDelete();
+                
+                // Xóa các Token liên quan
+                context.EmailVerificationTokens.ExecuteDelete();
+                context.PasswordResetTokens.ExecuteDelete();
+                context.UserRefreshTokens.ExecuteDelete();
+                context.AuditLogs.ExecuteDelete();
+                context.Documents.ExecuteDelete();
+                
+                // Xóa Users
+                context.Users.ExecuteDelete();
+                context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Lỗi dọn dẹp database trước khi seed: {ex.Message}");
+            }
 
+            try
+            {
                 // 1. Tạo 1 User Admin duy nhất bằng code ngắn gọn
                 string defaultPasswordHash = "$2a$11$9Q0c4Y1wVp0d1HqLd5S8OeWzE1V0d1HqLd5S8OeWzE1V0d1HqLd5S"; // "123456"
                 var admin = new User
