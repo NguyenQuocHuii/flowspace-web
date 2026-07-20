@@ -85,7 +85,7 @@ namespace FlowSpace.Api.Controllers
         {
             if (await _context.Users.AnyAsync(u => u.Email == request.Email))
             {
-                return FailResponse<UserDto>("Email already exists.");
+                return FailResponse<UserDto>("Email này đã được sử dụng bởi một tài khoản khác.");
             }
 
             var user = new User
@@ -183,12 +183,14 @@ namespace FlowSpace.Api.Controllers
                 return FailResponse<AuthResponse>($"Tài khoản của bạn tạm thời bị khóa, vui lòng thử lại sau {Math.Ceiling(remaining.TotalMinutes)} phút.");
             }
 
-            // 2. Bắt buộc kiểm tra IsEmailVerified trước
+            // 2. Bắt buộc kiểm tra IsEmailVerified trước (Tạm thời bỏ chặn để đăng nhập trực tiếp ngay)
+            /*
             if (!user.IsEmailVerified)
             {
                 await CreateAuditLogAsync(user.Id, "LoginFailed", $"Login blocked for unverified email: {user.Email}");
                 return FailResponse<AuthResponse>("EMAIL_NOT_VERIFIED");
             }
+            */
 
             bool isValid = false;
             if (user.PasswordHash.StartsWith("$2"))
