@@ -27,7 +27,7 @@ namespace FlowSpace.Api.Middlewares
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An unhandled exception occurred: {Message}", ex.Message);
+                _logger.LogError(ex, "Đã xảy ra lỗi hệ thống không kiểm soát: {Message}", ex.Message);
                 await HandleExceptionAsync(context, ex);
             }
         }
@@ -37,7 +37,7 @@ namespace FlowSpace.Api.Middlewares
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-            var response = ApiResponse<object>.FailResult("An unexpected error occurred. Please try again later.");
+            var response = ApiResponse<object>.FailResult("Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
 
             // Custom error checks (e.g. FluentValidation, KeyNotFoundException, etc.)
             if (exception is FluentValidation.ValidationException valEx)
@@ -54,7 +54,7 @@ namespace FlowSpace.Api.Middlewares
             else if (exception is UnauthorizedAccessException)
             {
                 context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                response = ApiResponse<object>.FailResult("You do not have permission to access this resource.");
+                response = ApiResponse<object>.FailResult("Bạn không có quyền truy cập vào tài nguyên này.");
             }
 
             var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
