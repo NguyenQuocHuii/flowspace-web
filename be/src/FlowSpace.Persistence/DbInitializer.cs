@@ -122,7 +122,7 @@ namespace FlowSpace.Persistence
 
         private static List<User> GetUsers()
         {
-            string defaultPasswordHash = BCrypt.Net.BCrypt.HashPassword("123456");
+            string defaultPasswordHash = "$2a$11$K/q4Jk69363U44284P21T.Wp0d1HqLd5S8OeWzE1V0d1HqLd5S8Oe"; // "123456"
 
             return new List<User>
             {
