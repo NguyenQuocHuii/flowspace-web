@@ -41,10 +41,23 @@ namespace FlowSpace.Persistence
 
             try
             {
-                // 1. Tạo danh sách 15 Users chuẩn doanh nghiệp
-                var users = GetUsers();
+                // 1. Seed lookup tables (Departments, Roles) and then create Users
+
+                // Seed Departments
+                var departments = GetDepartments();
+                context.Departments.AddRange(departments);
+                context.SaveChanges();
+
+                // Seed Roles
+                var roles = GetRoles();
+                context.Roles.AddRange(roles);
+                context.SaveChanges();
+
+                // Now seed Users with navigation properties
+                var users = GetUsers(departments);
                 context.Users.AddRange(users);
                 context.SaveChanges();
+
 
                 var admin = users.First(u => u.Email == "admin@flowspace.demo");
 
@@ -120,7 +133,7 @@ namespace FlowSpace.Persistence
             }
         }
 
-        private static List<User> GetUsers()
+        private static List<User> GetUsers(List<Department> departments)
         {
             // BCrypt hash verified for the demo password "123456". Keep it static so
             // seeding does not spend CPU hashing passwords during application startup.
@@ -128,18 +141,18 @@ namespace FlowSpace.Persistence
 
             return new List<User>
             {
-                new User { Id = Guid.Parse("11111111-1111-1111-1111-111111111111"), Name = "Phạm Thanh Dung", Email = "admin@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "director", Avatar = "PD", Color = "#e74c3c", Department = "Ban giám đốc", Position = "Giám đốc điều hành", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddYears(-3), JoinDate = DateTime.UtcNow.AddYears(-3) },
-                new User { Id = Guid.Parse("22222222-2222-2222-2222-222222222222"), Name = "Lê Minh Cường", Email = "truongphong@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "manager", Avatar = "LC", Color = "#e67e22", Department = "Kỹ thuật", Position = "Trưởng phòng Kỹ thuật", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddYears(-2), JoinDate = DateTime.UtcNow.AddYears(-2) },
-                new User { Id = Guid.Parse("33333333-3333-3333-3333-333333333333"), Name = "Trần Thị Bình", Email = "truongnhom@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "team_lead", Avatar = "TB", Color = "#9b59b6", Department = "Kỹ thuật", Position = "Trưởng nhóm Phát triển", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddYears(-1), JoinDate = DateTime.UtcNow.AddYears(-1) },
-                new User { Id = Guid.Parse("44444444-4444-4444-4444-444444444444"), Name = "Nguyễn Văn An", Email = "nhanvien@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "employee", Avatar = "NV", Color = "#2ecc71", Department = "Kỹ thuật", Position = "Lập trình viên Fullstack", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddMonths(-6), JoinDate = DateTime.UtcNow.AddMonths(-6) },
-                new User { Id = Guid.Parse("55555555-5555-5555-5555-555555555555"), Name = "Vũ Hoàng Giang", Email = "giang.vu@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "team_lead", Avatar = "VG", Color = "#1abc9c", Department = "Kinh doanh", Position = "Trưởng nhóm Kinh doanh B2B", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddYears(-1), JoinDate = DateTime.UtcNow.AddYears(-1) },
-                new User { Id = Guid.Parse("66666666-6666-6666-6666-666666666666"), Name = "Đỗ Thùy Trang", Email = "trang.do@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "employee", Avatar = "DT", Color = "#e84393", Department = "Kinh doanh", Position = "Chuyên viên Kinh doanh", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddMonths(-8), JoinDate = DateTime.UtcNow.AddMonths(-8) },
-                new User { Id = Guid.Parse("77777777-7777-7777-7777-777777777777"), Name = "Bùi Anh Tuấn", Email = "tuan.bui@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "employee", Avatar = "BT", Color = "#0984e3", Department = "Kỹ thuật", Position = "Kỹ sư Cầu nối (BrSE)", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddMonths(-5), JoinDate = DateTime.UtcNow.AddMonths(-5) },
-                new User { Id = Guid.Parse("88888888-8888-8888-8888-888888888888"), Name = "Phan Minh Trí", Email = "tri.phan@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "employee", Avatar = "PT", Color = "#2d3436", Department = "Kỹ thuật", Position = "Lập trình viên Mobile", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddMonths(-3), JoinDate = DateTime.UtcNow.AddMonths(-3) },
-                new User { Id = Guid.Parse("99999999-9999-9999-9999-999999999999"), Name = "Lâm Mỹ Lệ", Email = "le.lam@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "manager", Avatar = "LL", Color = "#fdcb6e", Department = "Nhân sự", Position = "Trưởng phòng Nhân sự", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddYears(-2), JoinDate = DateTime.UtcNow.AddYears(-2) },
-                new User { Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), Name = "Hoàng Kim Yến", Email = "yen.hoang@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "employee", Avatar = "HY", Color = "#fd79a8", Department = "Nhân sự", Position = "Chuyên viên Tuyển dụng", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddMonths(-5), JoinDate = DateTime.UtcNow.AddMonths(-5) },
-                new User { Id = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"), Name = "Nguyễn Hữu Nam", Email = "nam.nguyen@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "manager", Avatar = "HN", Color = "#6c5ce7", Department = "Marketing", Position = "Trưởng phòng Marketing", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddYears(-1), JoinDate = DateTime.UtcNow.AddYears(-1) },
-                new User { Id = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"), Name = "Trần Quang Minh", Email = "minh.tran@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "employee", Avatar = "TM", Color = "#00cec9", Department = "Marketing", Position = "Chuyên viên Sáng tạo nội dung", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddMonths(-4), JoinDate = DateTime.UtcNow.AddMonths(-4) }
+                new User { Id = Guid.Parse("11111111-1111-1111-1111-111111111111"), Name = "Phạm Thanh Dung", FullName = "Phạm Thanh Dung", Email = "admin@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "director", Avatar = "PD", Color = "#e74c3c", DepartmentId = departments.First(d => d.Name == "Ban giám đốc").Id, Department = departments.First(d => d.Name == "Ban giám đốc"), Position = "Giám đốc điều hành", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddYears(-3), JoinDate = DateTime.UtcNow.AddYears(-3) },
+                new User { Id = Guid.Parse("22222222-2222-2222-2222-222222222222"), Name = "Lê Minh Cường", FullName = "Lê Minh Cường", Email = "truongphong@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "manager", Avatar = "LC", Color = "#e67e22", DepartmentId = departments.First(d => d.Name == "Kỹ thuật").Id, Department = departments.First(d => d.Name == "Kỹ thuật"), Position = "Trưởng phòng Kỹ thuật", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddYears(-2), JoinDate = DateTime.UtcNow.AddYears(-2) },
+                new User { Id = Guid.Parse("33333333-3333-3333-3333-333333333333"), Name = "Trần Thị Bình", FullName = "Trần Thị Bình", Email = "truongnhom@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "team_lead", Avatar = "TB", Color = "#9b59b6", DepartmentId = departments.First(d => d.Name == "Kỹ thuật").Id, Department = departments.First(d => d.Name == "Kỹ thuật"), Position = "Trưởng nhóm Phát triển", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddYears(-1), JoinDate = DateTime.UtcNow.AddYears(-1) },
+                new User { Id = Guid.Parse("44444444-4444-4444-4444-444444444444"), Name = "Nguyễn Văn An", FullName = "Nguyễn Văn An", Email = "nhanvien@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "employee", Avatar = "NV", Color = "#2ecc71", DepartmentId = departments.First(d => d.Name == "Kỹ thuật").Id, Department = departments.First(d => d.Name == "Kỹ thuật"), Position = "Lập trình viên Fullstack", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddMonths(-6), JoinDate = DateTime.UtcNow.AddMonths(-6) },
+                new User { Id = Guid.Parse("55555555-5555-5555-5555-555555555555"), Name = "Vũ Hoàng Giang", FullName = "Vũ Hoàng Giang", Email = "giang.vu@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "team_lead", Avatar = "VG", Color = "#1abc9c", DepartmentId = departments.First(d => d.Name == "Kinh doanh").Id, Department = departments.First(d => d.Name == "Kinh doanh"), Position = "Trưởng nhóm Kinh doanh B2B", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddYears(-1), JoinDate = DateTime.UtcNow.AddYears(-1) },
+                new User { Id = Guid.Parse("66666666-6666-6666-6666-666666666666"), Name = "Đỗ Thùy Trang", FullName = "Đỗ Thùy Trang", Email = "trang.do@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "employee", Avatar = "DT", Color = "#e84393", DepartmentId = departments.First(d => d.Name == "Kinh doanh").Id, Department = departments.First(d => d.Name == "Kinh doanh"), Position = "Chuyên viên Kinh doanh", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddMonths(-8), JoinDate = DateTime.UtcNow.AddMonths(-8) },
+                new User { Id = Guid.Parse("77777777-7777-7777-7777-777777777777"), Name = "Bùi Anh Tuấn", FullName = "Bùi Anh Tuấn", Email = "tuan.bui@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "employee", Avatar = "BT", Color = "#0984e3", DepartmentId = departments.First(d => d.Name == "Kỹ thuật").Id, Department = departments.First(d => d.Name == "Kỹ thuật"), Position = "Kỹ sư Cầu nối (BrSE)", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddMonths(-5), JoinDate = DateTime.UtcNow.AddMonths(-5) },
+                new User { Id = Guid.Parse("88888888-8888-8888-8888-888888888888"), Name = "Phan Minh Trí", FullName = "Phan Minh Trí", Email = "tri.phan@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "employee", Avatar = "PT", Color = "#2d3436", DepartmentId = departments.First(d => d.Name == "Kỹ thuật").Id, Department = departments.First(d => d.Name == "Kỹ thuật"), Position = "Lập trình viên Mobile", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddMonths(-3), JoinDate = DateTime.UtcNow.AddMonths(-3) },
+                new User { Id = Guid.Parse("99999999-9999-9999-9999-999999999999"), Name = "Lâm Mỹ Lệ", FullName = "Lâm Mỹ Lệ", Email = "le.lam@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "manager", Avatar = "LL", Color = "#fdcb6e", DepartmentId = departments.First(d => d.Name == "Nhân sự").Id, Department = departments.First(d => d.Name == "Nhân sự"), Position = "Trưởng phòng Nhân sự", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddYears(-2), JoinDate = DateTime.UtcNow.AddYears(-2) },
+                new User { Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), Name = "Hoàng Kim Yến", FullName = "Hoàng Kim Yến", Email = "yen.hoang@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "employee", Avatar = "HY", Color = "#fd79a8", DepartmentId = departments.First(d => d.Name == "Nhân sự").Id, Department = departments.First(d => d.Name == "Nhân sự"), Position = "Chuyên viên Tuyển dụng", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddMonths(-5), JoinDate = DateTime.UtcNow.AddMonths(-5) },
+                new User { Id = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"), Name = "Nguyễn Hữu Nam", FullName = "Nguyễn Hữu Nam", Email = "nam.nguyen@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "manager", Avatar = "HN", Color = "#6c5ce7", DepartmentId = departments.First(d => d.Name == "Marketing").Id, Department = departments.First(d => d.Name == "Marketing"), Position = "Trưởng phòng Marketing", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddYears(-1), JoinDate = DateTime.UtcNow.AddYears(-1) },
+                new User { Id = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"), Name = "Trần Quang Minh", FullName = "Trần Quang Minh", Email = "minh.tran@flowspace.demo", PasswordHash = defaultPasswordHash, Role = "employee", Avatar = "TM", Color = "#00cec9", DepartmentId = departments.First(d => d.Name == "Marketing").Id, Department = departments.First(d => d.Name == "Marketing"), Position = "Chuyên viên Sáng tạo nội dung", Active = true, IsEmailVerified = true, EmailVerifiedAt = DateTime.UtcNow.AddMonths(-4), JoinDate = DateTime.UtcNow.AddMonths(-4) }
             };
         }
 
@@ -369,5 +382,29 @@ namespace FlowSpace.Persistence
                 new AuditLog { Id = Guid.NewGuid(), UserId = users[1].Id, Action = "CREATE", Detail = "Tạo dự án mới: Chuyển dịch Hạ tầng sang AWS Cloud", CreatedAt = DateTime.UtcNow.AddHours(-3) }
             };
         }
+        private static List<Department> GetDepartments()
+        {
+            return new List<Department>
+            {
+                new Department { Id = Guid.NewGuid(), Name = "Ban giám đốc" },
+                new Department { Id = Guid.NewGuid(), Name = "Kỹ thuật" },
+                new Department { Id = Guid.NewGuid(), Name = "Kinh doanh" },
+                new Department { Id = Guid.NewGuid(), Name = "Nhân sự" },
+                new Department { Id = Guid.NewGuid(), Name = "Marketing" }
+            };
+        }
+
+        private static List<Role> GetRoles()
+        {
+            return new List<Role>
+            {
+                new Role { Id = Guid.NewGuid(), Name = "director" },
+                new Role { Id = Guid.NewGuid(), Name = "manager" },
+                new Role { Id = Guid.NewGuid(), Name = "team_lead" },
+                new Role { Id = Guid.NewGuid(), Name = "employee" }
+            };
+        }
     }
+
 }
+
