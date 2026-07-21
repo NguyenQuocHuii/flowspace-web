@@ -1,8 +1,32 @@
 (function (FS) {
   "use strict";
 
-  // In-memory session holder (lost on page reload)
-  let _session = null;
+  const SESSION_KEY = "flowspace_session";
+
+  function loadSession() {
+    try {
+      const stored = sessionStorage.getItem(SESSION_KEY);
+      if (!stored) return null;
+      const session = JSON.parse(stored);
+      if (!session.token || (session.expiresAt && new Date(session.expiresAt) <= new Date())) {
+        sessionStorage.removeItem(SESSION_KEY);
+        return null;
+      }
+      return session;
+    } catch {
+      sessionStorage.removeItem(SESSION_KEY);
+      return null;
+    }
+  }
+
+  function persistSession() {
+    try {
+      if (_session) sessionStorage.setItem(SESSION_KEY, JSON.stringify(_session));
+    } catch { /* Keep the current-page session if storage is unavailable. */ }
+  }
+
+  // Restore the authenticated session after navigation from login.html to app.html.
+  let _session = loadSession();
 
   const ROLE_LEVELS = { employee: 1, team_lead: 2, manager: 3, director: 4 };
   const ROLE_LABELS = {
@@ -64,6 +88,7 @@
               color: authData.user.color || "#6366f1",
               loginAt: new Date().toISOString(),
             };
+            persistSession();
             return _session;
           }
           return { error: "Phản hồi đăng nhập không hợp lệ từ máy chủ." };
@@ -106,6 +131,7 @@
         }).fail(err => console.error("Backend logout failed.", err));
       }
       _session = null;
+      sessionStorage.removeItem(SESSION_KEY);
       window.location.href = "login.html";
     },
 
@@ -203,6 +229,7 @@
       if (updates.email) _session.email = updates.email;
       if (updates.avatar) _session.avatar = updates.avatar;
       if (updates.role) _session.role = updates.role;
+      persistSession();
       return true;
     },
 
