@@ -11,6 +11,7 @@
       "dest": "https://flowspace-backend-7ql5.onrender.com/api/$1",
       "methods": ["GET","POST","PUT","DELETE","PATCH"]
     },
-    { "src": "/(.*)", "dest": "/$1" }
+    { "src": "/", "dest": "/fe/index.html" },
+    { "src": "/(.*)", "dest": "/fe/$1" }
   ]
 }
