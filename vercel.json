@@ -3,7 +3,8 @@
   "builds": [
     { "src": "fe/**/*.html", "use": "@vercel/static" },
     { "src": "fe/**/*.js",   "use": "@vercel/static" },
-    { "src": "fe/**/*.css",  "use": "@vercel/static" }
+    { "src": "fe/**/*.css",  "use": "@vercel/static" },
+    { "src": "fe/assets/**/*", "use": "@vercel/static" }
   ],
   "routes": [
     {
