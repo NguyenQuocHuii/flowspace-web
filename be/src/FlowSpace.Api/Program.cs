@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using FlowSpace.Application.Authorization;
+
 using FlowSpace.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Serilog;

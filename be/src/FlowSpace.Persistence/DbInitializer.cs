@@ -348,7 +348,7 @@ namespace FlowSpace.Persistence
         {
             var requests = new List<Request>
             {
-                new Request { Id = Guid.Parse("90909090-9090-9090-9090-909090909090"), Title = "Yêu cầu nghỉ phép năm - Nguyễn Văn An", Description = "Xin nghỉ phép 2 ngày giải quyết việc cá nhân.", Type = RequestType.Leave, Status = RequestStatus.Pending, RequesterId = users[3].Id, CreatedAt = DateTime.UtcNow.AddDays(-1) }
+                new Request { Id = Guid.Parse("90909090-9090-9090-9090-909090909090"), Title = "Yêu cầu nghỉ phép năm - Nguyễn Văn An", Description = "Xin nghỉ phép 2 ngày giải quyết việc cá nhân.", Type = FlowSpace.Domain.Enums.RequestType.Leave, Status = RequestStatus.Pending, RequesterId = users[3].Id, CreatedAt = DateTime.UtcNow.AddDays(-1) }
             };
 
             var approvals = new List<Approval>

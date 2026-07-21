@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace FlowSpace.Domain.Entities
@@ -11,6 +12,7 @@ namespace FlowSpace.Domain.Entities
         [Required]
         [MaxLength(100)]
         public string Name { get; set; } = string.Empty;
+        public string? FullName { get; set; }
 
         [Required]
         [EmailAddress]
@@ -34,7 +36,8 @@ namespace FlowSpace.Domain.Entities
         public string Color { get; set; } = "av-indigo";
 
         [MaxLength(100)]
-        public string? Department { get; set; }
+        public Guid? DepartmentId { get; set; }
+        public Department? Department { get; set; }
 
         [MaxLength(100)]
         public string? Position { get; set; }
@@ -46,12 +49,16 @@ namespace FlowSpace.Domain.Entities
         public bool Active { get; set; } = true;
 
         public bool IsEmailVerified { get; set; } = false;
+        public bool IsDeleted { get; set; } = false;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? EmailVerifiedAt { get; set; }
 
         public int FailedLoginCount { get; set; } = 0;
 
         public DateTime? LockoutEndAt { get; set; }
+
+        public ICollection<UserRole>? UserRoles { get; set; }
 
         [Required]
         public DateTime JoinDate { get; set; }

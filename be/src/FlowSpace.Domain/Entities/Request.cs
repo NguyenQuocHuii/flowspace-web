@@ -12,7 +12,7 @@ namespace FlowSpace.Domain.Entities
         public Guid Id { get; set; }
 
         [Required]
-        public RequestType? Type { get; set; }
+        public FlowSpace.Domain.Enums.RequestType? Type { get; set; }
 
         [Required]
         [MaxLength(200)]
@@ -36,7 +36,7 @@ namespace FlowSpace.Domain.Entities
         public Guid? RequestTypeId { get; set; }
 
         [ForeignKey(nameof(RequestTypeId))]
-        public RequestType? RequestType { get; set; }
+        public FlowSpace.Domain.Entities.RequestType? RequestType { get; set; }
 
         public ICollection<Approval> Approvals { get; set; } = new List<Approval>();
     }

@@ -89,7 +89,7 @@ namespace FlowSpace.Application.Services
             var request = new Request
             {
                 Id = Guid.NewGuid(),
-                Type = Enum.TryParse<RequestType>(input.Type, true, out var type) ? type : RequestType.Leave,
+                Type = Enum.TryParse<FlowSpace.Domain.Enums.RequestType>(input.Type, true, out var type) ? type : FlowSpace.Domain.Enums.RequestType.Leave,
                 Title = input.Title,
                 Description = input.Description,
                 RequesterId = requesterId,
@@ -124,7 +124,7 @@ namespace FlowSpace.Application.Services
 
             // Tìm quy tắc phù hợp nhất dựa trên loại và điều kiện ngân sách
             var matchedRule = activeRules
-                .Where(r => r.RequestType.Equals(typeString, StringComparison.OrdinalIgnoreCase))
+                .Where(r => string.Equals(r.RequestType, typeString, StringComparison.OrdinalIgnoreCase))
                 .FirstOrDefault(r => 
                     (!r.MinAmount.HasValue || (requestAmount.HasValue && requestAmount.Value >= r.MinAmount.Value)) &&
                     (!r.MaxAmount.HasValue || (requestAmount.HasValue && requestAmount.Value <= r.MaxAmount.Value))
@@ -213,11 +213,11 @@ namespace FlowSpace.Application.Services
 
             if (request == null) return null;
             if (request.RequesterId != userId) return null; // Chỉ chủ sở hữu được sửa
-            if (request.Status != RequestStatus.Pending) return null; // Chỉ được sửa khi đang chờ duyệt
+            if (request.Status != FlowSpace.Domain.Enums.RequestStatus.Pending) return null; // Chỉ được sửa khi đang chờ duyệt
 
             request.Title = input.Title;
             request.Description = input.Description;
-            request.Type = Enum.TryParse<RequestType>(input.Type, true, out var type) ? type : request.Type;
+            request.Type = Enum.TryParse<FlowSpace.Domain.Enums.RequestType>(input.Type, true, out var type) ? type : request.Type;
             request.UpdatedAt = DateTime.UtcNow;
 
             _unitOfWork.Repository<Request>().Update(request);
