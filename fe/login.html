@@ -190,8 +190,15 @@
         const $btn = $('#login-btn');
         $btn.prop('disabled', true).html('<span class="fs-spinner"></span> Đang đăng nhập...');
 
+        // Hiển thị thông báo "đang đánh thức máy chủ" nếu mất hơn 5 giây (Render Free Tier cold start)
+        const coldStartTimer = setTimeout(() => {
+          $btn.html('<span class="fs-spinner"></span> Đang đánh thức máy chủ... (~30s)');
+          showInfo('⏳ Máy chủ đang khởi động sau thời gian nghỉ. Vui lòng chờ khoảng 30 giây...');
+        }, 5000);
+
         // FS.auth.login bây giờ trả về session nếu thành công, hoặc {error, errorCode} nếu thất bại
         const result = await FS.auth.login(email, pwd);
+        clearTimeout(coldStartTimer);
 
         if (result && result.userId) { // Đăng nhập thành công
           $btn.html('<i class="bi bi-check-lg"></i> Thành công!');
@@ -218,10 +225,16 @@
         }
       });
 
+
       function showError(msg) {
         $('#login-alert-text').text(msg);
-        $('#login-alert').addClass('show');
+        $('#login-alert').addClass('show').removeClass('info');
         setTimeout(() => $('#login-alert').removeClass('show'), 4000);
+      }
+
+      function showInfo(msg) {
+        $('#login-alert-text').text(msg);
+        $('#login-alert').addClass('show info');
       }
 
       function showErrorWithAction(msg, actionText, callback) {

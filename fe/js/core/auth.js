@@ -63,13 +63,15 @@
      * Ưu tiên Backend API → fallback localStorage khi offline
      */
     async login(email, password) {
+      // Thử tối đa 2 lần để xử lý Render Free Tier cold start (cần 30-60s khởi động)
+      for (let attempt = 1; attempt <= 2; attempt++) {
       try {
         const authData = await $.ajax({
           url: FS.API_BASE + "/api/v1/auth/login",
           type: "POST",
           contentType: "application/json",
           data: JSON.stringify({ email: email, password: password }),
-          timeout: 8000,
+          timeout: 65000, // Tăng lên 65 giây để chờ Render khởi động xong
         });
 
         if (authData && authData.accessToken && authData.user) {
@@ -102,13 +104,25 @@
         return { error: "Phản hồi đăng nhập không hợp lệ từ máy chủ." };
       } catch (apiErr) {
         const errorResponse = apiErr.responseJSON || {};
-        const message =
-          errorResponse.message ||
-          "Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền.";
         const errorCode = errorResponse.errorCode || null;
+
+        // Nếu là lỗi timeout/network (không phải lỗi 401/400) và còn lượt thử → retry
+        const isNetworkError = !apiErr.status || apiErr.status === 0 || apiErr.statusText === "timeout";
+        if (isNetworkError && attempt < 2) {
+          // Máy chủ đang thức dậy, chờ 3 giây rồi thử lại
+          await new Promise(r => setTimeout(r, 3000));
+          continue; // thử lại vòng lặp
+        }
+
+        const message = errorResponse.message ||
+          (isNetworkError
+            ? "Máy chủ đang khởi động, vui lòng thử đăng nhập lại sau 30 giây."
+            : "Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền.");
         return { error: message, errorCode: errorCode };
       }
+      } // end for loop
     },
+
 
     /**
      * Đăng ký tài khoản mới

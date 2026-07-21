@@ -453,6 +453,12 @@ body.fs-auth-body {
   color: #166534;
 }
 
+.fs-login-alert.info {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1e40af;
+}
+
 /* Password Strength Indicator */
 .password-strength-meter {
   margin-top: 8px;
