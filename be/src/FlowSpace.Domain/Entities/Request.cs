@@ -12,7 +12,7 @@ namespace FlowSpace.Domain.Entities
         public Guid Id { get; set; }
 
         [Required]
-        public RequestType Type { get; set; } = RequestType.Leave;
+        public RequestType? Type { get; set; }
 
         [Required]
         [MaxLength(200)]
