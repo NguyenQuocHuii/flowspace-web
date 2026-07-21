@@ -9,8 +9,8 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://api.flowspace.dev/api/$1",
-      "methods": ["GET","POST","PUT","DELETE","PATCH"]
+      "dest": "https://flowspace-backend-7ql5.onrender.com/api/$1",
+      "methods": ["GET", "POST", "PUT", "DELETE", "PATCH"]
     },
     { "src": "/(.*)", "dest": "/$1" }
   ]
