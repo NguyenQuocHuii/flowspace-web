@@ -131,33 +131,35 @@
         this._charts.push(c1);
       }
 
-      // 2. Task status donut
+      // 2. Task status donut (Dashboard Parity 100%)
       const ctx2 = document.getElementById('report-status-chart');
       if (ctx2) {
         const totalTasks = tasks.length;
         const totalEl = document.getElementById('report-status-total');
         if (totalEl) totalEl.textContent = totalTasks;
 
-        const statusMeta = [
-          { key: 'todo', label: 'Chưa làm', color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.18)' },
-          { key: 'in_progress', label: 'Đang làm', color: '#6366f1', bg: 'rgba(99, 102, 241, 0.18)' },
-          { key: 'review', label: 'Chờ duyệt', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.18)' },
-          { key: 'done', label: 'Hoàn thành', color: '#10b981', bg: 'rgba(16, 185, 129, 0.18)' }
-        ];
+        const counts = {
+          todo: tasks.filter(t => (t.status || '').toLowerCase() === 'todo').length,
+          inProgress: tasks.filter(t => (t.status || '').toLowerCase() === 'in_progress').length,
+          review: tasks.filter(t => (t.status || '').toLowerCase() === 'review').length,
+          done: tasks.filter(t => (t.status || '').toLowerCase() === 'done').length
+        };
 
-        const statusCounts = statusMeta.map(s => tasks.filter(t => (t.status || '').toLowerCase() === s.key).length);
+        const statusData = [counts.todo, counts.inProgress, counts.review, counts.done];
+        const colors = ["#cbd5e1", "#6366f1", "#f59e0b", "#10b981"];
+        const labels = ["Chưa bắt đầu", "Đang làm", "Chờ duyệt", "Hoàn thành"];
 
         // Render Dashboard Parity Status Legend Items
         const detailsEl = document.getElementById('report-status-details');
         if (detailsEl) {
-          detailsEl.innerHTML = statusMeta.map((s, idx) => {
-            const count = statusCounts[idx];
+          detailsEl.innerHTML = labels.map((label, idx) => {
+            const count = statusData[idx];
             const pct = totalTasks ? Math.round((count / totalTasks) * 100) : 0;
             return `
               <div class="dashboard-legend-item">
                 <div class="dashboard-legend-label">
-                  <span class="dashboard-legend-color" style="background:${s.color}"></span>
-                  <span>${s.label}</span>
+                  <span class="dashboard-legend-color" style="background:${colors[idx]}"></span>
+                  <span>${label}</span>
                 </div>
                 <div class="d-flex align-items-center gap-1">
                   <span style="font-weight:700;color:var(--fs-text)">${count}</span>
@@ -170,27 +172,24 @@
         const c2 = new Chart(ctx2, {
           type: 'doughnut',
           data: {
-            labels: statusMeta.map(s => s.label),
+            labels: labels,
             datasets: [{
-              data: statusCounts,
-              backgroundColor: statusMeta.map(s => s.color),
-              borderWidth: 3,
-              borderColor: 'var(--fs-bg-card, #ffffff)',
-              hoverOffset: 8
+              data: statusData,
+              backgroundColor: colors,
+              borderWidth: 2,
+              borderColor: '#ffffff',
+              hoverOffset: 4
             }]
           },
           options: {
             responsive: true,
             maintainAspectRatio: true,
-            cutout: '74%',
+            cutout: '70%',
             plugins: {
               legend: { display: false },
               tooltip: {
                 callbacks: {
-                  label: c => {
-                    const pct = totalTasks ? Math.round((c.raw / totalTasks) * 100) : 0;
-                    return ` ${c.label}: ${c.raw} công việc (${pct}%)`;
-                  }
+                  label: (context) => ` ${context.label}: ${context.parsed} công việc`
                 }
               }
             }
