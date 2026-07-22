@@ -144,13 +144,13 @@
 
           <!-- Breadcrumb -->
           <div class="fs-topbar-breadcrumb">
-            <i class="bi bi-house" style="font-size:13px"></i>
-            <i class="bi bi-chevron-right" style="font-size:10px;opacity:0.5"></i>
+            <i class="bi bi-house fs-breadcrumb-icon" aria-hidden="true"></i>
+            <i class="bi bi-chevron-right fs-breadcrumb-separator" aria-hidden="true"></i>
             <span class="current" id="fs-page-title">Dashboard</span>
           </div>
 
           <!-- Search trigger -->
-          <button class="fs-topbar-search ms-3" id="fs-search-trigger" aria-label="Tìm kiếm (Ctrl+K)" tabindex="0">
+          <button class="fs-topbar-search ms-3" id="fs-search-trigger" type="button" aria-label="Tìm kiếm (Ctrl+K)" aria-controls="fs-search-modal" tabindex="0">
             <i class="bi bi-search fs-search-icon"></i>
             <span class="fs-search-placeholder">Tìm kiếm task, dự án, người dùng...</span>
             <kbd class="fs-search-shortcut"><span>Ctrl</span><span>K</span></kbd>
@@ -162,16 +162,17 @@
         <div class="fs-topbar-actions">
 
           <!-- Notifications -->
-          <button class="fs-topbar-btn" id="fs-notif-btn" aria-label="Thông báo" aria-expanded="false" aria-haspopup="true">
+          <button class="fs-topbar-btn" id="fs-notif-btn" type="button" aria-label="Thông báo" aria-controls="fs-notif-dropdown" aria-expanded="false" aria-haspopup="dialog">
             <i class="bi bi-bell"></i>
-            <span class="fs-topbar-badge count" id="fs-notif-badge" style="display:none">0</span>
-            <span class="fs-topbar-indicator" id="fs-notif-indicator" style="display:none"></span>
+            <span class="fs-topbar-badge count" id="fs-notif-badge" hidden>0</span>
+            <span class="fs-topbar-indicator" id="fs-notif-indicator" hidden></span>
           </button>
 
           <div class="fs-topbar-divider"></div>
 
           <!-- User avatar -->
-          <div class="fs-topbar-user fs-dropdown" id="fs-topbar-user" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false">
+          <div class="fs-topbar-profile">
+          <button class="fs-topbar-user" id="fs-topbar-user" type="button" aria-controls="fs-user-menu" aria-haspopup="menu" aria-expanded="false">
             <div class="fs-avatar-wrapper">
               <div class="fs-avatar fs-avatar-sm" id="topbar-user-avatar">?</div>
               <span class="fs-online-indicator" id="user-online-indicator"></span>
@@ -181,8 +182,8 @@
               <span class="fs-user-role" id="user-role-label">—</span>
             </div>
             <i class="bi bi-chevron-down fs-chevron-icon"></i>
-            <!-- User dropdown -->
-            <div class="fs-dropdown-menu" id="fs-user-menu" role="menu">
+          </button>
+            <div class="fs-dropdown-menu" id="fs-user-menu" role="menu" aria-hidden="true">
               <div class="fs-dropdown-user-header">
                 <div class="fs-dropdown-avatar" id="dropdown-user-avatar">?</div>
                 <div class="fs-dropdown-user-details">
@@ -203,46 +204,26 @@
                 <i class="bi bi-box-arrow-right"></i> Đăng xuất
               </button>
             </div>
+            </div>
           </div>
 
         </div>
       </header>
 
       <!-- ── Notification Dropdown ─────────────────────── -->
-      <div id="fs-notif-dropdown" role="region" aria-label="Thông báo" class="fs-dropdown-panel">
+      <div id="fs-notif-dropdown" role="dialog" aria-label="Thông báo" aria-hidden="true" class="fs-dropdown-panel">
         <div class="notif-header">
           <div class="notif-header-left">
             <h6>Thông báo</h6>
-            <span class="notif-unread-count" id="notif-unread-count" style="display:none">0 chưa đọc</span>
+            <span class="notif-unread-count" id="notif-unread-count" hidden>0 chưa đọc</span>
           </div>
           <div class="notif-header-actions">
-            <button class="btn btn-ghost btn-xs" id="fs-notif-mark-all" title="Đánh dấu tất cả là đã đọc">
+            <button class="btn btn-ghost btn-xs" id="fs-notif-mark-all" type="button" title="Đánh dấu tất cả là đã đọc">
               <i class="bi bi-check2-all"></i> Đọc tất cả
             </button>
-            <button class="btn btn-ghost btn-icon btn-xs" id="fs-notif-settings" title="Cài đặt thông báo">
-              <i class="bi bi-gear"></i>
-            </button>
           </div>
         </div>
-        <div class="notif-list" id="fs-notif-list">
-          <div class="notif-loading" id="notif-loading" style="display:none">
-            <div class="fs-spinner"></div>
-            <span>Đang tải...</span>
-          </div>
-          <div class="notif-empty" id="notif-empty" style="display:none">
-            <i class="bi bi-bell-slash"></i>
-            <p>Không có thông báo</p>
-          </div>
-          <div class="notif-error" id="notif-error" style="display:none">
-            <i class="bi bi-exclamation-circle"></i>
-            <p>Không thể tải thông báo</p>
-            <button class="btn btn-ghost btn-xs" id="notif-retry">Thử lại</button>
-          </div>
-          <!-- Rendered by JS -->
-        </div>
-        <div class="notif-footer">
-          <a href="#" id="fs-notif-view-all">Xem tất cả thông báo</a>
-        </div>
+        <div class="notif-list" id="fs-notif-list" tabindex="0" aria-live="polite"></div>
       </div>
 
       <!-- ── Page Content ──────────────────────────────── -->
@@ -255,13 +236,13 @@
   </div><!-- /fs-app -->
 
   <!-- ── Global Search Modal ────────────────────────────────── -->
-  <div id="fs-search-modal" role="dialog" aria-modal="true" aria-label="Tìm kiếm">
+  <div id="fs-search-modal" role="dialog" aria-modal="true" aria-label="Tìm kiếm" aria-hidden="true">
     <div class="fs-search-dialog">
       <div class="fs-search-input-wrap">
         <i class="bi bi-search"></i>
         <input type="text" id="fs-search-input-main" class="fs-search-input-main"
           placeholder="Tìm kiếm task, dự án, tài liệu, người dùng..." autocomplete="off">
-        <button class="btn btn-ghost btn-xs" onclick="$('#fs-search-modal').removeClass('show')">
+        <button class="btn btn-ghost btn-xs" id="fs-search-close" type="button" aria-label="Đóng tìm kiếm">
           <kbd class="fs-key">Esc</kbd>
         </button>
       </div>
@@ -299,12 +280,14 @@
   <script src="js/core/auth.js"></script>
   <script src="js/core/utils.js"></script>
   <script src="js/core/router.js"></script>
-  <script src="js/core/notifications.js"></script>
 
   <!-- FlowSpace Components -->
   <script src="js/components/task-detail.js"></script>
   <script src="js/components/project-detail.js"></script>
-  <script src="js/components/search-modal.js"></script>
+  <script src="js/components/header-search.js"></script>
+  <script src="js/components/notification-center.js"></script>
+  <script src="js/components/user-profile-menu.js"></script>
+  <script src="js/components/header-bootstrap.js"></script>
 
   <!-- FlowSpace Pages -->
   <script src="js/pages/dashboard.js"></script>
@@ -335,36 +318,6 @@
       if (!FS.auth.guard()) return;
 
       // 3. Lấy session và populate UI
-      const session = FS.auth.getSession();
-
-      // Topbar user info
-      const $topbarAvatar = $('#topbar-user-avatar');
-      const $dropdownAvatar = $('#dropdown-user-avatar');
-      
-      $topbarAvatar.text(session.avatar);
-      $dropdownAvatar.text(session.avatar);
-      
-      if (session.color && session.color.startsWith('#')) {
-        $topbarAvatar.css('background-color', session.color);
-        $dropdownAvatar.css('background-color', session.color);
-      } else {
-        $topbarAvatar.addClass(session.color || 'av-indigo');
-        $dropdownAvatar.addClass(session.color || 'av-indigo');
-      }
-      
-      // User name and role
-      const lastName = session.name.split(' ').pop();
-      const roleLabel = FS.auth.getRoleLabel(session.role);
-      
-      $('#topbar-user-name').text(lastName);
-      $('#user-role-label').text(roleLabel);
-      $('#dropdown-user-name').text(session.name);
-      $('#user-menu-email').text(session.email);
-      $('#dropdown-user-role').text(roleLabel);
-      
-      // Show online indicator
-      $('#user-online-indicator').show();
-
       // 4. Apply role-based menu visibility
       const level = FS.auth.getRoleLevel();
 
@@ -434,44 +387,12 @@
       });
 
       // 7. Topbar user dropdown toggle
-      $('#fs-topbar-user').on('click', function (e) {
-        e.stopPropagation();
-        const $menu = $('#fs-user-menu');
-        const isExpanded = $(this).attr('aria-expanded') === 'true';
-        $menu.toggleClass('show');
-        $(this).attr('aria-expanded', !isExpanded);
-      });
       
       // Keyboard support for user dropdown
-      $('#fs-topbar-user').on('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          $(this).trigger('click');
-        }
-        if (e.key === 'Escape') {
-          $('#fs-user-menu').removeClass('show');
-          $(this).attr('aria-expanded', 'false');
-        }
-      });
 
       // 7b. User dropdown menu items → navigate (force reload if already on same page)
-      $(document).on('click', '.fs-dropdown-item[data-page]', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        const page = $(this).data('page');
-        $('#fs-user-menu').removeClass('show');
-        if (page) {
-          FS.router.go(page, { force: true });
-        }
-      });
 
       // 7c. Close user dropdown when clicking outside
-      $(document).on('click', function (e) {
-        if (!$(e.target).closest('#fs-topbar-user, #fs-user-menu').length) {
-          $('#fs-user-menu').removeClass('show');
-          $('#fs-topbar-user').attr('aria-expanded', 'false');
-        }
-      });
 
       // 7d. Sidebar user click → go to Settings profile
       // Sidebar user click handler removed (no sidebar user block)
@@ -490,20 +411,11 @@
       });
 
       // 9. Notifications with enhanced states
-      FS.notifModule.init();
       
       // Notification retry button
-      $('#notif-retry').on('click', function () {
-        FS.notifModule.render();
-      });
       
       // Notification settings button (TODO: integrate with backend)
-      $('#fs-notif-settings').on('click', function () {
-        FS.toast('Tính năng cài đặt thông báo sẽ có trong phiên bản sau', 'info');
-      });
-
       // 10. Search
-      FS.searchModule.init();
 
       // 10b. Dynamic Sidebar Projects Sync
       if (FS.syncSidebarProjects) {
