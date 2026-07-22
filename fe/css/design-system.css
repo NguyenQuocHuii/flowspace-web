@@ -801,3 +801,48 @@ html.dark-mode {
     max-width: 100%;
   }
 }
+
+/* ─── Unified View Toggle Capsule (Design System Token) ─── */
+.fs-view-toggle-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--fs-bg-secondary);
+  border: 1px solid var(--fs-border);
+  border-radius: var(--fs-radius-full);
+  padding: 3px;
+  box-shadow: var(--fs-shadow-xs);
+}
+.fs-view-toggle-group .view-toggle,
+.fs-view-toggle-group .fs-view-toggle-btn {
+  border: none;
+  background: transparent;
+  color: var(--fs-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: var(--fs-radius-full);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.fs-view-toggle-group .view-toggle:hover,
+.fs-view-toggle-group .fs-view-toggle-btn:hover {
+  color: var(--fs-text);
+  background: rgba(0,0,0,0.04);
+}
+html.dark-mode .fs-view-toggle-group .view-toggle:hover,
+html.dark-mode .fs-view-toggle-group .fs-view-toggle-btn:hover {
+  background: rgba(255,255,255,0.06);
+}
+.fs-view-toggle-group .view-toggle.active,
+.fs-view-toggle-group .fs-view-toggle-btn.active {
+  background: var(--fs-bg) !important;
+  color: var(--fs-accent) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}

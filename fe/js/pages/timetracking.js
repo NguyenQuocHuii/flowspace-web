@@ -482,7 +482,7 @@
       });
 
       // Manual log modal (Add / Edit)
-      document.getElementById('tt-add-manual-btn')?.addEventListener('click', function () {
+      const openManualModal = function () {
         self._editingLogId = null;
         const $title = document.getElementById('tt-modal-title');
         if ($title) $title.textContent = 'Thêm bản ghi giờ';
@@ -493,7 +493,10 @@
         if ($d) $d.value = today;
         const $ov = document.getElementById('tt-modal-overlay');
         if ($ov) $ov.style.display = 'flex';
-      });
+      };
+
+      document.getElementById('tt-add-manual-btn')?.addEventListener('click', openManualModal);
+      document.getElementById('tt-manual-log-btn')?.addEventListener('click', openManualModal);
       document.getElementById('tt-modal-close')?.addEventListener('click', () => {
         const $ov = document.getElementById('tt-modal-overlay');
         if ($ov) $ov.style.display = 'none';
