@@ -12,8 +12,8 @@
     _slaSettings: [],
     _notificationTemplates: [],
 
-    init() {
-      // 1. Cài đặt cá nhân mặc định
+    async init() {
+      // 1. Cài đặt cá nhân mặc định (Instant 0ms SWR render)
       this._renderProfile();
       this._renderNotifToggles();
       this._loadThemeState();
@@ -30,6 +30,14 @@
 
       // Hiển thị tab mặc định
       this._switchTab(this._activeTab);
+
+      // 5. Cập nhật cache người dùng từ Backend API trong background
+      try {
+        await FS.loadUsersCache();
+        this._renderProfile();
+      } catch (e) {
+        console.warn('loadUsersCache failed in settings page:', e);
+      }
     },
 
     _checkPermissions() {

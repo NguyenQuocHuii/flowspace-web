@@ -1,7 +1,7 @@
 (function (FS, $) {
   'use strict';
 
-  const PAGE_SIZE = 15;
+  const PAGE_SIZE = 6;
   const ACTION_COLORS = {
     LOGIN: 'av-green', LOGOUT: 'av-teal', CREATE: 'av-indigo',
     UPDATE: 'av-amber', ASSIGN: 'av-violet', APPROVE: 'av-green',
@@ -88,14 +88,20 @@
           type: 'GET'
         });
         if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
-          this._logsCache = response.data;
+          const mergedMap = new Map();
+          const seedData = this._getDefaultLogs();
+          for (const s of seedData) mergedMap.set(s.id, s);
+          for (const a of response.data) mergedMap.set(a.id, a);
+          this._logsCache = Array.from(mergedMap.values());
           $('#logs-offline-banner').remove();
-        } else {
+        } else if (!this._logsCache || !this._logsCache.length) {
           this._logsCache = this._getDefaultLogs();
         }
       } catch (err) {
         console.warn('Logs API failed:', err);
-        this._logsCache = this._getDefaultLogs();
+        if (!this._logsCache || !this._logsCache.length) {
+          this._logsCache = this._getDefaultLogs();
+        }
       }
     },
 
