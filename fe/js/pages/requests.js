@@ -204,6 +204,7 @@
                 </div>
                 <div class="d-flex gap-2">
                   <button class="btn btn-success btn-sm flex-1" id="req-approve-btn" data-req-id="${r.id}" data-approval-id="${pendingStep.id}"><i class="bi bi-check2"></i> Phê duyệt</button>
+                  <button class="btn btn-warning btn-sm flex-1" id="req-return-btn" data-req-id="${r.id}" data-approval-id="${pendingStep.id}" style="color:#fff"><i class="bi bi-arrow-counterclockwise"></i> Trả lại</button>
                   <button class="btn btn-danger btn-sm flex-1" id="req-reject-btn" data-req-id="${r.id}" data-approval-id="${pendingStep.id}"><i class="bi bi-x-lg"></i> Từ chối</button>
                 </div>` : ''}
             </div>
@@ -217,6 +218,11 @@
       document.getElementById('req-approve-btn')?.addEventListener('click', function () {
         const approvalId = $(this).data('approval-id');
         self._processApproval(r.id, approvalId, 'approved');
+        document.getElementById('req-detail-overlay')?.remove();
+      });
+      document.getElementById('req-return-btn')?.addEventListener('click', function () {
+        const approvalId = $(this).data('approval-id');
+        self._processApproval(r.id, approvalId, 'returned');
         document.getElementById('req-detail-overlay')?.remove();
       });
       document.getElementById('req-reject-btn')?.addEventListener('click', function () {

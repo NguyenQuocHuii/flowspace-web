@@ -117,12 +117,13 @@
                 ${isPending ? `
                   <div class="d-flex gap-2 mt-2">
                     <button class="btn btn-success btn-sm approvals-accept-btn" data-req-id="${r.id}" data-approval-id="${myStep.id}" title="Phê duyệt"><i class="bi bi-check2"></i> Phê duyệt</button>
+                    <button class="btn btn-warning btn-sm approvals-return-btn" data-req-id="${r.id}" data-approval-id="${myStep.id}" title="Trả lại" style="color:#fff"><i class="bi bi-arrow-counterclockwise"></i> Trả lại</button>
                     <button class="btn btn-danger btn-sm approvals-reject-btn" data-req-id="${r.id}" data-approval-id="${myStep.id}" title="Từ chối"><i class="bi bi-x-lg"></i> Từ chối</button>
                   </div>
                 ` : `
-                  <span style="font-size:12px;font-weight:600;color:${myStep?.status === 'approved' ? 'var(--fs-success)' : 'var(--fs-danger)'}">
-                    <i class="bi bi-${myStep?.status === 'approved' ? 'check-circle-fill' : 'x-circle-fill'}"></i>
-                    ${myStep?.status === 'approved' ? 'Đã phê duyệt' : 'Đã từ chối'}
+                  <span style="font-size:12px;font-weight:600;color:${myStep?.status === 'approved' ? 'var(--fs-success)' : myStep?.status === 'returned' ? 'var(--fs-warning)' : 'var(--fs-danger)'}">
+                    <i class="bi bi-${myStep?.status === 'approved' ? 'check-circle-fill' : myStep?.status === 'returned' ? 'arrow-counterclockwise' : 'x-circle-fill'}"></i>
+                    ${myStep?.status === 'approved' ? 'Đã phê duyệt' : myStep?.status === 'returned' ? 'Đã trả lại' : 'Đã từ chối'}
                   </span>
                 `}
               </div>
@@ -182,6 +183,13 @@
         const reqId = $(this).data('req-id');
         const approvalId = $(this).data('approval-id');
         self._processApproval(reqId, approvalId, 'approved');
+      });
+
+      $(document).off('click.approv-return').on('click.approv-return', '.approvals-return-btn', function (e) {
+        e.stopPropagation();
+        const reqId = $(this).data('req-id');
+        const approvalId = $(this).data('approval-id');
+        FS.confirm('Trả lại yêu cầu này để yêu cầu bổ sung/chỉnh sửa?', () => self._processApproval(reqId, approvalId, 'returned'), { danger: false, confirmText: 'Trả lại', cancelText: 'Hủy' });
       });
 
       $(document).off('click.approv-reject').on('click.approv-reject', '.approvals-reject-btn', function (e) {
