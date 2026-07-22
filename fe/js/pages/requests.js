@@ -198,7 +198,7 @@
         $('#req-list').html('<div class="fs-empty"><i class="bi bi-inbox"></i><h5>Không có yêu cầu nào</h5><p>Nhấn "Tạo yêu cầu" để gửi yêu cầu mới</p></div>');
       } else {
         const html = pagedRequests.map(r => {
-          const requesterName = r.requesterName || (FS.user.get(r.requesterId)?.name || '—');
+          const requesterName = r.requesterName || FS.user.name(r.requesterId, 'Thành viên');
           const approvals = r.approvals || [];
           const currentStep = approvals.find(a => a.status === 'pending');
           const canEdit = this._canEdit(r);
@@ -206,7 +206,7 @@
             <div class="fs-card fs-card-sm mb-2 hover-row cursor-pointer req-item" data-req-id="${r.id}" style="border-radius:var(--fs-radius-md)">
               <div class="d-flex align-items-start gap-3">
                 <div>
-                  ${FS.user.avatar(r.requesterId)}
+                  ${FS.user.avatar(r.requesterId, '', requesterName)}
                 </div>
                 <div style="flex:1;min-width:0">
                   <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">

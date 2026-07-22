@@ -17,8 +17,20 @@
       if (FS.auth.hasLevel(2)) {
         $('#proj-new-btn').show();
       }
-      await this._loadData();
+
+      // 1. Instant 0ms SWR render with local seed data (NO SPINNER!)
+      this._projectsData = (FS.db.get('projects') || []).map(p => ({
+        ...p,
+        client: p.client || '',
+        budget: p.budget || null,
+        taskCount: p.taskCount || 0,
+        completedTaskCount: p.completedTaskCount || 0
+      }));
+      this._render();
       this._bindEvents();
+
+      // 2. Fetch live data from backend API in background & sync seamlessly
+      await this._loadData();
     },
 
     _getAuthHeaders() {
@@ -33,8 +45,8 @@
           type: 'GET'
         });
 
-        if (response && response.success && Array.isArray(response.data)) {
-          this._projectsData = response.data.map(p => ({
+        if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
+          const apiProjects = response.data.map(p => ({
             id: p.id,
             code: p.code,
             name: p.name,
@@ -53,24 +65,25 @@
             taskCount: p.taskCount || 0,
             completedTaskCount: p.completedTaskCount || 0
           }));
+
+          const mergedMap = new Map();
+          const seedData = FS.db.get('projects') || [];
+          for (const s of seedData) mergedMap.set(s.id, s);
+          for (const a of apiProjects) mergedMap.set(a.id, a);
+
+          this._projectsData = Array.from(mergedMap.values());
           $('#projects-offline-banner').remove();
-        } else {
-          this._projectsData = (FS.db.get('projects') || []).map(p => ({
-            ...p,
-            client: p.client || '',
-            budget: p.budget || null,
-            taskCount: 0,
-            completedTaskCount: 0
-          }));
+        } else if (!this._projectsData.length) {
+          this._projectsData = FS.db.get('projects') || [];
         }
       } catch (err) {
         console.warn('Projects API request failed:', err);
-        this._projectsData = FS.db.get('projects') || [];
-        if (!$('#projects-offline-banner').length) {
-          $('#page-content').prepend('<div id="projects-offline-banner" class="fs-login-alert show" style="display:flex; margin-bottom:16px"><i class="bi bi-exclamation-triangle-fill"></i><span>Không thể kết nối máy chủ. Hiện đang hiển thị dữ liệu tạm thời ngoại tuyến.</span></div>');
+        if (!this._projectsData.length) {
+          this._projectsData = FS.db.get('projects') || [];
         }
+      } finally {
+        this._render();
       }
-      this._render();
     },
 
     _getFilteredData() {

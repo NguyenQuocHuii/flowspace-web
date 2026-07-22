@@ -157,27 +157,31 @@
   FS.user = {
     /** Lấy user object theo id */
     get(id) {
-      if (!FS.usersCache || !FS.usersCache.length) {
-        return FS.db.find('users', id);
-      }
-      return FS.usersCache.find(u => u.id === id);
+      if (!id) return null;
+      const list = (FS.usersCache && FS.usersCache.length) ? FS.usersCache : (FS.db.get('users') || []);
+      const strId = String(id).toLowerCase();
+      return list.find(u => {
+        if (!u) return false;
+        const uId = String(u.id).toLowerCase();
+        return uId === strId || uId === strId.replace('u', '') || strId === 'u' + uId;
+      });
     },
 
     /** Render avatar HTML */
-    avatar(id, size = '') {
+    avatar(id, size = '', fallbackName = '') {
       const u = FS.user.get(id);
-      if (!u) return `<div class="fs-avatar ${size}">?</div>`;
-      const color = u.color || '#6366f1';
+      const name = u?.name || fallbackName || 'FlowSpace User';
+      const color = u?.color || (id ? `#${(Math.abs(FS.str.hashCode(String(id))) % 0xFFFFFF).toString(16).padStart(6, '0')}` : '#6366f1');
       const bgStyle = color.startsWith('#') ? `background-color:${color};color:#ffffff;` : '';
       const bgClass = !color.startsWith('#') ? color : '';
-      const initials = u.avatar || (u.name ? u.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '??');
-      return `<div class="fs-avatar ${size} ${bgClass}" style="${bgStyle}" title="${FS.str.escape(u.name)}">${initials}</div>`;
+      const initials = (u?.avatar) ? u.avatar : (name ? name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '??');
+      return `<div class="fs-avatar ${size} ${bgClass}" style="${bgStyle}" title="${FS.str.escape(name)}">${initials}</div>`;
     },
 
     /** Lấy tên user */
-    name(id) {
+    name(id, fallback = '—') {
       const u = FS.user.get(id);
-      return u ? u.name : 'Unknown';
+      return u ? u.name : fallback;
     }
   };
 
