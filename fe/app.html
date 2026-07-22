@@ -38,55 +38,55 @@
 
         <!-- Main section -->
         <div class="fs-sidebar-section">Tổng quan</div>
-        <button class="fs-nav-item" data-page="dashboard" title="Dashboard">
+        <button class="fs-nav-item" data-page="dashboard" title="Dashboard" tabindex="0" role="menuitem">
           <i class="bi bi-grid-1x2"></i>
           <span class="nav-label">Dashboard</span>
         </button>
 
         <div class="fs-sidebar-section">Công việc</div>
-        <button class="fs-nav-item" data-page="projects" title="Dự án">
+        <button class="fs-nav-item" data-page="projects" title="Dự án" tabindex="0" role="menuitem">
           <i class="bi bi-folder2-open"></i>
           <span class="nav-label">Dự án</span>
         </button>
-        <div id="sidebar-project-items" class="ps-3 pe-2 my-1" style="display:none"></div>
-        <button class="fs-nav-item" data-page="tasks" title="Công việc">
+        <div id="sidebar-project-items" class="fs-nav-subgroup" style="display:none" role="group"></div>
+        <button class="fs-nav-item" data-page="tasks" title="Công việc" tabindex="0" role="menuitem">
           <i class="bi bi-check-square"></i>
           <span class="nav-label">Công việc</span>
         </button>
-        <button class="fs-nav-item" data-page="kanban" title="Kanban">
+        <button class="fs-nav-item" data-page="kanban" title="Kanban" tabindex="0" role="menuitem">
           <i class="bi bi-kanban"></i>
           <span class="nav-label">Kanban</span>
         </button>
-        <button class="fs-nav-item fs-nav-gantt" data-page="gantt" title="Gantt">
+        <button class="fs-nav-item fs-nav-gantt" data-page="gantt" title="Gantt" tabindex="0" role="menuitem">
           <i class="bi bi-bar-chart-steps"></i>
           <span class="nav-label">Gantt Chart</span>
         </button>
-        <button class="fs-nav-item" data-page="calendar" title="Lịch">
+        <button class="fs-nav-item" data-page="calendar" title="Lịch" tabindex="0" role="menuitem">
           <i class="bi bi-calendar3"></i>
           <span class="nav-label">Lịch</span>
         </button>
-        <button class="fs-nav-item" data-page="timetracking" title="Time Tracking">
+        <button class="fs-nav-item" data-page="timetracking" title="Time Tracking" tabindex="0" role="menuitem">
           <i class="bi bi-stopwatch"></i>
           <span class="nav-label">Time Tracking</span>
         </button>
 
         <div class="fs-sidebar-section">Cộng tác</div>
-        <button class="fs-nav-item" data-page="chat" title="Chat">
+        <button class="fs-nav-item" data-page="chat" title="Chat" tabindex="0" role="menuitem">
           <i class="bi bi-chat-dots"></i>
           <span class="nav-label">Chat nội bộ</span>
           <span class="nav-badge" id="nav-chat-badge" style="display:none">3</span>
         </button>
-        <button class="fs-nav-item" data-page="documents" title="Tài liệu">
+        <button class="fs-nav-item" data-page="documents" title="Tài liệu" tabindex="0" role="menuitem">
           <i class="bi bi-file-earmark-text"></i>
           <span class="nav-label">Tài liệu</span>
         </button>
 
         <div class="fs-sidebar-section">Yêu cầu</div>
-        <button class="fs-nav-item" data-page="requests" title="Yêu cầu">
+        <button class="fs-nav-item" data-page="requests" title="Yêu cầu" tabindex="0" role="menuitem">
           <i class="bi bi-send"></i>
           <span class="nav-label">Yêu cầu</span>
         </button>
-        <button class="fs-nav-item fs-nav-approvals" data-page="approvals" title="Phê duyệt">
+        <button class="fs-nav-item fs-nav-approvals" data-page="approvals" title="Phê duyệt" tabindex="0" role="menuitem">
           <i class="bi bi-shield-check"></i>
           <span class="nav-label">Phê duyệt</span>
           <span class="nav-badge" id="nav-approval-badge" style="display:none">2</span>
@@ -94,19 +94,19 @@
 
         <!-- Admin section — shown by role -->
         <div class="fs-sidebar-section fs-admin-section">Quản trị</div>
-        <button class="fs-nav-item fs-nav-reports" data-page="reports" title="Báo cáo">
+        <button class="fs-nav-item fs-nav-reports" data-page="reports" title="Báo cáo" tabindex="0" role="menuitem">
           <i class="bi bi-bar-chart-line"></i>
           <span class="nav-label">Báo cáo</span>
         </button>
-        <button class="fs-nav-item fs-nav-users" data-page="users" title="Người dùng">
+        <button class="fs-nav-item fs-nav-users" data-page="users" title="Người dùng" tabindex="0" role="menuitem">
           <i class="bi bi-people"></i>
           <span class="nav-label">Người dùng</span>
         </button>
-        <button class="fs-nav-item fs-nav-logs" data-page="logs" title="Nhật ký">
+        <button class="fs-nav-item fs-nav-logs" data-page="logs" title="Nhật ký" tabindex="0" role="menuitem">
           <i class="bi bi-journal-text"></i>
           <span class="nav-label">Nhật ký</span>
         </button>
-        <button class="fs-nav-item fs-nav-settings" data-page="settings" title="Cài đặt">
+        <button class="fs-nav-item fs-nav-settings" data-page="settings" title="Cài đặt" tabindex="0" role="menuitem">
           <i class="bi bi-gear"></i>
           <span class="nav-label">Cài đặt</span>
         </button>
@@ -115,10 +115,10 @@
 
       <!-- Footer -->
       <div class="fs-sidebar-footer">
-        <button class="fs-sidebar-collapse-btn" id="fs-sidebar-toggle" title="Thu/mở sidebar">
+        <button class="fs-sidebar-collapse-btn" id="fs-sidebar-toggle" title="Thu/mở sidebar" tabindex="0" aria-label="Thu/mở sidebar">
           <i class="bi bi-layout-sidebar-reverse" id="sidebar-toggle-icon"></i>
         </button>
-        <button class="btn btn-ghost btn-icon btn-sm" id="fs-logout-btn" title="Đăng xuất">
+        <button class="btn btn-ghost btn-icon btn-sm" id="fs-logout-btn" title="Đăng xuất" tabindex="0" aria-label="Đăng xuất">
           <i class="bi bi-box-arrow-right"></i>
         </button>
       </div>
@@ -150,10 +150,10 @@
           </div>
 
           <!-- Search trigger -->
-          <button class="fs-topbar-search ms-3" id="fs-search-trigger" aria-label="Tìm kiếm">
-            <i class="bi bi-search" style="font-size:13px"></i>
-            <span>Tìm kiếm...</span>
-            <kbd class="fs-search-shortcut">Ctrl K</kbd>
+          <button class="fs-topbar-search ms-3" id="fs-search-trigger" aria-label="Tìm kiếm (Ctrl+K)" tabindex="0">
+            <i class="bi bi-search fs-search-icon"></i>
+            <span class="fs-search-placeholder">Tìm kiếm task, dự án, người dùng...</span>
+            <kbd class="fs-search-shortcut"><span>Ctrl</span><span>K</span></kbd>
           </button>
 
         </div>
@@ -162,30 +162,44 @@
         <div class="fs-topbar-actions">
 
           <!-- Notifications -->
-          <button class="fs-topbar-btn" id="fs-notif-btn" aria-label="Thông báo" aria-expanded="false">
+          <button class="fs-topbar-btn" id="fs-notif-btn" aria-label="Thông báo" aria-expanded="false" aria-haspopup="true">
             <i class="bi bi-bell"></i>
             <span class="fs-topbar-badge count" id="fs-notif-badge" style="display:none">0</span>
+            <span class="fs-topbar-indicator" id="fs-notif-indicator" style="display:none"></span>
           </button>
 
           <div class="fs-topbar-divider"></div>
 
           <!-- User avatar -->
-          <div class="fs-topbar-user fs-dropdown" id="fs-topbar-user">
-            <div class="fs-avatar fs-avatar-sm" id="topbar-user-avatar">?</div>
-            <span class="fs-topbar-user-name d-none d-md-inline" id="topbar-user-name">—</span>
-            <i class="bi bi-chevron-down" style="font-size:11px;color:var(--fs-text-muted)"></i>
+          <div class="fs-topbar-user fs-dropdown" id="fs-topbar-user" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false">
+            <div class="fs-avatar-wrapper">
+              <div class="fs-avatar fs-avatar-sm" id="topbar-user-avatar">?</div>
+              <span class="fs-online-indicator" id="user-online-indicator"></span>
+            </div>
+            <div class="fs-user-info d-none d-md-flex">
+              <span class="fs-topbar-user-name" id="topbar-user-name">—</span>
+              <span class="fs-user-role" id="user-role-label">—</span>
+            </div>
+            <i class="bi bi-chevron-down fs-chevron-icon"></i>
             <!-- User dropdown -->
-            <div class="fs-dropdown-menu" id="fs-user-menu">
-              <div class="fs-dropdown-header" id="user-menu-email">—</div>
+            <div class="fs-dropdown-menu" id="fs-user-menu" role="menu">
+              <div class="fs-dropdown-user-header">
+                <div class="fs-dropdown-avatar" id="dropdown-user-avatar">?</div>
+                <div class="fs-dropdown-user-details">
+                  <div class="fs-dropdown-user-name" id="dropdown-user-name">—</div>
+                  <div class="fs-dropdown-user-email" id="user-menu-email">—</div>
+                  <span class="fs-dropdown-user-role" id="dropdown-user-role">—</span>
+                </div>
+              </div>
               <div class="fs-dropdown-divider"></div>
-              <button class="fs-dropdown-item" data-page="settings">
+              <button class="fs-dropdown-item" data-page="settings" role="menuitem">
                 <i class="bi bi-person-circle"></i> Hồ sơ cá nhân
               </button>
-              <button class="fs-dropdown-item" data-page="settings">
+              <button class="fs-dropdown-item" data-page="settings" role="menuitem">
                 <i class="bi bi-gear"></i> Cài đặt
               </button>
               <div class="fs-dropdown-divider"></div>
-              <button class="fs-dropdown-item danger" id="user-logout-btn">
+              <button class="fs-dropdown-item danger" id="user-logout-btn" role="menuitem">
                 <i class="bi bi-box-arrow-right"></i> Đăng xuất
               </button>
             </div>
@@ -195,12 +209,35 @@
       </header>
 
       <!-- ── Notification Dropdown ─────────────────────── -->
-      <div id="fs-notif-dropdown" role="region" aria-label="Thông báo">
+      <div id="fs-notif-dropdown" role="region" aria-label="Thông báo" class="fs-dropdown-panel">
         <div class="notif-header">
-          <h6>Thông báo</h6>
-          <button class="btn btn-ghost btn-xs" id="fs-notif-mark-all">Đọc tất cả</button>
+          <div class="notif-header-left">
+            <h6>Thông báo</h6>
+            <span class="notif-unread-count" id="notif-unread-count" style="display:none">0 chưa đọc</span>
+          </div>
+          <div class="notif-header-actions">
+            <button class="btn btn-ghost btn-xs" id="fs-notif-mark-all" title="Đánh dấu tất cả là đã đọc">
+              <i class="bi bi-check2-all"></i> Đọc tất cả
+            </button>
+            <button class="btn btn-ghost btn-icon btn-xs" id="fs-notif-settings" title="Cài đặt thông báo">
+              <i class="bi bi-gear"></i>
+            </button>
+          </div>
         </div>
         <div class="notif-list" id="fs-notif-list">
+          <div class="notif-loading" id="notif-loading" style="display:none">
+            <div class="fs-spinner"></div>
+            <span>Đang tải...</span>
+          </div>
+          <div class="notif-empty" id="notif-empty" style="display:none">
+            <i class="bi bi-bell-slash"></i>
+            <p>Không có thông báo</p>
+          </div>
+          <div class="notif-error" id="notif-error" style="display:none">
+            <i class="bi bi-exclamation-circle"></i>
+            <p>Không thể tải thông báo</p>
+            <button class="btn btn-ghost btn-xs" id="notif-retry">Thử lại</button>
+          </div>
           <!-- Rendered by JS -->
         </div>
         <div class="notif-footer">
@@ -302,14 +339,31 @@
 
       // Topbar user info
       const $topbarAvatar = $('#topbar-user-avatar');
+      const $dropdownAvatar = $('#dropdown-user-avatar');
+      
       $topbarAvatar.text(session.avatar);
+      $dropdownAvatar.text(session.avatar);
+      
       if (session.color && session.color.startsWith('#')) {
         $topbarAvatar.css('background-color', session.color);
+        $dropdownAvatar.css('background-color', session.color);
       } else {
         $topbarAvatar.addClass(session.color || 'av-indigo');
+        $dropdownAvatar.addClass(session.color || 'av-indigo');
       }
-      $('#topbar-user-name').text(session.name.split(' ').pop()); // Last name only
+      
+      // User name and role
+      const lastName = session.name.split(' ').pop();
+      const roleLabel = FS.auth.getRoleLabel(session.role);
+      
+      $('#topbar-user-name').text(lastName);
+      $('#user-role-label').text(roleLabel);
+      $('#dropdown-user-name').text(session.name);
       $('#user-menu-email').text(session.email);
+      $('#dropdown-user-role').text(roleLabel);
+      
+      // Show online indicator
+      $('#user-online-indicator').show();
 
       // 4. Apply role-based menu visibility
       const level = FS.auth.getRoleLevel();
@@ -352,6 +406,14 @@
           $icon.removeClass('bi-layout-sidebar').addClass('bi-layout-sidebar-reverse');
         }
       });
+      
+      // Keyboard support for sidebar toggle
+      $('#fs-sidebar-toggle').on('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          $(this).trigger('click');
+        }
+      });
 
       // 6. Mobile sidebar
       $('#fs-mobile-menu-btn').on('click', function () {
@@ -362,11 +424,34 @@
         $('#fs-sidebar').removeClass('mobile-open');
         $(this).removeClass('show');
       });
+      
+      // Keyboard support for mobile menu
+      $('#fs-mobile-menu-btn').on('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          $(this).trigger('click');
+        }
+      });
 
       // 7. Topbar user dropdown toggle
       $('#fs-topbar-user').on('click', function (e) {
         e.stopPropagation();
-        $('#fs-user-menu').toggleClass('show');
+        const $menu = $('#fs-user-menu');
+        const isExpanded = $(this).attr('aria-expanded') === 'true';
+        $menu.toggleClass('show');
+        $(this).attr('aria-expanded', !isExpanded);
+      });
+      
+      // Keyboard support for user dropdown
+      $('#fs-topbar-user').on('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          $(this).trigger('click');
+        }
+        if (e.key === 'Escape') {
+          $('#fs-user-menu').removeClass('show');
+          $(this).attr('aria-expanded', 'false');
+        }
       });
 
       // 7b. User dropdown menu items → navigate (force reload if already on same page)
@@ -384,6 +469,7 @@
       $(document).on('click', function (e) {
         if (!$(e.target).closest('#fs-topbar-user, #fs-user-menu').length) {
           $('#fs-user-menu').removeClass('show');
+          $('#fs-topbar-user').attr('aria-expanded', 'false');
         }
       });
 
@@ -395,6 +481,7 @@
         e.preventDefault();
         e.stopPropagation();
         $('#fs-user-menu').removeClass('show');
+        $('#fs-topbar-user').attr('aria-expanded', 'false');
         FS.confirm('Bạn chắc chắn muốn đăng xuất?', () => FS.auth.logout(), {
           title: 'Đăng xuất',
           confirmText: 'Đăng xuất',
@@ -402,8 +489,18 @@
         });
       });
 
-      // 9. Notifications
+      // 9. Notifications with enhanced states
       FS.notifModule.init();
+      
+      // Notification retry button
+      $('#notif-retry').on('click', function () {
+        FS.notifModule.render();
+      });
+      
+      // Notification settings button (TODO: integrate with backend)
+      $('#fs-notif-settings').on('click', function () {
+        FS.toast('Tính năng cài đặt thông báo sẽ có trong phiên bản sau', 'info');
+      });
 
       // 10. Search
       FS.searchModule.init();

@@ -9,6 +9,9 @@
      NOTIFICATIONS
   ═══════════════════════════════════════════════════════════ */
   FS.notifModule = {
+    _isLoading: false,
+    _hasError: false,
+    
     init() {
       this.render();
       this.bindEvents();
@@ -17,17 +20,63 @@
     render() {
       const session = FS.auth.getSession();
       if (!session) return;
-      const count = FS.notifications.unreadCount(session.userId);
-      this.updateBadge(count);
-      this.renderDropdown(session.userId);
+      
+      this._isLoading = true;
+      this._hasError = false;
+      this._updateStates();
+      
+      // Simulate API call delay for loading state demo
+      setTimeout(() => {
+        try {
+          const count = FS.notifications.unreadCount(session.userId);
+          this.updateBadge(count);
+          this.renderDropdown(session.userId);
+          this._isLoading = false;
+          this._hasError = false;
+          this._updateStates();
+        } catch (error) {
+          this._isLoading = false;
+          this._hasError = true;
+          this._updateStates();
+          console.error('Notification render error:', error);
+        }
+      }, 300);
+    },
+    
+    _updateStates() {
+      const $loading = $('#notif-loading');
+      const $empty = $('#notif-empty');
+      const $error = $('#notif-error');
+      const $list = $('#fs-notif-list');
+      
+      // Hide all states first
+      $loading.hide();
+      $empty.hide();
+      $error.hide();
+      
+      if (this._isLoading) {
+        $loading.show();
+        $list.children('.notif-item').hide();
+      } else if (this._hasError) {
+        $error.show();
+        $list.children('.notif-item').hide();
+      }
+      // Empty state is handled in renderDropdown
     },
 
     updateBadge(count) {
       const $badge = $('#fs-notif-badge');
+      const $indicator = $('#fs-notif-indicator');
+      const $unreadCount = $('#notif-unread-count');
+      
       if (count > 0) {
-            $badge.text(count > 99 ? '99+' : count).show();
+        $badge.text(count > 99 ? '99+' : count).show();
+        $indicator.show();
+        $unreadCount.text(`${count} chưa đọc`).show();
       } else {
         $badge.hide();
+        $indicator.hide();
+        $unreadCount.hide();
       }
     },
 
@@ -42,19 +91,40 @@
         project:  'bi-folder2 text-info',
         overdue:  'bi-exclamation-triangle text-danger'
       })[type] || 'bi-bell';
+      
+      const priorityClass = priority => {
+        if (priority === 'high') return 'priority-high';
+        if (priority === 'medium') return 'priority-medium';
+        return '';
+      };
+
+      if (!notifs || notifs.length === 0) {
+        $('#notif-empty').show();
+        $('#fs-notif-list').children('.notif-item').remove();
+        return;
+      }
+      
+      $('#notif-empty').hide();
+
+      const avatarForNotif = (notif) => {
+        if (notif.senderAvatar) return `<div class="fs-avatar fs-avatar-sm" style="background:${notif.senderColor || 'var(--fs-accent)'}">${notif.senderAvatar}</div>`;
+        return '';
+      };
 
       const items = notifs.slice(0, 8).map(n => `
-        <div class="notif-item ${n.read ? 'read' : 'unread'}" data-notif-id="${n.id}">
+        <div class="notif-item ${n.read ? 'read' : 'unread'} ${priorityClass(n.priority)}" data-notif-id="${n.id}" role="button" tabindex="0">
           <div class="notif-dot"></div>
           <div class="notif-content">
             <div class="notif-text">${FS.str.escape(n.text)}</div>
             <div class="notif-time">${FS.date.relative(n.createdAt)}</div>
           </div>
+          ${avatarForNotif(n)}
           <i class="bi ${notifIcon(n.type)}" style="font-size:16px;flex-shrink:0"></i>
         </div>
       `).join('');
 
-      $('#fs-notif-list').html(items || '<div class="fs-empty" style="padding:24px"><i class="bi bi-bell-slash"></i><p>Không có thông báo</p></div>');
+      $('#fs-notif-list').children('.notif-item').remove();
+      $('#fs-notif-list').append(items);
     },
 
     bindEvents() {
@@ -62,13 +132,33 @@
       $('#fs-notif-btn').on('click', function (e) {
         e.stopPropagation();
         const $drop = $('#fs-notif-dropdown');
+        const isExpanded = $(this).attr('aria-expanded') === 'true';
         $drop.toggleClass('show');
+        $(this).attr('aria-expanded', !isExpanded);
+        
+        // Refresh notifications when opening
+        if (!isExpanded) {
+          FS.notifModule.render();
+        }
+      });
+
+      // Keyboard support for notification button
+      $('#fs-notif-btn').on('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          $(this).trigger('click');
+        }
+        if (e.key === 'Escape') {
+          $('#fs-notif-dropdown').removeClass('show');
+          $(this).attr('aria-expanded', 'false');
+        }
       });
 
       // Close on outside click
       $(document).on('click', function (e) {
         if (!$(e.target).closest('#fs-notif-dropdown, #fs-notif-btn').length) {
           $('#fs-notif-dropdown').removeClass('show');
+          $('#fs-notif-btn').attr('aria-expanded', 'false');
         }
       });
 
@@ -81,6 +171,14 @@
           $(this).removeClass('unread').addClass('read');
           $(this).find('.notif-dot').css('background', 'transparent');
           FS.notifModule.render();
+        }
+      });
+      
+      // Keyboard support for notification items
+      $(document).on('keydown', '.notif-item', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          $(this).trigger('click');
         }
       });
 
@@ -103,6 +201,7 @@
           FS.notifModule.render();
         }
         $('#fs-notif-dropdown').removeClass('show');
+        $('#fs-notif-btn').attr('aria-expanded', 'false');
         FS.toast('Tất cả thông báo đã được hiển thị', 'info');
       });
     }
@@ -124,10 +223,13 @@
       $('#fs-search-input-main').val('').trigger('focus');
       $('#fs-search-results').html(this._renderEmpty());
       this._selected = -1;
+      // Prevent body scroll when modal is open
+      $('body').css('overflow', 'hidden');
     },
 
     close() {
       $('#fs-search-modal').removeClass('show');
+      $('body').css('overflow', '');
     },
 
     search(query) {
@@ -221,6 +323,14 @@
     bindEvents() {
       // Open via button
       $('#fs-search-trigger').on('click', () => this.open());
+      
+      // Keyboard support for search trigger
+      $('#fs-search-trigger').on('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          FS.searchModule.open();
+        }
+      });
 
       // Ctrl+K shortcut
       $(document).on('keydown', e => {
@@ -259,6 +369,14 @@
         }
         if (type === 'documents') FS.router.go('documents', { force: true });
         if (type === 'users')     FS.router.go('users', { force: true });
+      });
+      
+      // Keyboard navigation for search results
+      $(document).on('keydown', '.fs-search-result-item', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          $(this).trigger('click');
+        }
       });
     }
   };

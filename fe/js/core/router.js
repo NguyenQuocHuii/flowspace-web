@@ -119,6 +119,14 @@
           $('#fs-sidebar-overlay').removeClass('show');
         }
       });
+      
+      // Keyboard navigation for sidebar items
+      $(document).on('keydown', '[data-page]', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          $(this).trigger('click');
+        }
+      });
     },
 
     /** Cập nhật trạng thái active trên sidebar */
