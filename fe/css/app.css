@@ -1149,3 +1149,78 @@
     transform: translateY(0);
   }
 }
+
+/* ─── Premium Dashboard Charts Styles ──────────────────── */
+.dashboard-status-chart-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 16px;
+}
+
+.dashboard-status-chart-wrapper {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chart-center-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.chart-center-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--fs-text);
+  line-height: 1;
+}
+
+.chart-center-text {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--fs-text-muted);
+  text-transform: uppercase;
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+}
+
+.dashboard-status-legend {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 24px;
+  width: 100%;
+  padding: 12px 4px 4px 4px;
+  border-top: 1px dashed var(--fs-border);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-text-xs);
+  color: var(--fs-text-secondary);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-count {
+  margin-left: auto;
+  font-weight: 600;
+  color: var(--fs-text);
+}
+

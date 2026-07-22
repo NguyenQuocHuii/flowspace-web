@@ -296,6 +296,7 @@
       });
 
       const formattedHours = hoursByDay.map((h) => Math.round(h * 10) / 10);
+      const totalWeeklyHours = formattedHours.reduce((a, b) => a + b, 0);
       const todayDayIdx = new Date().getDay();
 
       if ($actCanvas.length) {
@@ -308,6 +309,15 @@
           existingActChart.destroy();
         }
 
+        // Create gorgeous linear gradients
+        const gradientActive = actCtx.createLinearGradient(0, 0, 0, 200);
+        gradientActive.addColorStop(0, "#4f46e5");
+        gradientActive.addColorStop(1, "#818cf8");
+
+        const gradientBg = actCtx.createLinearGradient(0, 0, 0, 200);
+        gradientBg.addColorStop(0, "#e0e7ff");
+        gradientBg.addColorStop(1, "#f5f7ff");
+
         this._charts.push(
           new Chart(actCtx, {
             type: "bar",
@@ -317,8 +327,8 @@
                 {
                   label: "Giờ làm",
                   data: formattedHours,
-                  backgroundColor: formattedHours.map((_, idx) => (idx === todayDayIdx ? "#6366f1" : "#e0e7ff")),
-                  hoverBackgroundColor: formattedHours.map((_, idx) => (idx === todayDayIdx ? "#4f46e5" : "#c7d2fe")),
+                  backgroundColor: formattedHours.map((_, idx) => (idx === todayDayIdx ? gradientActive : gradientBg)),
+                  hoverBackgroundColor: formattedHours.map((_, idx) => (idx === todayDayIdx ? "#3730a3" : "#c7d2fe")),
                   borderRadius: 6,
                   borderSkipped: false
                 }
@@ -330,8 +340,13 @@
               plugins: {
                 legend: { display: false },
                 tooltip: {
+                  backgroundColor: "rgba(15, 23, 42, 0.9)",
+                  titleFont: { size: 12, weight: "bold" },
+                  bodyFont: { size: 12 },
+                  padding: 10,
+                  cornerRadius: 8,
                   callbacks: {
-                    label: (context) => `Giờ làm: ${context.parsed.y}h`
+                    label: (context) => ` Giờ làm: ${context.parsed.y}h`
                   }
                 }
               },
@@ -354,13 +369,32 @@
       const statusData = [counts.todo || 0, counts.inProgress || 0, counts.review || 0, counts.done || 0];
       const totalStatusTasks = statusData.reduce((a, b) => a + b, 0);
 
+      // Render total count in center label
+      $('#chart-total-value').text(totalStatusTasks);
+
+      // Render custom legend list
+      const legendLabels = ["Chưa bắt đầu", "Đang làm", "Chờ duyệt", "Hoàn thành"];
+      const legendColors = ["#cbd5e1", "#6366f1", "#f59e0b", "#10b981"];
+      const legendHtml = legendLabels.map((label, idx) => `
+        <div class="legend-item">
+          <span class="legend-dot" style="background: ${legendColors[idx]}"></span>
+          <span>${label}</span>
+          <span class="legend-count">${statusData[idx]}</span>
+        </div>
+      `).join('');
+      $('#dash-status-legend').html(legendHtml);
+
       if ($statCanvas.length) {
         if (totalStatusTasks === 0) {
           $statCanvas.addClass("d-none");
+          $('#dash-status-legend').addClass('d-none');
+          $('.chart-center-label').addClass('d-none');
           $statEmpty.text("Chưa có dữ liệu trạng thái công việc").removeClass("d-none");
         } else {
           $statEmpty.addClass("d-none");
           $statCanvas.removeClass("d-none");
+          $('#dash-status-legend').removeClass('d-none');
+          $('.chart-center-label').removeClass('d-none');
 
           const statCtx = $statCanvas[0].getContext("2d");
           const existingStatChart = Chart.getChart(statCtx);
@@ -372,11 +406,11 @@
             new Chart(statCtx, {
               type: "doughnut",
               data: {
-                labels: ["Chưa bắt đầu", "Đang làm", "Chờ duyệt", "Hoàn thành"],
+                labels: legendLabels,
                 datasets: [
                   {
                     data: statusData,
-                    backgroundColor: ["#cbd5e1", "#6366f1", "#f59e0b", "#10b981"],
+                    backgroundColor: legendColors,
                     borderWidth: 2,
                     borderColor: "#ffffff",
                     hoverOffset: 4
@@ -386,12 +420,15 @@
               options: {
                 responsive: true,
                 maintainAspectRatio: true,
-                cutout: "65%",
+                cutout: "75%",
                 plugins: {
                   legend: { display: false },
                   tooltip: {
+                    backgroundColor: "rgba(15, 23, 42, 0.9)",
+                    padding: 10,
+                    cornerRadius: 8,
                     callbacks: {
-                      label: (context) => `${context.label}: ${context.parsed} công việc`
+                      label: (context) => ` ${context.label}: ${context.parsed} công việc`
                     }
                   }
                 }
