@@ -8,12 +8,18 @@
     _charts: [],
     _period: 'month',
 
-    init() {
+    _tasks: [],
+    _projects: [],
+    _logs: [],
+
+    async init() {
+      await this._loadData();
       this._renderKPIs();
       this._renderCharts();
-      document.getElementById('report-period')?.addEventListener('change', (e) => {
+      document.getElementById('report-period')?.addEventListener('change', async (e) => {
         this._period = e.target.value;
         this._destroyCharts();
+        await this._loadData();
         this._renderKPIs();
         this._renderCharts();
       });
@@ -23,47 +29,76 @@
       document.getElementById('report-export-pdf')?.addEventListener('click', (e) => { e.preventDefault(); this._exportPDF(); });
     },
 
+    async _loadData() {
+      try {
+        await FS.loadUsersCache();
+
+        const [tasksRes, projsRes, logsRes] = await Promise.all([
+          FS.apiCall({ url: FS.API_BASE + '/api/v1/tasks', type: 'GET' }),
+          FS.apiCall({ url: FS.API_BASE + '/api/v1/projects', type: 'GET' }),
+          FS.apiCall({ url: FS.API_BASE + '/api/v1/timetracking/logs', type: 'GET' })
+        ]);
+
+        if (tasksRes && tasksRes.success && Array.isArray(tasksRes.data)) this._tasks = tasksRes.data;
+        else this._tasks = FS.db.get('tasks') || [];
+
+        if (projsRes && projsRes.success && Array.isArray(projsRes.data)) this._projects = projsRes.data;
+        else this._projects = FS.db.get('projects') || [];
+
+        if (logsRes && logsRes.success && Array.isArray(logsRes.data)) this._logs = logsRes.data;
+        else this._logs = FS.db.get('time_logs') || [];
+
+      } catch (e) {
+        console.warn('Reports API request failed:', e);
+        this._tasks = FS.db.get('tasks') || [];
+        this._projects = FS.db.get('projects') || [];
+        this._logs = FS.db.get('time_logs') || [];
+      }
+    },
+
     _destroyCharts() {
       this._charts.forEach(c => { try { c.destroy(); } catch(e){} });
       this._charts = [];
     },
 
     _renderKPIs() {
-      const tasks    = FS.db.get('tasks');
-      const projects = FS.db.get('projects');
-      const logs     = FS.db.get('time_logs');
-      const users    = FS.db.get('users');
+      const tasks    = this._tasks || [];
+      const projects = this._projects || [];
+      const logs     = this._logs || [];
+      const users    = FS.usersCache || [];
 
       const totalTasks    = tasks.length;
-      const doneTasks     = tasks.filter(t => t.status === 'done').length;
+      const doneTasks     = tasks.filter(t => (t.status || '').toLowerCase() === 'done').length;
       const completion    = totalTasks ? Math.round((doneTasks / totalTasks) * 100) : 0;
       const totalHours    = logs.reduce((s, l) => s + (l.hours || 0), 0);
-      const activeProj    = projects.filter(p => p.status === 'active').length;
-      const overdue       = tasks.filter(t => t.status !== 'done' && FS.date.isOverdue(t.dueDate)).length;
+      const activeProj    = projects.filter(p => (p.status || '').toLowerCase() !== 'done' && (p.status || '').toLowerCase() !== 'closed').length;
+      const overdue       = tasks.filter(t => (t.status || '').toLowerCase() !== 'done' && FS.date.isOverdue(t.dueDate)).length;
 
       const kpis = [
-        { icon: 'bi-folder2-open', label: 'Dự án đang chạy', value: activeProj, sub: `${projects.filter(p=>p.status==='done').length} hoàn thành`, color: '#6366f1', bg: '#eef2ff' },
+        { icon: 'bi-folder2-open', label: 'Dự án đang chạy', value: activeProj, sub: `${projects.filter(p=>(p.status||'').toLowerCase()==='done'||p.isClosed).length} hoàn thành`, color: '#6366f1', bg: '#eef2ff' },
         { icon: 'bi-check-circle', label: 'Tỷ lệ hoàn thành', value: completion + '%', sub: `${doneTasks}/${totalTasks} tasks`, color: '#10b981', bg: '#f0fdf4' },
-        { icon: 'bi-clock',        label: 'Tổng giờ làm',     value: totalHours + 'h', sub: `${users.length} thành viên`, color: '#f59e0b', bg: '#fefce8' },
-        { icon: 'bi-exclamation-triangle', label: 'Quá hạn', value: overdue, sub: 'cần xử lý ngay', color: '#ef4444', bg: '#fef2f2' }
+        { icon: 'bi-clock',        label: 'Tổng giờ làm',     value: Math.round(totalHours * 10) / 10 + 'h', sub: `${users.length} thành viên`, color: '#f59e0b', bg: '#fefce8' },
+        { icon: 'bi-exclamation-triangle', label: 'Quá hạn', value: overdue, sub: 'cần xử lý ngay', color: '#ef4444', bg: '#fef2f2', isOverdue: overdue > 0 }
       ];
 
       document.getElementById('report-kpis').innerHTML = kpis.map(k => `
         <div class="col-6 col-xl-3">
-          <div class="fs-stat-card">
-            <div class="fs-stat-icon" style="background:${k.bg};color:${k.color}"><i class="bi ${k.icon}"></i></div>
-            <div class="fs-stat-value" style="color:${k.value === overdue && overdue > 0 ? '#ef4444' : ''}">${k.value}</div>
-            <div class="fs-stat-label">${k.label}</div>
-            <div class="fs-stat-change"><i class="bi bi-dot"></i> ${k.sub}</div>
+          <div class="fs-stat-card" style="padding:16px 20px">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <span class="fs-stat-label" style="font-weight:600;font-size:13px;color:var(--fs-text-secondary)">${k.label}</span>
+              <div class="fs-stat-icon" style="background:${k.bg};color:${k.color};width:36px;height:36px;font-size:16px;border-radius:10px;display:flex;align-items:center;justify-content:center"><i class="bi ${k.icon}"></i></div>
+            </div>
+            <div class="fs-stat-value" style="font-size:24px;font-weight:700;margin-bottom:4px;color:${k.isOverdue ? '#ef4444' : 'var(--fs-text)'}">${k.value}</div>
+            <div class="fs-stat-change" style="font-size:12px;color:var(--fs-text-muted)"><i class="bi bi-dot"></i> ${k.sub}</div>
           </div>
         </div>`).join('');
     },
 
     _renderCharts() {
-      const tasks    = FS.db.get('tasks');
-      const projects = FS.db.get('projects');
-      const logs     = FS.db.get('time_logs');
-      const users    = FS.db.get('users');
+      const tasks    = this._tasks || [];
+      const projects = this._projects || [];
+      const logs     = this._logs || [];
+      const users    = FS.usersCache || [];
 
       // 1. Project progress bar chart
       const ctx1 = document.getElementById('report-project-chart');
