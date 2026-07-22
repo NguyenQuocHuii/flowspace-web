@@ -111,6 +111,16 @@
                 </div>
               </div>
               <div>
+                <div class="fs-label mb-1">Khách hàng</div>
+                <div style="font-size:13px; font-weight: 500;" class="text-dark">${FS.str.escape(project.client || '—')}</div>
+              </div>
+              <div>
+                <div class="fs-label mb-1">Ngân sách</div>
+                <div style="font-size:13px; font-weight: 600;" class="text-success">
+                  ${project.budget ? Number(project.budget).toLocaleString('vi-VN') + ' đ' : '—'}
+                </div>
+              </div>
+              <div>
                 <div class="fs-label mb-1">Số task</div>
                 <div style="font-size:13px">${doneCount}/${tasks.length} hoàn thành</div>
               </div>

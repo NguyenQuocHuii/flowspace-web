@@ -45,11 +45,17 @@
             ownerId: p.ownerId,
             ownerName: p.ownerName || '',
             members: p.members || [],
-            createdAt: p.createdAt
+            createdAt: p.createdAt,
+            client: p.client || '',
+            budget: p.budget || null
           }));
           $('#projects-offline-banner').remove();
         } else {
-          this._projectsData = FS.db.get('projects') || [];
+          this._projectsData = (FS.db.get('projects') || []).map(p => ({
+            ...p,
+            client: p.client || '',
+            budget: p.budget || null
+          }));
         }
       } catch (err) {
         console.warn('Projects API request failed:', err);
@@ -226,6 +232,8 @@
         $('#proj-modal-priority').val(p.priority.toLowerCase());
         $('#proj-modal-start').val(FS.date.toInput(p.startDate));
         $('#proj-modal-end').val(FS.date.toInput(p.endDate));
+        $('#proj-modal-client').val(p.client || '');
+        $('#proj-modal-budget').val(p.budget || '');
       } else {
         $('#proj-modal-title').text('Tạo dự án mới');
         $('#proj-modal-id').val('');
@@ -236,6 +244,8 @@
         $('#proj-modal-priority').val('medium');
         $('#proj-modal-start').val(FS.date.toInput(new Date().toISOString()));
         $('#proj-modal-end').val('');
+        $('#proj-modal-client').val('');
+        $('#proj-modal-budget').val('');
       }
       $('#proj-modal-overlay').show();
     },
@@ -255,7 +265,9 @@
         priority: $('#proj-modal-priority').val() || 'medium',
         startDate: $('#proj-modal-start').val() ? new Date($('#proj-modal-start').val()).toISOString() : null,
         endDate: $('#proj-modal-end').val() ? new Date($('#proj-modal-end').val()).toISOString() : null,
-        progress: isNew ? 0 : (this._projectsData.find(p => p.id === id)?.progress || 0)
+        progress: isNew ? 0 : (this._projectsData.find(p => p.id === id)?.progress || 0),
+        client: $('#proj-modal-client').val().trim() || '',
+        budget: $('#proj-modal-budget').val() ? parseFloat($('#proj-modal-budget').val()) : null
       };
 
       try {

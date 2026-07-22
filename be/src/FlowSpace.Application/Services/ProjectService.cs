@@ -60,7 +60,9 @@ namespace FlowSpace.Application.Services
                 EndDate = request.EndDate,
                 Progress = 0,
                 OwnerId = ownerId,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                Client = request.Client,
+                Budget = request.Budget
             };
 
             var ownerUser = await _unitOfWork.Repository<User>().GetByIdAsync(ownerId);
@@ -87,6 +89,8 @@ namespace FlowSpace.Application.Services
             project.StartDate = request.StartDate;
             project.EndDate = request.EndDate;
             project.Progress = request.Progress;
+            project.Client = request.Client;
+            project.Budget = request.Budget;
 
             _unitOfWork.Repository<Project>().Update(project);
             await _unitOfWork.SaveChangesAsync();
