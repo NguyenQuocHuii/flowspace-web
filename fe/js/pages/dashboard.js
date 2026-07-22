@@ -42,35 +42,15 @@
       this._state = "loading";
       this._summaryData = null;
       try {
-        let response = await FS.apiCall({
+        const response = await FS.apiCall({
           url: `${FS.API_BASE}/api/v1/dashboard/summary`,
           type: "GET"
         });
 
-        // Nếu CSDL backend rỗng (chưa được seed tasks), tự động gọi API seed-data để khởi tạo
         if (response && response.success && response.data) {
-          if ((Number(response.data.totalTasks) || 0) === 0) {
-            console.log("[Dashboard] Database tasks count is 0. Triggering auto-seed via /api/v1/dashboard/seed-data...");
-            try {
-              await FS.apiCall({
-                url: `${FS.API_BASE}/api/v1/dashboard/seed-data`,
-                type: "GET"
-              });
-              // Fetch lại summary sau khi đã seed dữ liệu
-              response = await FS.apiCall({
-                url: `${FS.API_BASE}/api/v1/dashboard/summary`,
-                type: "GET"
-              });
-            } catch (seedErr) {
-              console.warn("[Dashboard] Auto seed data failed:", seedErr);
-            }
-          }
-
-          if (response && response.success && response.data) {
-            this._summaryData = response.data;
-            this._state = "ready";
-            return;
-          }
+          this._summaryData = response.data;
+          this._state = "ready";
+          return;
         }
         throw new Error(response?.message || "Invalid dashboard response");
       } catch (error) {
@@ -439,7 +419,7 @@
           try {
             const res = await FS.apiCall({
               url: `${FS.API_BASE}/api/v1/dashboard/seed-data`,
-              type: "GET"
+              type: "POST"
             });
             if (res && res.success) {
               if (FS.toast) FS.toast("Đã nạp bộ dữ liệu doanh nghiệp mẫu thành công!", "success");

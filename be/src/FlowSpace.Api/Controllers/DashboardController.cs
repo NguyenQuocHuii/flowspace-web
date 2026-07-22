@@ -41,10 +41,14 @@ namespace FlowSpace.Api.Controllers
             return OkResponse(summary, "Dashboard summary retrieved successfully.");
         }
 
-        [AllowAnonymous]
-        [HttpGet("seed-data")]
+        [HttpPost("seed-data")]
         public ActionResult<ApiResponse<string>> SeedData([FromServices] FlowSpace.Persistence.Contexts.FlowSpaceDbContext context)
         {
+            if (_currentUser.Role != "director")
+            {
+                return FailResponse<string>("Chỉ Giám đốc/Quản trị viên mới được quyền nạp dữ liệu mẫu.", Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden);
+            }
+
             try
             {
                 FlowSpace.Persistence.DbInitializer.Initialize(context);
@@ -52,7 +56,7 @@ namespace FlowSpace.Api.Controllers
             }
             catch (Exception ex)
             {
-                return FailResponse<string>($"Error seeding database: {ex.Message}");
+                return FailResponse<string>($"Error seeding database: {ex.Message}", Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError);
             }
         }
     }

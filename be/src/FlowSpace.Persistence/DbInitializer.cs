@@ -13,123 +13,122 @@ namespace FlowSpace.Persistence
     {
         public static void Initialize(FlowSpaceDbContext context)
         {
-            try
+            using (var transaction = context.Database.BeginTransaction())
             {
-                // Dọn dẹp dữ liệu cũ để cập nhật bộ dữ liệu chuẩn doanh nghiệp
-                context.TimeLogs.ExecuteDelete();
-                context.Subtasks.ExecuteDelete();
-                context.Comments.ExecuteDelete();
-                context.ChatMessages.ExecuteDelete();
-                context.ChatChannels.ExecuteDelete();
-                context.Approvals.ExecuteDelete();
-                context.Requests.ExecuteDelete();
-                context.Tasks.ExecuteDelete();
-                context.Projects.ExecuteDelete();
-                context.WorkflowRules.ExecuteDelete();
-                context.EmailVerificationTokens.ExecuteDelete();
-                context.PasswordResetTokens.ExecuteDelete();
-                context.UserRefreshTokens.ExecuteDelete();
-                context.AuditLogs.ExecuteDelete();
-                context.Documents.ExecuteDelete();
-                context.Users.ExecuteDelete();
-                context.SaveChanges();
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine($"Lỗi dọn dẹp trước khi seed: {ex.Message}");
-            }
-
-            try
-            {
-                // 1. Seed lookup tables (Departments, Roles) and then create Users
-
-                // Seed Departments
-                var departments = GetDepartments();
-                context.Departments.AddRange(departments);
-                context.SaveChanges();
-
-                // Seed Roles
-                var roles = GetRoles();
-                context.Roles.AddRange(roles);
-                context.SaveChanges();
-
-                // Now seed Users with navigation properties
-                var users = GetUsers(departments);
-                context.Users.AddRange(users);
-                context.SaveChanges();
-
-
-                var admin = users.First(u => u.Email == "admin@flowspace.demo");
-
-                // 2. Tạo các Workflow Rules duyệt phép/mua sắm thực tế
-                var rules = GetWorkflowRules();
-                context.WorkflowRules.AddRange(rules);
-                context.SaveChanges();
-
-                // 3. Tạo 5 dự án chuẩn doanh nghiệp
-                var projects = GetProjects(users);
-                context.Projects.AddRange(projects);
-                context.SaveChanges();
-
-                // 4. Sinh 60 Nhiệm vụ (Tasks) thực tế chi tiết
-                var (tasks, subtasks, timeLogs) = GenerateEnterpriseTasks(projects, users);
-                context.Tasks.AddRange(tasks);
-                context.SaveChanges();
-
-                context.Subtasks.AddRange(subtasks);
-                context.TimeLogs.AddRange(timeLogs);
-                context.SaveChanges();
-
-                // 5. Cập nhật thống kê giờ làm và tiến độ
-                foreach (var task in tasks)
+                try
                 {
-                    task.LoggedHours = timeLogs.Where(tl => tl.TaskId == task.Id).Sum(tl => tl.Hours);
-                }
-                foreach (var proj in projects)
-                {
-                    var projTasks = tasks.Where(t => t.ProjectId == proj.Id).ToList();
-                    if (projTasks.Any())
+                    // Dọn dẹp dữ liệu cũ để cập nhật bộ dữ liệu chuẩn doanh nghiệp
+                    context.TimeLogs.ExecuteDelete();
+                    context.Subtasks.ExecuteDelete();
+                    context.Comments.ExecuteDelete();
+                    context.ChatMessages.ExecuteDelete();
+                    context.ChatChannels.ExecuteDelete();
+                    context.Approvals.ExecuteDelete();
+                    context.Requests.ExecuteDelete();
+                    context.Tasks.ExecuteDelete();
+                    context.Projects.ExecuteDelete();
+                    context.WorkflowRules.ExecuteDelete();
+                    context.EmailVerificationTokens.ExecuteDelete();
+                    context.PasswordResetTokens.ExecuteDelete();
+                    context.UserRefreshTokens.ExecuteDelete();
+                    context.AuditLogs.ExecuteDelete();
+                    context.Documents.ExecuteDelete();
+                    context.Users.ExecuteDelete();
+                    context.SaveChanges();
+
+                    // 1. Seed lookup tables (Departments, Roles) and then create Users
+
+                    // Seed Departments
+                    var departments = GetDepartments();
+                    context.Departments.AddRange(departments);
+                    context.SaveChanges();
+
+                    // Seed Roles
+                    var roles = GetRoles();
+                    context.Roles.AddRange(roles);
+                    context.SaveChanges();
+
+                    // Now seed Users with navigation properties
+                    var users = GetUsers(departments);
+                    context.Users.AddRange(users);
+                    context.SaveChanges();
+
+
+                    var admin = users.First(u => u.Email == "admin@flowspace.demo");
+
+                    // 2. Tạo các Workflow Rules duyệt phép/mua sắm thực tế
+                    var rules = GetWorkflowRules();
+                    context.WorkflowRules.AddRange(rules);
+                    context.SaveChanges();
+
+                    // 3. Tạo 5 dự án chuẩn doanh nghiệp
+                    var projects = GetProjects(users);
+                    context.Projects.AddRange(projects);
+                    context.SaveChanges();
+
+                    // 4. Sinh 60 Nhiệm vụ (Tasks) thực tế chi tiết
+                    var (tasks, subtasks, timeLogs) = GenerateEnterpriseTasks(projects, users);
+                    context.Tasks.AddRange(tasks);
+                    context.SaveChanges();
+
+                    context.Subtasks.AddRange(subtasks);
+                    context.TimeLogs.AddRange(timeLogs);
+                    context.SaveChanges();
+
+                    // 5. Cập nhật thống kê giờ làm và tiến độ
+                    foreach (var task in tasks)
                     {
-                        var doneTasks = projTasks.Count(t => t.Status == TaskStatus.Done);
-                        proj.Progress = (doneTasks * 100) / projTasks.Count;
+                        task.LoggedHours = timeLogs.Where(tl => tl.TaskId == task.Id).Sum(tl => tl.Hours);
                     }
+                    foreach (var proj in projects)
+                    {
+                        var projTasks = tasks.Where(t => t.ProjectId == proj.Id).ToList();
+                        if (projTasks.Any())
+                        {
+                            var doneTasks = projTasks.Count(t => t.Status == TaskStatus.Done);
+                            proj.Progress = (doneTasks * 100) / projTasks.Count;
+                        }
+                    }
+                    context.SaveChanges();
+
+                    // 6. Seed Comments trao đổi thực tế
+                    var comments = GenerateComments(tasks, users);
+                    context.Comments.AddRange(comments);
+                    context.SaveChanges();
+
+                    // 7. Seed Documents tài liệu đính kèm
+                    var documents = GetDocuments(users);
+                    context.Documents.AddRange(documents);
+                    context.SaveChanges();
+
+                    // 8. Seed Chat Channels & Chat Messages trao đổi công việc
+                    var (channels, messages) = GetChatData(users);
+                    context.ChatChannels.AddRange(channels);
+                    context.SaveChanges();
+                    context.ChatMessages.AddRange(messages);
+                    context.SaveChanges();
+
+                    // 9. Seed Requests & Approvals nghỉ phép/thiết bị
+                    var (requests, approvals) = GetRequestsAndApprovals(users);
+                    context.Requests.AddRange(requests);
+                    context.SaveChanges();
+                    context.Approvals.AddRange(approvals);
+                    context.SaveChanges();
+
+                    // 10. Seed Audit Logs bảo mật thực tế
+                    var auditLogs = GetAuditLogs(users);
+                    context.AuditLogs.AddRange(auditLogs);
+                    context.SaveChanges();
+
+                    transaction.Commit();
+                    Console.WriteLine("=== SEED DATA CHUẨN DOANH NGHIỆP THÀNH CÔNG ===");
                 }
-                context.SaveChanges();
-
-                // 6. Seed Comments trao đổi thực tế
-                var comments = GenerateComments(tasks, users);
-                context.Comments.AddRange(comments);
-                context.SaveChanges();
-
-                // 7. Seed Documents tài liệu đính kèm
-                var documents = GetDocuments(users);
-                context.Documents.AddRange(documents);
-                context.SaveChanges();
-
-                // 8. Seed Chat Channels & Chat Messages trao đổi công việc
-                var (channels, messages) = GetChatData(users);
-                context.ChatChannels.AddRange(channels);
-                context.SaveChanges();
-                context.ChatMessages.AddRange(messages);
-                context.SaveChanges();
-
-                // 9. Seed Requests & Approvals nghỉ phép/thiết bị
-                var (requests, approvals) = GetRequestsAndApprovals(users);
-                context.Requests.AddRange(requests);
-                context.SaveChanges();
-                context.Approvals.AddRange(approvals);
-                context.SaveChanges();
-
-                // 10. Seed Audit Logs bảo mật thực tế
-                var auditLogs = GetAuditLogs(users);
-                context.AuditLogs.AddRange(auditLogs);
-                context.SaveChanges();
-
-                Console.WriteLine("=== SEED DATA CHUẨN DOANH NGHIỆP THÀNH CÔNG ===");
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine($"Lỗi trong quá trình seed database: {ex.Message}");
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    Console.Error.WriteLine($"Lỗi trong quá trình seed database: {ex.Message}");
+                    throw;
+                }
             }
         }
 
@@ -258,6 +257,7 @@ namespace FlowSpace.Persistence
                         Description = $"Thực hiện nhiệm vụ: {titles[i]} thuộc dự án {proj.Name}. Chi tiết công việc và tiến độ cập nhật định kỳ trên bảng Kanban.",
                         ProjectId = proj.Id,
                         AssigneeId = assignee.Id,
+                        CreatedBy = assignee.Id,
                         Status = status,
                         Priority = priority,
                         StartDate = DateTime.UtcNow.AddDays(-15 + i),
