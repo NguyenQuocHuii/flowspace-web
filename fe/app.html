@@ -32,8 +32,6 @@
         <span class="fs-sidebar-brand-name">FlowSpace</span>
       </div>
 
-
-
       <!-- Navigation -->
       <div class="fs-sidebar-nav" id="fs-nav">
 
@@ -49,7 +47,6 @@
           <i class="bi bi-folder2-open"></i>
           <span class="nav-label">Dự án</span>
         </button>
-        <div id="sidebar-project-items" class="fs-nav-subgroup" style="display:none" role="group"></div>
         <button class="fs-nav-item" data-page="tasks" title="Công việc" tabindex="0" role="menuitem">
           <i class="bi bi-check-square"></i>
           <span class="nav-label">Công việc</span>
@@ -341,105 +338,13 @@
         }
       }
 
-      // 5. Sidebar collapse/expand
-      const sidebarState = sessionStorage.getItem('fs_sidebar_collapsed');
-      if (sidebarState === '1') {
-        $('#fs-sidebar').addClass('collapsed');
-        $('#sidebar-toggle-icon').removeClass('bi-layout-sidebar-reverse').addClass('bi-layout-sidebar');
-      }
-
-      $('#fs-sidebar-toggle').on('click', function () {
-        const $sidebar = $('#fs-sidebar');
-        $sidebar.toggleClass('collapsed');
-        const collapsed = $sidebar.hasClass('collapsed');
-        sessionStorage.setItem('fs_sidebar_collapsed', collapsed ? '1' : '0');
-        const $icon = $('#sidebar-toggle-icon');
-        if (collapsed) {
-          $icon.removeClass('bi-layout-sidebar-reverse').addClass('bi-layout-sidebar');
-        } else {
-          $icon.removeClass('bi-layout-sidebar').addClass('bi-layout-sidebar-reverse');
-        }
-      });
-      
-      // Keyboard support for sidebar toggle
-      $('#fs-sidebar-toggle').on('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          $(this).trigger('click');
-        }
-      });
-
-      // 6. Mobile sidebar
-      $('#fs-mobile-menu-btn').on('click', function () {
-        $('#fs-sidebar').toggleClass('mobile-open');
-        $('#fs-sidebar-overlay').toggleClass('show');
-      });
-      $('#fs-sidebar-overlay').on('click', function () {
-        $('#fs-sidebar').removeClass('mobile-open');
-        $(this).removeClass('show');
-      });
-      
-      // Keyboard support for mobile menu
-      $('#fs-mobile-menu-btn').on('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          $(this).trigger('click');
-        }
-      });
-
-      // 7. Topbar user dropdown toggle
-      
-      // Keyboard support for user dropdown
-
-      // 7b. User dropdown menu items → navigate (force reload if already on same page)
-
-      // 7c. Close user dropdown when clicking outside
-
-      // 7d. Sidebar user click → go to Settings profile
-      // Sidebar user click handler removed (no sidebar user block)
-
-      // 8. Logout (both sidebar button and dropdown item)
-      $('#fs-logout-btn, #user-logout-btn').on('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        $('#fs-user-menu').removeClass('show');
-        $('#fs-topbar-user').attr('aria-expanded', 'false');
-        FS.confirm('Bạn chắc chắn muốn đăng xuất?', () => FS.auth.logout(), {
-          title: 'Đăng xuất',
-          confirmText: 'Đăng xuất',
-          danger: false
-        });
-      });
-
-      // 9. Notifications with enhanced states
-      
-      // Notification retry button
-      
-      // Notification settings button (TODO: integrate with backend)
-      // 10. Search
-
-      // 10b. Dynamic Sidebar Projects Sync
-      if (FS.syncSidebarProjects) {
-        FS.syncSidebarProjects();
-      }
-      $(document).on('click', '.proj-sub-item', function (e) {
-        e.preventDefault();
-        const projId = $(this).data('proj-id');
-        if (projId && FS.projectDetail) {
-          FS.projectDetail.open(projId);
-        }
-      });
-
-      // 11. Init router → load first page
+      // 5. Khởi tạo router
       FS.router.init();
 
-      // 12. Initialize Lucide Icons
-      if (window.lucide) {
-        lucide.createIcons();
-      }
+      // 6. Bind sidebar project list
+      FS.syncSidebarProjects();
     });
   </script>
-
 </body>
 
 </html>

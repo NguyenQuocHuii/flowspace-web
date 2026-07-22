@@ -374,23 +374,25 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 16px;
+  padding: 8px 14px;
   background: var(--fs-bg-secondary);
   border: 1.5px solid var(--fs-border);
   border-radius: var(--fs-radius-md);
   cursor: pointer;
   transition: var(--fs-transition);
-  color: var(--fs-text-muted);
+  color: var(--fs-text-secondary);
   font-size: var(--fs-text-sm);
-  min-width: 240px;
-  max-width: 360px;
+  min-width: 260px;
+  max-width: 380px;
   height: 38px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .fs-topbar-search:hover {
   border-color: var(--fs-accent);
   background: var(--fs-bg);
   color: var(--fs-text);
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.08);
 }
 
 .fs-topbar-search:focus-visible {
@@ -402,7 +404,7 @@
 
 .fs-search-icon {
   font-size: 15px;
-  color: var(--fs-text-muted);
+  color: var(--fs-text-secondary);
   transition: var(--fs-transition);
 }
 
@@ -413,27 +415,33 @@
 .fs-search-placeholder {
   flex: 1;
   text-align: left;
-  font-weight: 400;
+  font-weight: 450;
+  color: var(--fs-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .fs-search-shortcut {
   margin-left: auto;
-  font-size: 10px;
-  background: var(--fs-bg-tertiary);
-  padding: 3px 6px;
+  font-size: 11px;
+  background: var(--fs-bg);
+  color: var(--fs-text-secondary);
+  padding: 2px 7px;
   border-radius: var(--fs-radius-xs);
   border: 1px solid var(--fs-border);
   display: flex;
   gap: 2px;
   align-items: center;
-  font-weight: 500;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .fs-search-shortcut span {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 14px;
+  min-width: 12px;
   height: 14px;
 }
 

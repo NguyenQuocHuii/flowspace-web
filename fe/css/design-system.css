@@ -705,9 +705,16 @@ img { max-width: 100%; display: block; }
 .fs-stat-change {
   font-size: var(--fs-text-xs);
   font-weight: 500;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
+  white-space: nowrap;
+  margin-top: 4px;
+}
+.fs-stat-change span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .fs-stat-change.up   { color: var(--fs-success); }
 .fs-stat-change.down { color: var(--fs-danger); }

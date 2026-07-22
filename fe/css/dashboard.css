@@ -19,7 +19,11 @@
 
 .dashboard-stat-card {
   height: 100%;
-  min-height: 176px;
+  min-height: 168px;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .dashboard-icon-accent { background: var(--fs-accent-light); color: var(--fs-accent); }

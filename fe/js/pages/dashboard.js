@@ -114,13 +114,18 @@
       const activeProj = Number(data.activeProjects) || 0;
       const totalProj = Number(data.totalProjects) || 0;
       this._setText("stat-projects", activeProj);
-      this._setText("stat-projects-sub", `${totalProj} tổng số dự án`);
+      const projSub = document.getElementById("stat-projects-sub");
+      if (projSub) projSub.innerHTML = `<i class="bi bi-arrow-up-short me-1"></i>${totalProj} tổng số dự án`;
 
       // 2. Pending Tasks
       const pendingTasks = Number(data.pendingTasks) || 0;
       const completedTasks = Number(data.completedTasks) || 0;
       this._setText("stat-tasks", pendingTasks);
-      this._setText("stat-tasks-sub", `${completedTasks} đã hoàn thành`);
+      const tasksChange = document.getElementById("stat-tasks-change");
+      if (tasksChange) {
+        tasksChange.className = "fs-stat-change up";
+        tasksChange.innerHTML = `<i class="bi bi-check2-all me-1"></i><span id="stat-tasks-sub">${completedTasks} đã hoàn thành</span>`;
+      }
 
       // 3. Overdue Tasks
       const overdue = Number(data.overdueTasks) || 0;
@@ -130,8 +135,8 @@
         note.className = `fs-stat-change ${overdue > 0 ? "down" : "up"}`;
         note.innerHTML =
           overdue > 0
-            ? '<i class="bi bi-exclamation-circle-fill me-1" aria-hidden="true"></i>Cần xử lý ngay'
-            : '<i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>Không có task quá hạn';
+            ? '<i class="bi bi-exclamation-triangle-fill me-1"></i><span>Cần xử lý ngay</span>'
+            : '<i class="bi bi-check-circle-fill me-1"></i><span>Không có task quá hạn</span>';
       }
 
       // 4. Logged Hours
@@ -139,7 +144,8 @@
       const formattedHours = loggedHours.toLocaleString("vi-VN", { maximumFractionDigits: 1 }) + "h";
       const pendingApprovals = Number(data.pendingApprovalsCount) || 0;
       this._setText("stat-hours", formattedHours);
-      this._setText("stat-hours-sub", `${pendingApprovals} chờ duyệt`);
+      const hoursSub = document.getElementById("stat-hours-sub");
+      if (hoursSub) hoursSub.innerHTML = `<i class="bi bi-clock-history me-1"></i>${pendingApprovals} chờ duyệt`;
     },
 
     _renderMyTasks() {
