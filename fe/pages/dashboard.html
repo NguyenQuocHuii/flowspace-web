@@ -65,15 +65,11 @@
       <article class="fs-card dashboard-chart-card">
         <div class="fs-card-header"><h2 class="fs-h6 m-0"><i class="bi bi-pie-chart me-2 text-primary" aria-hidden="true"></i>Trạng thái công việc</h2></div>
         <div class="dashboard-status-chart-container">
-          <div class="dashboard-status-chart-wrapper">
+          <div class="dashboard-status-chart-wrap">
             <canvas id="dash-status-chart" aria-label="Biểu đồ trạng thái công việc" role="img"></canvas>
-            <div class="chart-center-label">
-              <span class="chart-center-value" id="chart-total-value">0</span>
-              <span class="chart-center-text">Công việc</span>
-            </div>
+            <div id="dash-status-empty" class="dashboard-empty-chart d-none"></div>
           </div>
-          <div id="dash-status-legend" class="dashboard-status-legend"></div>
-          <div id="dash-status-empty" class="dashboard-empty-chart d-none"></div>
+          <div class="dashboard-status-legend" id="dash-status-legend"></div>
         </div>
       </article>
     </div>

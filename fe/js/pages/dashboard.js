@@ -296,7 +296,6 @@
       });
 
       const formattedHours = hoursByDay.map((h) => Math.round(h * 10) / 10);
-      const totalWeeklyHours = formattedHours.reduce((a, b) => a + b, 0);
       const todayDayIdx = new Date().getDay();
 
       if ($actCanvas.length) {
@@ -309,15 +308,6 @@
           existingActChart.destroy();
         }
 
-        // Create gorgeous linear gradients
-        const gradientActive = actCtx.createLinearGradient(0, 0, 0, 200);
-        gradientActive.addColorStop(0, "#4f46e5");
-        gradientActive.addColorStop(1, "#818cf8");
-
-        const gradientBg = actCtx.createLinearGradient(0, 0, 0, 200);
-        gradientBg.addColorStop(0, "#e0e7ff");
-        gradientBg.addColorStop(1, "#f5f7ff");
-
         this._charts.push(
           new Chart(actCtx, {
             type: "bar",
@@ -327,26 +317,31 @@
                 {
                   label: "Giờ làm",
                   data: formattedHours,
-                  backgroundColor: formattedHours.map((_, idx) => (idx === todayDayIdx ? gradientActive : gradientBg)),
-                  hoverBackgroundColor: formattedHours.map((_, idx) => (idx === todayDayIdx ? "#3730a3" : "#c7d2fe")),
+                  backgroundColor: formattedHours.map((_, idx) => (idx === todayDayIdx ? "#6366f1" : "#e0e7ff")),
+                  hoverBackgroundColor: formattedHours.map((_, idx) => (idx === todayDayIdx ? "#4f46e5" : "#c7d2fe")),
                   borderRadius: 6,
-                  borderSkipped: false
+                  borderSkipped: false,
+                  barThickness: 28,
+                  maxBarThickness: 32
                 }
               ]
             },
             options: {
               responsive: true,
               maintainAspectRatio: false,
+              layout: {
+                padding: {
+                  top: 15,
+                  bottom: 5,
+                  left: 10,
+                  right: 10
+                }
+              },
               plugins: {
                 legend: { display: false },
                 tooltip: {
-                  backgroundColor: "rgba(15, 23, 42, 0.9)",
-                  titleFont: { size: 12, weight: "bold" },
-                  bodyFont: { size: 12 },
-                  padding: 10,
-                  cornerRadius: 8,
                   callbacks: {
-                    label: (context) => ` Giờ làm: ${context.parsed.y}h`
+                    label: (context) => `Giờ làm: ${context.parsed.y}h`
                   }
                 }
               },
@@ -369,32 +364,16 @@
       const statusData = [counts.todo || 0, counts.inProgress || 0, counts.review || 0, counts.done || 0];
       const totalStatusTasks = statusData.reduce((a, b) => a + b, 0);
 
-      // Render total count in center label
-      $('#chart-total-value').text(totalStatusTasks);
-
-      // Render custom legend list
-      const legendLabels = ["Chưa bắt đầu", "Đang làm", "Chờ duyệt", "Hoàn thành"];
-      const legendColors = ["#cbd5e1", "#6366f1", "#f59e0b", "#10b981"];
-      const legendHtml = legendLabels.map((label, idx) => `
-        <div class="legend-item">
-          <span class="legend-dot" style="background: ${legendColors[idx]}"></span>
-          <span>${label}</span>
-          <span class="legend-count">${statusData[idx]}</span>
-        </div>
-      `).join('');
-      $('#dash-status-legend').html(legendHtml);
+      const legendContainer = document.getElementById("dash-status-legend");
 
       if ($statCanvas.length) {
         if (totalStatusTasks === 0) {
           $statCanvas.addClass("d-none");
-          $('#dash-status-legend').addClass('d-none');
-          $('.chart-center-label').addClass('d-none');
           $statEmpty.text("Chưa có dữ liệu trạng thái công việc").removeClass("d-none");
+          if (legendContainer) legendContainer.innerHTML = "";
         } else {
           $statEmpty.addClass("d-none");
           $statCanvas.removeClass("d-none");
-          $('#dash-status-legend').removeClass('d-none');
-          $('.chart-center-label').removeClass('d-none');
 
           const statCtx = $statCanvas[0].getContext("2d");
           const existingStatChart = Chart.getChart(statCtx);
@@ -406,11 +385,11 @@
             new Chart(statCtx, {
               type: "doughnut",
               data: {
-                labels: legendLabels,
+                labels: ["Chưa bắt đầu", "Đang làm", "Chờ duyệt", "Hoàn thành"],
                 datasets: [
                   {
                     data: statusData,
-                    backgroundColor: legendColors,
+                    backgroundColor: ["#cbd5e1", "#6366f1", "#f59e0b", "#10b981"],
                     borderWidth: 2,
                     borderColor: "#ffffff",
                     hoverOffset: 4
@@ -420,21 +399,38 @@
               options: {
                 responsive: true,
                 maintainAspectRatio: true,
-                cutout: "75%",
+                cutout: "70%",
                 plugins: {
                   legend: { display: false },
                   tooltip: {
-                    backgroundColor: "rgba(15, 23, 42, 0.9)",
-                    padding: 10,
-                    cornerRadius: 8,
                     callbacks: {
-                      label: (context) => ` ${context.label}: ${context.parsed} công việc`
+                      label: (context) => `${context.label}: ${context.parsed} công việc`
                     }
                   }
                 }
               }
             })
           );
+
+          // Render legend dynamically
+          if (legendContainer) {
+            const legendItems = [
+              { label: "Chưa bắt đầu", count: counts.todo || 0, color: "#cbd5e1" },
+              { label: "Đang làm", count: counts.inProgress || 0, color: "#6366f1" },
+              { label: "Chờ duyệt", count: counts.review || 0, color: "#f59e0b" },
+              { label: "Hoàn thành", count: counts.done || 0, color: "#10b981" }
+            ];
+            legendContainer.innerHTML = legendItems
+              .map(item => `
+                <div class="dashboard-legend-item">
+                  <span class="dashboard-legend-label">
+                    <span class="dashboard-legend-color" style="background-color: ${item.color};"></span>
+                    <span>${item.label}</span>
+                  </span>
+                  <span class="dashboard-legend-count">${item.count}</span>
+                </div>
+              `).join("");
+          }
         }
       }
     },
