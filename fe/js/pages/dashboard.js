@@ -186,7 +186,7 @@
           const overdue = task.dueDate && FS.date.isOverdue(task.dueDate);
           const statusDone = task.status === "done";
           return `
-            <button class="dashboard-list-item task-open-btn w-100 d-flex align-items-center gap-3 py-2 text-start border-0 bg-transparent" type="button" data-task-id="${task.id}">
+            <button class="dashboard-list-item dashboard-task-item task-open-btn text-start border-0" type="button" data-task-id="${task.id}">
               <i class="bi bi-${statusDone ? "check-circle-fill text-success" : "circle text-muted"}" aria-hidden="true"></i>
               <span class="flex-grow-1 text-truncate">
                 <strong class="d-block small text-dark">${FS.str.escape(task.title)}</strong>
@@ -222,15 +222,15 @@
         .map((project) => {
           const progress = Math.min(100, Math.max(0, Number(project.progress) || 0));
           return `
-            <button class="dashboard-list-item proj-open-btn w-100 py-2 text-start border-0 bg-transparent" type="button" data-proj-id="${project.id}">
-              <span class="d-flex align-items-center gap-2 mb-1">
+            <button class="dashboard-list-item dashboard-proj-item proj-open-btn text-start border-0" type="button" data-proj-id="${project.id}">
+              <span class="d-flex align-items-center gap-2 mb-2">
                 <strong class="small text-dark text-truncate flex-grow-1">${FS.str.escape(project.name)}</strong>
                 <span class="small fw-bold text-primary">${progress}%</span>
               </span>
               <span class="fs-progress fs-progress-sm d-block mb-2">
                 <span class="fs-progress-bar" style="width:${progress}%"></span>
               </span>
-              <span class="d-flex justify-content-between align-items-center">
+              <span class="d-flex justify-content-between align-items-center mt-1">
                 <small class="fs-small text-secondary"><i class="bi bi-person me-1"></i>${FS.str.escape(project.ownerName || "—")}</small>
                 <small class="fs-small text-secondary"><i class="bi bi-calendar3 me-1"></i>${FS.date.format(project.endDate)}</small>
               </span>
