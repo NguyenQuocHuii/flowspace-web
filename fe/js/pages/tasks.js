@@ -241,11 +241,11 @@
 
     _renderCards(tasks) {
       if (!tasks.length) {
-        $('#tasks-card-view').html('<div class="col-12"><div class="fs-empty"><i class="bi bi-check-square"></i><h5>Không tìm thấy công việc</h5><p>Thử thay đổi bộ lọc hoặc tạo công việc mới</p></div></div>');
+        $('#tasks-card-grid').html('<div class="col-12"><div class="fs-empty"><i class="bi bi-check-square"></i><h5>Không tìm thấy công việc</h5><p>Thử thay đổi bộ lọc hoặc tạo công việc mới</p></div></div>');
         return;
       }
 
-      $('#tasks-card-view').html(tasks.map(t => {
+      $('#tasks-card-grid').html(tasks.map(t => {
         const overdue = FS.date.isOverdue(t.dueDate) && t.status !== 'done';
         const isDone = t.status === 'done';
 
