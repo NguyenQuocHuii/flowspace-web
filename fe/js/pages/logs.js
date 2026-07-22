@@ -15,15 +15,36 @@
     _logsCache: null,
 
     async init() {
-      if (!FS.auth.isDirector()) {
+      if (!FS.auth.isManager() && !FS.auth.isDirector()) {
         document.getElementById('logs-table-body').innerHTML =
-          '<tr><td colspan="6"><div class="fs-empty"><i class="bi bi-shield-lock"></i><h5>Không có quyền</h5></div></td></tr>';
+          '<tr><td colspan="6"><div class="fs-empty"><i class="bi bi-shield-lock"></i><h5>Không có quyền truy cập</h5><p>Tính năng này dành cho Quản lý / Ban Giám Đốc.</p></div></td></tr>';
         return;
       }
-      await this._loadUsers();
-      await this._loadLogs();
+      this._logsCache = this._getDefaultLogs();
       this._render();
       this._bindEvents();
+
+      await this._loadUsers();
+      await this._loadLogs();
+      this._populateUserFilter();
+      this._render();
+    },
+
+    _getDefaultLogs() {
+      const users = FS.usersCache || FS.db.get('users') || [];
+      const uAdmin = users.find(u => u.email === 'admin@flowspace.demo') || { id: 'u1', name: 'Phạm Thanh Dung' };
+      const uCuong = users.find(u => u.email === 'truongphong@flowspace.demo') || { id: 'u3', name: 'Lê Minh Cường' };
+      const uBinh = users.find(u => u.email === 'truongnhom@flowspace.demo') || { id: 'u2', name: 'Trần Thị Bình' };
+      const uAn = users.find(u => u.email === 'nhanvien@flowspace.demo') || { id: 'u4', name: 'Nguyễn Văn An' };
+
+      return [
+        { id: 'l1', timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(), userId: uAdmin.id, userName: uAdmin.name, action: 'LOGIN', module: 'AUTH', detail: 'Đăng nhập hệ thống thành công (Email: admin@flowspace.demo)', ip: '192.168.1.100' },
+        { id: 'l2', timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(), userId: uCuong.id, userName: uCuong.name, action: 'APPROVE', module: 'REQUESTS', detail: 'Phê duyệt đơn xin nghỉ phép của Nguyễn Văn An', ip: '192.168.1.102' },
+        { id: 'l3', timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(), userId: uBinh.id, userName: uBinh.name, action: 'UPDATE', module: 'GANTT', detail: 'Cập nhật tiến độ dự án "Thiết kế Website E-commerce"', ip: '192.168.1.105' },
+        { id: 'l4', timestamp: new Date(Date.now() - 1000 * 60 * 240).toISOString(), userId: uAn.id, userName: uAn.name, action: 'CREATE', module: 'TIMETRACKING', detail: 'Ghi nhận 4h làm việc cho công việc FS-001-T2', ip: '192.168.1.110' },
+        { id: 'l5', timestamp: new Date(Date.now() - 1000 * 60 * 360).toISOString(), userId: uAdmin.id, userName: uAdmin.name, action: 'UPDATE', module: 'SETTINGS', detail: 'Cập nhật quy định duyệt tự động cấp Trưởng phòng', ip: '192.168.1.100' },
+        { id: 'l6', timestamp: new Date(Date.now() - 1000 * 60 * 720).toISOString(), userId: uCuong.id, userName: uCuong.name, action: 'ASSIGN', module: 'KANBAN', detail: 'Phân công công việc FS-002-T1 cho Vũ Hoàng Giang', ip: '192.168.1.102' }
+      ];
     },
 
     _getAuthHeaders() {
@@ -66,15 +87,15 @@
           url: FS.API_BASE + '/api/v1/auditlogs',
           type: 'GET'
         });
-        if (response && response.success && Array.isArray(response.data)) {
+        if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
           this._logsCache = response.data;
           $('#logs-offline-banner').remove();
         } else {
-          this._logsCache = [];
+          this._logsCache = this._getDefaultLogs();
         }
       } catch (err) {
         console.warn('Logs API failed:', err);
-        this._logsCache = [];
+        this._logsCache = this._getDefaultLogs();
       }
     },
 
