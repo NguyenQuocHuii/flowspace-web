@@ -659,6 +659,12 @@ img { max-width: 100%; display: block; }
   gap: 2px;
   border-bottom: 1.5px solid var(--fs-border);
   margin-bottom: 20px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+.fs-tabs::-webkit-scrollbar {
+  display: none;
 }
 .fs-tab {
   padding: 8px 16px;
@@ -674,6 +680,7 @@ img { max-width: 100%; display: block; }
   border-left: none;
   border-right: none;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 .fs-tab:hover { color: var(--fs-text); }
 .fs-tab.active { color: var(--fs-accent); border-bottom-color: var(--fs-accent); }
