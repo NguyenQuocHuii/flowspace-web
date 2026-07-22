@@ -5,7 +5,7 @@
 (function (FS, $) {
   'use strict';
 
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE = 6;
 
   FS.pages.tasks = {
     _view: 'list',
@@ -122,19 +122,44 @@
       }
 
       // Pagination
-      const totalPages = Math.ceil(total / PAGE_SIZE);
-      $('#tasks-pagination-info').text(`Hiển thị ${start + 1}–${Math.min(start + PAGE_SIZE, total)} / ${total}`);
+      const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
+      const $ul = $('#tasks-pagination-ul');
+      const $info = $('#tasks-pagination-info');
 
-      if (totalPages <= 1) {
-        $('#tasks-pagination-btns').html('');
+      if (total === 0) {
+        $info.text('Hiển thị 0 trong 0 công việc');
+        $ul.html('');
         return;
       }
-      const self = this;
-      let paginHtml = '';
-      for (let i = 1; i <= totalPages; i++) {
-        paginHtml += `<button class="btn btn-sm ${i === self._page ? 'btn-primary' : 'btn-ghost'} page-btn" data-page="${i}">${i}</button>`;
+
+      $info.text(`Hiển thị ${start + 1}-${Math.min(start + PAGE_SIZE, total)} trong ${total} công việc`);
+
+      let html = '';
+
+      // Nút quay lại bị vô hiệu hóa khi ở trang 1
+      if (this._page === 1) {
+        html += `<li class="page-item disabled" aria-disabled="true"><span class="page-link">&laquo; Trước</span></li>`;
+      } else {
+        html += `<li class="page-item"><a class="page-link task-page-link" data-page="${this._page - 1}" href="#">&laquo; Trước</a></li>`;
       }
-      $('#tasks-pagination-btns').html(paginHtml);
+
+      // Danh sách trang
+      for (let p = 1; p <= totalPages; p++) {
+        if (p === this._page) {
+          html += `<li class="page-item active" aria-current="page"><span class="page-link">${p}</span></li>`;
+        } else {
+          html += `<li class="page-item"><a class="page-link task-page-link" data-page="${p}" href="#">${p}</a></li>`;
+        }
+      }
+
+      // Nút trang tiếp theo
+      if (this._page === totalPages) {
+        html += `<li class="page-item disabled" aria-disabled="true"><span class="page-link">Sau &raquo;</span></li>`;
+      } else {
+        html += `<li class="page-item"><a class="page-link task-page-link" data-page="${this._page + 1}" href="#">Sau &raquo;</a></li>`;
+      }
+
+      $ul.html(html);
     },
 
     _renderTable(tasks) {
@@ -398,8 +423,13 @@
       });
 
       // Pagination
-      $(document).off('click.task-page').on('click.task-page', '.page-btn', function () {
-        self._page = parseInt($(this).data('page')); self._render();
+      $(document).off('click.task-page').on('click.task-page', '.task-page-link', function (e) {
+        e.preventDefault();
+        const p = parseInt($(this).data('page'), 10);
+        if (p && p !== self._page) {
+          self._page = p;
+          self._render();
+        }
       });
 
       // Row click → open detail

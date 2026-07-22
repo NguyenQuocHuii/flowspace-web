@@ -21,6 +21,16 @@
   <div id="req-list">
     <div class="fs-empty"><div class="fs-spinner mx-auto"></div></div>
   </div>
+
+  <!-- Accessible Pagination Container -->
+  <div class="d-flex align-items-center justify-content-between mt-3 flex-wrap gap-2" id="req-pagination-wrap">
+    <span class="fs-small text-muted" id="req-pagination-info">Đang hiển thị...</span>
+    <nav aria-label="Phân trang kết quả tìm kiếm">
+      <ul class="pagination pagination-sm m-0" id="req-pagination-ul">
+        <!-- Rendered dynamically by JS -->
+      </ul>
+    </nav>
+  </div>
 </div>
 
 <!-- New Request Modal -->

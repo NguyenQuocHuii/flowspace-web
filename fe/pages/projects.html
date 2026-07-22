@@ -48,23 +48,25 @@
   <!-- List View -->
   <div id="proj-list-view">
     <div class="fs-card" style="padding:0;overflow:hidden">
-      <table class="fs-table" id="proj-table">
-        <thead>
-          <tr>
-            <th style="width:90px">MÃ</th>
-            <th>Tên dự án</th>
-            <th>Trạng thái</th>
-            <th>Độ ưu tiên</th>
-            <th>Tiến độ</th>
-            <th>Thành viên</th>
-            <th>Hạn</th>
-            <th style="width:80px">Thao tác</th>
-          </tr>
-        </thead>
-        <tbody id="proj-table-body">
-          <tr><td colspan="8"><div class="fs-empty"><div class="fs-spinner mx-auto"></div></div></td></tr>
-        </tbody>
-      </table>
+      <div class="table-responsive" style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+        <table class="fs-table" id="proj-table" style="min-width:760px">
+          <thead>
+            <tr>
+              <th style="width:90px">MÃ</th>
+              <th style="min-width:180px">Tên dự án</th>
+              <th style="min-width:110px">Trạng thái</th>
+              <th style="min-width:110px">Độ ưu tiên</th>
+              <th style="min-width:130px">Tiến độ</th>
+              <th style="min-width:120px">Thành viên</th>
+              <th style="min-width:110px">Hạn</th>
+              <th style="width:80px;text-align:center">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="proj-table-body">
+            <tr><td colspan="8"><div class="fs-empty"><div class="fs-spinner mx-auto"></div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -73,6 +75,16 @@
     <div class="row g-3" id="proj-card-grid">
       <!-- Rendered by JS -->
     </div>
+  </div>
+
+  <!-- Accessible Pagination Container -->
+  <div class="d-flex align-items-center justify-content-between mt-3 flex-wrap gap-2" id="proj-pagination-wrap">
+    <span class="fs-small text-muted" id="proj-pagination-info">Đang hiển thị...</span>
+    <nav aria-label="Phân trang kết quả tìm kiếm">
+      <ul class="pagination pagination-sm m-0" id="proj-pagination-ul">
+        <!-- Rendered dynamically by JS -->
+      </ul>
+    </nav>
   </div>
 
 </div>

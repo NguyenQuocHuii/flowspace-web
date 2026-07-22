@@ -3,6 +3,8 @@
 
   FS.pages.requests = {
     _tab: 'all',
+    _page: 1,
+    PAGE_SIZE: 6,
     _requestsData: [],
     _editMode: false, // true when editing an existing request
     _editRequestId: null,
@@ -95,56 +97,103 @@
     },
 
     _render() {
-      const requests = this._getFilteredData();
-      $('#req-count-label').text(`${requests.length} yêu cầu`);
+      const allFiltered = this._getFilteredData();
+      const total = allFiltered.length;
+      $('#req-count-label').text(`${total} yêu cầu`);
 
-      if (!requests.length) {
+      const totalPages = Math.ceil(total / this.PAGE_SIZE) || 1;
+      if (this._page > totalPages) this._page = totalPages;
+      if (this._page < 1) this._page = 1;
+
+      const start = (this._page - 1) * this.PAGE_SIZE;
+      const pagedRequests = allFiltered.slice(start, start + this.PAGE_SIZE);
+
+      if (!total) {
         $('#req-list').html('<div class="fs-empty"><i class="bi bi-inbox"></i><h5>Không có yêu cầu nào</h5><p>Nhấn "Tạo yêu cầu" để gửi yêu cầu mới</p></div>');
+      } else {
+        const html = pagedRequests.map(r => {
+          const requesterName = r.requesterName || (FS.user.get(r.requesterId)?.name || '—');
+          const approvals = r.approvals || [];
+          const currentStep = approvals.find(a => a.status === 'pending');
+          const canEdit = this._canEdit(r);
+          return `
+            <div class="fs-card fs-card-sm mb-2 hover-row cursor-pointer req-item" data-req-id="${r.id}" style="border-radius:var(--fs-radius-md)">
+              <div class="d-flex align-items-start gap-3">
+                <div>
+                  ${FS.user.avatar(r.requesterId)}
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                    <span style="font-size:13px;font-weight:600">${FS.str.escape(r.title)}</span>
+                    ${FS.badge.reqType(r.type)}
+                    ${FS.badge.status(r.status)}
+                  </div>
+                  <p style="font-size:12px;color:var(--fs-text-secondary);margin-bottom:8px" class="truncate">${FS.str.escape(r.description)}</p>
+                  <div class="d-flex align-items-center gap-2 gap-md-3 flex-wrap">
+                    <span class="fs-small"><i class="bi bi-person me-1"></i>${FS.str.escape(requesterName)}</span>
+                    <span class="fs-small"><i class="bi bi-calendar3 me-1"></i>${FS.date.format(r.createdAt)}</span>
+                    ${currentStep ? `<span class="fs-small text-warning"><i class="bi bi-hourglass-split me-1"></i>Đang chờ ${FS.auth.getRoleLabel(currentStep.role)}</span>` : ''}
+                  </div>
+                  ${canEdit ? `
+                    <div class="mt-2 d-flex gap-2">
+                      <button class="btn btn-sm btn-outline-primary req-edit-btn" data-req-id="${r.id}"><i class="bi bi-pencil"></i> Sửa</button>
+                      <button class="btn btn-sm btn-outline-danger req-delete-btn" data-req-id="${r.id}"><i class="bi bi-trash"></i> Xóa</button>
+                    </div>
+                  ` : ''}
+                </div>
+                <!-- Approval steps indicator -->
+                <div class="d-flex gap-1 align-items-center flex-shrink-0">
+                  ${(r.approvals || []).map(a => `
+                    <div title="${FS.auth.getRoleLabel(a.role)}: ${a.status === 'approved' ? 'Đã duyệt' : a.status === 'rejected' ? 'Từ chối' : 'Chờ'}"
+                         style="width:10px;height:10px;border-radius:50%;background:${a.status === 'approved' ? 'var(--fs-success)' : a.status === 'rejected' ? 'var(--fs-danger)' : 'var(--fs-border)'}"></div>
+                  `).join('<div style="width:16px;height:2px;background:var(--fs-border)"></div>')}
+                </div>
+              </div>
+            </div>`;
+        }).join('');
+        $('#req-list').html(html);
+      }
+
+      this._renderPagination(total, totalPages);
+    },
+
+    _renderPagination(total, totalPages) {
+      const $ul = $('#req-pagination-ul');
+      const $info = $('#req-pagination-info');
+
+      if (total === 0) {
+        $info.text('Hiển thị 0 trong 0 yêu cầu');
+        $ul.html('');
         return;
       }
 
-      const html = requests.map(r => {
-        const requesterName = r.requesterName || (FS.user.get(r.requesterId)?.name || '—');
-        const approvals = r.approvals || [];
-        const currentStep = approvals.find(a => a.status === 'pending');
-        const canEdit = this._canEdit(r);
-        return `
-          <div class="fs-card fs-card-sm mb-2 hover-row cursor-pointer req-item" data-req-id="${r.id}" style="border-radius:var(--fs-radius-md)">
-            <div class="d-flex align-items-start gap-3">
-              <div>
-                ${FS.user.avatar(r.requesterId)}
-              </div>
-              <div style="flex:1;min-width:0">
-                <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                  <span style="font-size:13px;font-weight:600">${FS.str.escape(r.title)}</span>
-                  ${FS.badge.reqType(r.type)}
-                  ${FS.badge.status(r.status)}
-                </div>
-                <p style="font-size:12px;color:var(--fs-text-secondary);margin-bottom:8px" class="truncate">${FS.str.escape(r.description)}</p>
-                <div class="d-flex align-items-center gap-2 gap-md-3 flex-wrap">
-                  <span class="fs-small"><i class="bi bi-person me-1"></i>${FS.str.escape(requesterName)}</span>
-                  <span class="fs-small"><i class="bi bi-calendar3 me-1"></i>${FS.date.format(r.createdAt)}</span>
-                  ${currentStep ? `<span class="fs-small text-warning"><i class="bi bi-hourglass-split me-1"></i>Đang chờ ${FS.auth.getRoleLabel(currentStep.role)}</span>` : ''}
-                </div>
-                ${canEdit ? `
-                  <div class="mt-2 d-flex gap-2">
-                    <button class="btn btn-sm btn-outline-primary req-edit-btn" data-req-id="${r.id}"><i class="bi bi-pencil"></i> Sửa</button>
-                    <button class="btn btn-sm btn-outline-danger req-delete-btn" data-req-id="${r.id}"><i class="bi bi-trash"></i> Xóa</button>
-                  </div>
-                ` : ''}
-              </div>
-              <!-- Approval steps indicator -->
-              <div class="d-flex gap-1 align-items-center flex-shrink-0">
-                ${(r.approvals || []).map(a => `
-                  <div title="${FS.auth.getRoleLabel(a.role)}: ${a.status === 'approved' ? 'Đã duyệt' : a.status === 'rejected' ? 'Từ chối' : 'Chờ'}"
-                       style="width:10px;height:10px;border-radius:50%;background:${a.status === 'approved' ? 'var(--fs-success)' : a.status === 'rejected' ? 'var(--fs-danger)' : 'var(--fs-border)'}"></div>
-                `).join('<div style="width:16px;height:2px;background:var(--fs-border)"></div>')}
-              </div>
-            </div>
-          </div>`;
-      }).join('');
+      const start = (this._page - 1) * this.PAGE_SIZE + 1;
+      const end = Math.min(this._page * this.PAGE_SIZE, total);
+      $info.text(`Hiển thị ${start}-${end} trong ${total} yêu cầu`);
 
-      $('#req-list').html(html);
+      let html = '';
+
+      if (this._page === 1) {
+        html += `<li class="page-item disabled" aria-disabled="true"><span class="page-link">&laquo; Trước</span></li>`;
+      } else {
+        html += `<li class="page-item"><a class="page-link req-page-link" data-page="${this._page - 1}" href="#">&laquo; Trước</a></li>`;
+      }
+
+      for (let p = 1; p <= totalPages; p++) {
+        if (p === this._page) {
+          html += `<li class="page-item active" aria-current="page"><span class="page-link">${p}</span></li>`;
+        } else {
+          html += `<li class="page-item"><a class="page-link req-page-link" data-page="${p}" href="#">${p}</a></li>`;
+        }
+      }
+
+      if (this._page === totalPages) {
+        html += `<li class="page-item disabled" aria-disabled="true"><span class="page-link">Sau &raquo;</span></li>`;
+      } else {
+        html += `<li class="page-item"><a class="page-link req-page-link" data-page="${this._page + 1}" href="#">Sau &raquo;</a></li>`;
+      }
+
+      $ul.html(html);
     },
 
     _openDetail(reqId) {
@@ -308,7 +357,17 @@
       const self = this;
 
       // Tabs
-      $(document).off('click.req-tab').on('click.req-tab', '#req-tabs .fs-tab', function () {
+      // Pagination links
+      $(document).off('click.req-page').on('click.req-page', '.req-page-link', function (e) {
+        e.preventDefault();
+        const p = parseInt($(this).data('page'), 10);
+        if (p && p !== self._page) {
+          self._page = p;
+          self._render();
+        }
+      });
+
+      // Tabs
         $('#req-tabs .fs-tab').removeClass('active');
         $(this).addClass('active');
         self._tab = $(this).data('tab');

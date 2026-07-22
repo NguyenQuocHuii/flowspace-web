@@ -83,10 +83,14 @@
     <!-- Rendered dynamically -->
   </div>
 
-  <!-- Pagination -->
-  <div class="d-flex align-items-center justify-content-between mt-3">
-    <span class="fs-small" id="tasks-pagination-info"></span>
-    <div class="d-flex gap-1" id="tasks-pagination-btns"></div>
+  <!-- Accessible Pagination Container -->
+  <div class="d-flex align-items-center justify-content-between mt-3 flex-wrap gap-2" id="tasks-pagination-wrap">
+    <span class="fs-small text-muted" id="tasks-pagination-info">Đang hiển thị...</span>
+    <nav aria-label="Phân trang kết quả tìm kiếm">
+      <ul class="pagination pagination-sm m-0" id="tasks-pagination-ul">
+        <!-- Rendered dynamically by JS -->
+      </ul>
+    </nav>
   </div>
 
 </div>

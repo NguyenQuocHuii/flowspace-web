@@ -8,6 +8,8 @@
   FS.pages.projects = {
     _view: 'list',
     _filter: { search: '', status: '', priority: '' },
+    _page: 1,
+    PAGE_SIZE: 6,
     _projectsData: [],
 
     async init() {
@@ -87,9 +89,71 @@
       return projects;
     },
 
-    _renderTable() {
-      const projects = this._getFilteredData();
-      $('#proj-count-label').text(`${projects.length} dự án`);
+    _render() {
+      const allFiltered = this._getFilteredData();
+      const total = allFiltered.length;
+      const totalPages = Math.ceil(total / this.PAGE_SIZE) || 1;
+      if (this._page > totalPages) this._page = totalPages;
+      if (this._page < 1) this._page = 1;
+
+      const pagedProjects = allFiltered.slice((this._page - 1) * this.PAGE_SIZE, this._page * this.PAGE_SIZE);
+
+      if (this._view === 'list') {
+        $('#proj-list-view').show();
+        $('#proj-card-view').hide();
+        this._renderTable(pagedProjects, total);
+      } else {
+        $('#proj-list-view').hide();
+        $('#proj-card-view').show();
+        this._renderCards(pagedProjects, total);
+      }
+      this._renderPagination(total, totalPages);
+    },
+
+    _renderPagination(total, totalPages) {
+      const $ul = $('#proj-pagination-ul');
+      const $info = $('#proj-pagination-info');
+
+      if (total === 0) {
+        $info.text('Hiển thị 0 trong 0 dự án');
+        $ul.html('');
+        return;
+      }
+
+      const start = (this._page - 1) * this.PAGE_SIZE + 1;
+      const end = Math.min(this._page * this.PAGE_SIZE, total);
+      $info.text(`Hiển thị ${start}-${end} trong ${total} dự án`);
+
+      let html = '';
+
+      // Nút quay lại bị vô hiệu hóa khi ở trang 1
+      if (this._page === 1) {
+        html += `<li class="page-item disabled" aria-disabled="true"><span class="page-link">&laquo; Trước</span></li>`;
+      } else {
+        html += `<li class="page-item"><a class="page-link proj-page-link" data-page="${this._page - 1}" href="#">&laquo; Trước</a></li>`;
+      }
+
+      // Danh sách các trang
+      for (let p = 1; p <= totalPages; p++) {
+        if (p === this._page) {
+          html += `<li class="page-item active" aria-current="page"><span class="page-link">${p}</span></li>`;
+        } else {
+          html += `<li class="page-item"><a class="page-link proj-page-link" data-page="${p}" href="#">${p}</a></li>`;
+        }
+      }
+
+      // Nút trang tiếp theo
+      if (this._page === totalPages) {
+        html += `<li class="page-item disabled" aria-disabled="true"><span class="page-link">Sau &raquo;</span></li>`;
+      } else {
+        html += `<li class="page-item"><a class="page-link proj-page-link" data-page="${this._page + 1}" href="#">Sau &raquo;</a></li>`;
+      }
+
+      $ul.html(html);
+    },
+
+    _renderTable(projects, total) {
+      $('#proj-count-label').text(`${total} dự án`);
 
       if (!projects.length) {
         $('#proj-table-body').html('<tr><td colspan="8"><div class="fs-empty"><i class="bi bi-folder2"></i><h5>Không tìm thấy dự án</h5><p>Thử thay đổi bộ lọc hoặc tạo dự án mới</p></div></td></tr>');
@@ -211,17 +275,7 @@
       }).join(''));
     },
 
-    _render() {
-      if (this._view === 'list') {
-        $('#proj-list-view').show();
-        $('#proj-card-view').hide();
-        this._renderTable();
-      } else {
-        $('#proj-list-view').hide();
-        $('#proj-card-view').show();
-        this._renderCards();
-      }
-    },
+
 
     _openModal(projectId = null) {
       if (projectId) {
@@ -307,6 +361,16 @@
 
     _bindEvents() {
       const self = this;
+
+      // Pagination links
+      $(document).off('click.proj-page').on('click.proj-page', '.proj-page-link', function (e) {
+        e.preventDefault();
+        const p = parseInt($(this).data('page'), 10);
+        if (p && p !== self._page) {
+          self._page = p;
+          self._render();
+        }
+      });
 
       // View toggle
       $(document).off('click.proj-toggle').on('click.proj-toggle', '.view-toggle', function () {

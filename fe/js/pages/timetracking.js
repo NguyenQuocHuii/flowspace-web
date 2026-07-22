@@ -11,6 +11,8 @@
     _state: 'idle', // 'idle' | 'running' | 'paused'
     _chart: null,
     _period: 'week',
+    _page: 1,
+    PAGE_SIZE: 6,
     _logsData: [],
     _tasksList: [],
     _editingLogId: null, // null when creating, id when editing
@@ -345,39 +347,90 @@
 
     _renderLogs() {
       const logs = this._getFilteredLogs();
-      const total = logs.reduce((s, l) => s + (l.hours || 0), 0);
+      const totalHours = logs.reduce((s, l) => s + (l.hours || 0), 0);
 
       const $badge = document.getElementById('tt-total-badge');
-      if ($badge) $badge.textContent = `${Math.round(total * 10) / 10}h tổng`;
+      if ($badge) $badge.textContent = `${Math.round(totalHours * 10) / 10}h tổng`;
+
+      const totalItems = logs.length;
+      const totalPages = Math.ceil(totalItems / this.PAGE_SIZE) || 1;
+      if (this._page > totalPages) this._page = totalPages;
+      if (this._page < 1) this._page = 1;
+
+      const start = (this._page - 1) * this.PAGE_SIZE;
+      const pagedLogs = logs.slice(start, start + this.PAGE_SIZE);
 
       const $body = document.getElementById('tt-log-body');
-      if (!$body) return;
+      if ($body) {
+        if (!logs.length) {
+          $body.innerHTML = '<tr><td colspan="6"><div class="fs-empty"><i class="bi bi-clock"></i><p>Chưa có log giờ nào</p></div></td></tr>';
+        } else {
+          $body.innerHTML = pagedLogs.map(l => {
+            const taskTitle = l.taskTitle || '—';
+            const projName = l.projectName || '—';
+            const canEdit = this._canEditLog(l);
+            const editBtn = canEdit ? `<button class="btn btn-ghost btn-icon btn-sm tt-edit-log" data-log-id="${l.id}" title="Sửa">
+              <i class="bi bi-pencil" style="font-size:12px;color:var(--fs-primary)"></i>
+            </button>` : '';
+            const deleteBtn = canEdit ? `<button class="btn btn-ghost btn-icon btn-sm tt-delete-log" data-log-id="${l.id}" title="Xoá">
+              <i class="bi bi-trash3" style="font-size:12px;color:var(--fs-danger)"></i>
+            </button>` : '';
+            return `
+              <tr>
+                <td style="font-size:13px">${FS.str.escape(taskTitle)}</td>
+                <td style="font-size:12px;color:var(--fs-text-secondary)">${FS.str.escape(projName)}</td>
+                <td style="font-size:12px;color:var(--fs-text-muted)">${FS.date.format(l.date)}</td>
+                <td><span class="fs-badge badge-accent">${l.hours}h</span></td>
+                <td style="font-size:12px;color:var(--fs-text-secondary)">${FS.str.escape(l.note || '—')}</td>
+                <td style="text-align:center">${editBtn}${deleteBtn}</td>
+              </tr>`;
+          }).join('');
+        }
+      }
 
-      if (!logs.length) {
-        $body.innerHTML = '<tr><td colspan="6"><div class="fs-empty"><i class="bi bi-clock"></i><p>Chưa có log giờ nào</p></div></td></tr>';
+      this._renderPagination(totalItems, totalPages);
+    },
+
+    _renderPagination(total, totalPages) {
+      const $ul = $('#tt-pagination-ul');
+      const $info = $('#tt-pagination-info');
+
+      if (total === 0) {
+        $info.text('Hiển thị 0 trong 0 nhật ký giờ làm');
+        $ul.html('');
         return;
       }
 
-      $body.innerHTML = logs.slice(0, 30).map(l => {
-        const taskTitle = l.taskTitle || '—';
-        const projName = l.projectName || '—';
-        const canEdit = this._canEditLog(l);
-        const editBtn = canEdit ? `<button class="btn btn-ghost btn-icon btn-sm tt-edit-log" data-log-id="${l.id}" title="Sửa">
-          <i class="bi bi-pencil" style="font-size:12px;color:var(--fs-primary)"></i>
-        </button>` : '';
-        const deleteBtn = canEdit ? `<button class="btn btn-ghost btn-icon btn-sm tt-delete-log" data-log-id="${l.id}" title="Xoá">
-          <i class="bi bi-trash3" style="font-size:12px;color:var(--fs-danger)"></i>
-        </button>` : '';
-        return `
-          <tr>
-            <td style="font-size:13px">${FS.str.escape(taskTitle)}</td>
-            <td style="font-size:12px;color:var(--fs-text-secondary)">${FS.str.escape(projName)}</td>
-            <td style="font-size:12px;color:var(--fs-text-muted)">${FS.date.format(l.date)}</td>
-            <td><span class="fs-badge badge-accent">${l.hours}h</span></td>
-            <td style="font-size:12px;color:var(--fs-text-secondary)">${FS.str.escape(l.note || '—')}</td>
-            <td style="text-align:center">${editBtn}${deleteBtn}</td>
-          </tr>`;
-      }).join('');
+      const start = (this._page - 1) * this.PAGE_SIZE + 1;
+      const end = Math.min(this._page * this.PAGE_SIZE, total);
+      $info.text(`Hiển thị ${start}-${end} trong ${total} nhật ký giờ làm`);
+
+      let html = '';
+
+      // Nút quay lại bị vô hiệu hóa khi ở trang 1
+      if (this._page === 1) {
+        html += `<li class="page-item disabled" aria-disabled="true"><span class="page-link">&laquo; Trước</span></li>`;
+      } else {
+        html += `<li class="page-item"><a class="page-link tt-page-link" data-page="${this._page - 1}" href="#">&laquo; Trước</a></li>`;
+      }
+
+      // Danh sách trang
+      for (let p = 1; p <= totalPages; p++) {
+        if (p === this._page) {
+          html += `<li class="page-item active" aria-current="page"><span class="page-link">${p}</span></li>`;
+        } else {
+          html += `<li class="page-item"><a class="page-link tt-page-link" data-page="${p}" href="#">${p}</a></li>`;
+        }
+      }
+
+      // Nút trang tiếp theo
+      if (this._page === totalPages) {
+        html += `<li class="page-item disabled" aria-disabled="true"><span class="page-link">Sau &raquo;</span></li>`;
+      } else {
+        html += `<li class="page-item"><a class="page-link tt-page-link" data-page="${this._page + 1}" href="#">Sau &raquo;</a></li>`;
+      }
+
+      $ul.html(html);
     },
 
     _renderChart() {
@@ -439,6 +492,16 @@
 
     _bindEvents() {
       const self = this;
+
+      // Pagination links
+      $(document).off('click.tt-page').on('click.tt-page', '.tt-page-link', function (e) {
+        e.preventDefault();
+        const p = parseInt($(this).data('page'), 10);
+        if (p && p !== self._page) {
+          self._page = p;
+          self._renderLogs();
+        }
+      });
 
       const $wrap = document.getElementById('tt-controls-wrap');
       if ($wrap) {
