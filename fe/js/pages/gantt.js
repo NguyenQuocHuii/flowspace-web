@@ -318,8 +318,8 @@
               <div class="d-flex align-items-center gap-2">
                 <i class="bi bi-${task.status==='done'?'check-circle-fill text-success':'circle'}" style="font-size:12px;flex-shrink:0"></i>
                 <div style="min-width:0">
-                  <div class="gantt-task-name truncate" style="max-width:200px;${task.status==='done'?'text-decoration:line-through;color:var(--fs-text-muted)':''}">${FS.str.escape(task.title)}</div>
-                  <div class="gantt-task-meta">${FS.str.escape(assigneeName.split(' ').pop())}</div>
+                  <div class="gantt-task-name truncate" style="max-width:250px;${task.status==='done'?'text-decoration:line-through;color:var(--fs-text-muted)':''}">${FS.str.escape(task.title)}</div>
+                  <div class="gantt-task-meta">${FS.str.escape(assigneeName)}</div>
                 </div>
               </div>
             </td>`;
@@ -347,11 +347,12 @@
 
                 const isCritical = this._criticalPath.has(task.id);
                 const criticalClass = isCritical ? ' critical' : '';
+                const radiusStyle = (isFirst && isLast) ? '6px' : (isFirst ? '6px 0 0 6px' : (isLast ? '0 6px 6px 0' : '0'));
 
                 barHtml = `
-                  <div class="gantt-bar-wrapper" style="left:${isFirst?'4px':'0'};right:${isLast?'4px':'0'}">
-                    <div class="gantt-bar${criticalClass}" data-task-id="${task.id}" style="background:${barColor};border-radius:${isFirst?'4px':0} ${isLast?'4px':0} ${isLast?'4px':0} ${isFirst?'4px':0}">
-                      ${isFirst ? `<span style="max-width:80px;overflow:hidden;pointer-events:none">${progress}%</span>` : ''}
+                  <div class="gantt-bar-wrapper" style="left:${isFirst?'2px':'0'};right:${isLast?'2px':'0'}">
+                    <div class="gantt-bar${criticalClass}" data-task-id="${task.id}" style="background:${barColor};border-radius:${radiusStyle}">
+                      ${isFirst ? `<span style="font-size:10px;font-weight:600;pointer-events:none">${progress}%</span>` : ''}
                     </div>
                   </div>`;
               }
