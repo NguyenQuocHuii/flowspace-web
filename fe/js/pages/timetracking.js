@@ -68,7 +68,9 @@
             hours: l.hours || 0,
             note: l.description || '',
             date: l.loggedDate,
-            createdAt: l.createdAt
+            createdAt: l.createdAt,
+            projectId: l.projectId,
+            projectName: l.projectName || ''
           }));
           $('#timetracking-offline-banner').remove();
         } else {
@@ -357,9 +359,8 @@
       }
 
       $body.innerHTML = logs.slice(0, 30).map(l => {
-        const task = FS.db.find('tasks', l.taskId);
-        const taskTitle = l.taskTitle || (task ? task.title : '—');
-        const proj = task ? FS.db.find('projects', task.projectId) : null;
+        const taskTitle = l.taskTitle || '—';
+        const projName = l.projectName || '—';
         const canEdit = this._canEditLog(l);
         const editBtn = canEdit ? `<button class="btn btn-ghost btn-icon btn-sm tt-edit-log" data-log-id="${l.id}" title="Sửa">
           <i class="bi bi-pencil" style="font-size:12px;color:var(--fs-primary)"></i>
@@ -370,7 +371,7 @@
         return `
           <tr>
             <td style="font-size:13px">${FS.str.escape(taskTitle)}</td>
-            <td style="font-size:12px;color:var(--fs-text-secondary)">${proj ? FS.str.escape(proj.name) : '—'}</td>
+            <td style="font-size:12px;color:var(--fs-text-secondary)">${FS.str.escape(projName)}</td>
             <td style="font-size:12px;color:var(--fs-text-muted)">${FS.date.format(l.date)}</td>
             <td><span class="fs-badge badge-accent">${l.hours}h</span></td>
             <td style="font-size:12px;color:var(--fs-text-secondary)">${FS.str.escape(l.note || '—')}</td>
@@ -389,9 +390,7 @@
       const colors = ['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6'];
 
       logs.forEach(l => {
-        const task = FS.db.find('tasks', l.taskId);
-        const p = task ? FS.db.find('projects', task.projectId) : null;
-        const name = p ? p.name : 'Dự án chung';
+        const name = l.projectName || 'Dự án chung';
         data[name] = (data[name] || 0) + (l.hours || 0);
       });
 

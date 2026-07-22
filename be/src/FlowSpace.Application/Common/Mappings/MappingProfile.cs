@@ -52,7 +52,9 @@ namespace FlowSpace.Application.Common.Mappings
             // TimeLog mapping
             CreateMap<TimeLog, TimeLogDto>()
                 .ForMember(dest => dest.TaskTitle, opt => opt.MapFrom(src => src.Task != null ? src.Task.Title : string.Empty))
-                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User != null ? src.User.Name : string.Empty));
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User != null ? src.User.Name : string.Empty))
+                .ForMember(dest => dest.ProjectName, opt => opt.MapFrom(src => src.Project != null ? src.Project.Name : string.Empty))
+                .ForMember(dest => dest.ProjectId, opt => opt.MapFrom(src => src.ProjectId));
         }
     }
 }
