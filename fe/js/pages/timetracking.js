@@ -418,7 +418,20 @@
           },
           scales: {
             x: { grid: { color: '#f1f5f9' }, border: { display: false }, ticks: { callback: v => v + 'h' } },
-            y: { grid: { display: false }, border: { display: false } }
+            y: {
+              grid: { display: false },
+              border: { display: false },
+              ticks: {
+                font: { size: window.innerWidth < 768 ? 10 : 12 },
+                callback: function (val) {
+                  const label = this.getLabelForValue(val);
+                  if (window.innerWidth < 768 && label.length > 14) {
+                    return label.substring(0, 12) + '...';
+                  }
+                  return label;
+                }
+              }
+            }
           }
         }
       });

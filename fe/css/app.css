@@ -1178,6 +1178,10 @@
     max-width: 100% !important;
   }
 
+  .fs-topbar-breadcrumb {
+    display: none !important;
+  }
+
   .fs-topbar-search {
     min-width: 0;
     width: 38px;
