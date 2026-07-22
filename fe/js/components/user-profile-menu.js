@@ -117,6 +117,13 @@
         this.close();
         if (page && FS.router) FS.router.go(page, { force: true });
       });
+      $(document).on('click.header-profile', '#user-logout-btn', event => {
+        event.preventDefault();
+        this.close();
+        if (FS.auth && typeof FS.auth.logout === 'function') {
+          FS.auth.logout();
+        }
+      });
       $(document).on('click.header-profile', event => {
         if (this._isOpen && !$(event.target).closest('#fs-topbar-user, #fs-user-menu').length) this.close();
       });
