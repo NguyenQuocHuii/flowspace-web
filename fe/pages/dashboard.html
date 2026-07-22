@@ -50,13 +50,19 @@
     <div class="col-12 col-lg-8">
       <article class="fs-card dashboard-chart-card">
         <div class="fs-card-header"><h2 class="fs-h6 m-0"><i class="bi bi-bar-chart-line me-2 text-primary" aria-hidden="true"></i>Hoạt động tuần này</h2><span class="fs-small">Giờ làm theo ngày</span></div>
-        <div class="dashboard-chart-body"><canvas id="dash-activity-chart" aria-label="Biểu đồ giờ làm theo ngày" role="img"></canvas></div>
+        <div class="dashboard-chart-body">
+          <canvas id="dash-activity-chart" aria-label="Biểu đồ giờ làm theo ngày" role="img"></canvas>
+          <div id="dash-activity-empty" class="dashboard-empty-chart d-none"></div>
+        </div>
       </article>
     </div>
     <div class="col-12 col-lg-4">
       <article class="fs-card dashboard-chart-card">
         <div class="fs-card-header"><h2 class="fs-h6 m-0"><i class="bi bi-pie-chart me-2 text-primary" aria-hidden="true"></i>Trạng thái công việc</h2></div>
-        <div class="dashboard-status-chart"><canvas id="dash-status-chart" aria-label="Biểu đồ trạng thái công việc" role="img"></canvas></div>
+        <div class="dashboard-status-chart">
+          <canvas id="dash-status-chart" aria-label="Biểu đồ trạng thái công việc" role="img"></canvas>
+          <div id="dash-status-empty" class="dashboard-empty-chart d-none"></div>
+        </div>
       </article>
     </div>
   </section>
