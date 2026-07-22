@@ -21,10 +21,9 @@
 
     async _loadData() {
       try {
-        const response = await $.ajax({
+        const response = await FS.apiCall({
           url: FS.API_BASE + '/api/v1/approvals/pending',
-          type: 'GET',
-          headers: this._getAuthHeaders()
+          type: 'GET'
         });
 
         if (response && response.success && Array.isArray(response.data)) {
@@ -64,13 +63,19 @@
     },
 
     _getFilteredData() {
-      const session = FS.auth.getSession();
-      const role = session?.role || 'employee';
+      const sessionRole = (FS.auth.getSession()?.role || 'employee').toLowerCase();
       let requests = [...this._requestsData];
 
       if (this._statusFilter) {
         requests = requests.filter(r => {
-          const myStep = (r.approvals || []).find(a => a.role.toLowerCase() === role.toLowerCase());
+          if (this._statusFilter === 'pending') {
+            const activeStep = (r.approvals || []).find(a => a.status === 'pending');
+            if (!activeStep) return false;
+            return activeStep.role.toLowerCase() === sessionRole || 
+                   sessionRole === 'director' || 
+                   (sessionRole === 'manager' && activeStep.role.toLowerCase() === 'team_lead');
+          }
+          const myStep = (r.approvals || []).find(a => a.role.toLowerCase() === sessionRole || sessionRole === 'director');
           return myStep && myStep.status.toLowerCase() === this._statusFilter.toLowerCase();
         });
       }
