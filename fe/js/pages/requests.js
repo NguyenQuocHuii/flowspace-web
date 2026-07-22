@@ -10,13 +10,53 @@
     _editRequestId: null,
 
     async init() {
-      // 1. Render local storage / seed data immediately in 0ms (NO SPINNER EVER!)
-      this._requestsData = FS.db.get('requests') || [];
+      // 1. Render local / seed data immediately in 0ms (NO SPINNER EVER!)
+      this._requestsData = this._getDefaultRequests();
       this._render();
       this._bindEvents();
 
       // 2. Fetch live data from backend API in background and sync
       await this._loadData();
+    },
+
+    _getDefaultRequests() {
+      const local = FS.db.get('requests');
+      if (Array.isArray(local) && local.length > 0) return local;
+
+      const users = FS.usersCache || FS.db.get('users') || [];
+      const uAn = users.find(u => u.email === 'nhanvien@flowspace.demo') || { id: 'u4', name: 'Nguyễn Văn An' };
+      const uBinh = users.find(u => u.email === 'truongnhom@flowspace.demo') || { id: 'u2', name: 'Trần Thị Bình' };
+
+      return [
+        {
+          id: 'req-demo-1',
+          type: 'leave',
+          title: 'Xin nghỉ phép cá nhân 2 ngày',
+          description: 'Xin nghỉ phép để giải quyết công việc gia đình vào cuối tuần.',
+          requesterId: uAn.id || 'u4',
+          requesterName: uAn.name || 'Nguyễn Văn An',
+          status: 'pending',
+          createdAt: new Date(Date.now() - 3600000 * 24 * 2).toISOString(),
+          approvals: [
+            { level: 1, role: 'team_lead', status: 'approved', approverName: uBinh.name || 'Trần Thị Bình' },
+            { level: 2, role: 'manager', status: 'pending', approverName: 'Lê Minh Cường' }
+          ]
+        },
+        {
+          id: 'req-demo-2',
+          type: 'purchase',
+          title: 'Xin mua sắm thiết bị màn hình 4K',
+          description: 'Đề nghị mua màn hình phụ hỗ trợ công việc lập trình & kiểm thử UI.',
+          requesterId: uBinh.id || 'u2',
+          requesterName: uBinh.name || 'Trần Thị Bình',
+          status: 'approved',
+          createdAt: new Date(Date.now() - 3600000 * 24 * 5).toISOString(),
+          approvals: [
+            { level: 1, role: 'manager', status: 'approved', approverName: 'Lê Minh Cường' },
+            { level: 2, role: 'director', status: 'approved', approverName: 'Phạm Thanh Dung' }
+          ]
+        }
+      ];
     },
 
     _getAuthHeaders() {
@@ -72,12 +112,12 @@
           }));
           $('#requests-offline-banner').remove();
         } else if (!this._requestsData.length) {
-          this._requestsData = FS.db.get('requests') || [];
+          this._requestsData = this._getDefaultRequests();
         }
       } catch (err) {
         console.warn('Requests API failed:', err);
         if (!this._requestsData.length) {
-          this._requestsData = FS.db.get('requests') || [];
+          this._requestsData = this._getDefaultRequests();
         }
       } finally {
         this._render();
