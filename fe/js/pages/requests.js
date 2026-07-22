@@ -174,12 +174,14 @@
                   <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
                     <span style="font-size:13px;font-weight:600">${FS.str.escape(r.title)}</span>
                     ${FS.badge.reqType(r.type)}
+                    ${FS.badge.priority(r.priority || 'medium')}
                     ${FS.badge.status(r.status)}
                   </div>
                   <p style="font-size:12px;color:var(--fs-text-secondary);margin-bottom:8px" class="truncate">${FS.str.escape(r.description)}</p>
                   <div class="d-flex align-items-center gap-2 gap-md-3 flex-wrap">
                     <span class="fs-small"><i class="bi bi-person me-1"></i>${FS.str.escape(requesterName)}</span>
                     <span class="fs-small"><i class="bi bi-calendar3 me-1"></i>${FS.date.format(r.createdAt)}</span>
+                    ${r.attachments && r.attachments.length ? `<span class="fs-small text-primary"><i class="bi bi-paperclip me-1"></i>${r.attachments.length} tệp đính kèm</span>` : ''}
                     ${currentStep ? `<span class="fs-small text-warning"><i class="bi bi-hourglass-split me-1"></i>Đang chờ ${FS.auth.getRoleLabel(currentStep.role)}</span>` : ''}
                   </div>
                   ${canEdit ? `

@@ -58,13 +58,31 @@
           <option value="remote">🏠 Làm remote</option>
         </select>
       </div>
+      <div class="row g-2">
+        <div class="col-6">
+          <div class="fs-form-group">
+            <label class="fs-label-text" for="req-modal-priority">Mức ưu tiên</label>
+            <select class="fs-select" id="req-modal-priority">
+              <option value="medium">Bình thường</option>
+              <option value="high">🔴 Cao (Cần gấp)</option>
+              <option value="low">Thấp</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="fs-form-group">
+            <label class="fs-label-text" for="req-modal-file">File đính kèm</label>
+            <input type="file" class="fs-input" id="req-modal-file" style="padding:5px 8px;font-size:12px">
+          </div>
+        </div>
+      </div>
       <div class="fs-form-group">
         <label class="fs-label-text" for="req-modal-title">Tiêu đề</label>
         <input type="text" class="fs-input" id="req-modal-title" placeholder="Mô tả ngắn yêu cầu...">
       </div>
       <div class="fs-form-group">
         <label class="fs-label-text" for="req-modal-desc">Chi tiết</label>
-        <textarea class="fs-textarea" id="req-modal-desc" rows="4" placeholder="Mô tả chi tiết yêu cầu, lý do, thời gian..."></textarea>
+        <textarea class="fs-textarea" id="req-modal-desc" rows="3" placeholder="Mô tả chi tiết yêu cầu, lý do, thời gian..."></textarea>
       </div>
     </div>
     <div class="fs-modal-footer">
