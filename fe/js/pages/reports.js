@@ -75,21 +75,24 @@
       const overdue       = tasks.filter(t => (t.status || '').toLowerCase() !== 'done' && FS.date.isOverdue(t.dueDate)).length;
 
       const kpis = [
-        { icon: 'bi-folder2-open', label: 'Dự án đang chạy', value: activeProj, sub: `${projects.filter(p=>(p.status||'').toLowerCase()==='done'||p.isClosed).length} hoàn thành`, color: '#6366f1', bg: '#eef2ff' },
-        { icon: 'bi-check-circle', label: 'Tỷ lệ hoàn thành', value: completion + '%', sub: `${doneTasks}/${totalTasks} tasks`, color: '#10b981', bg: '#f0fdf4' },
-        { icon: 'bi-clock',        label: 'Tổng giờ làm',     value: Math.round(totalHours * 10) / 10 + 'h', sub: `${users.length} thành viên`, color: '#f59e0b', bg: '#fefce8' },
-        { icon: 'bi-exclamation-triangle', label: 'Quá hạn', value: overdue, sub: 'cần xử lý ngay', color: '#ef4444', bg: '#fef2f2', isOverdue: overdue > 0 }
+        { icon: 'bi-folder2-open', label: 'Dự án đang chạy', value: activeProj, sub: `${projects.filter(p=>(p.status||'').toLowerCase()==='done'||p.isClosed).length} hoàn thành`, color: '#6366f1', bg: 'rgba(99, 102, 241, 0.1)', border: 'rgba(99, 102, 241, 0.2)' },
+        { icon: 'bi-check-circle-fill', label: 'Tỷ lệ hoàn thành', value: completion + '%', sub: `${doneTasks}/${totalTasks} công việc`, color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)', border: 'rgba(16, 185, 129, 0.2)' },
+        { icon: 'bi-clock-history', label: 'Tổng giờ làm', value: Math.round(totalHours * 10) / 10 + 'h', sub: `${users.length} nhân sự`, color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)', border: 'rgba(245, 158, 11, 0.2)' },
+        { icon: 'bi-exclamation-triangle-fill', label: 'Cần xử lý quá hạn', value: overdue, sub: overdue > 0 ? 'Cần xử lý ngay' : 'Đúng tiến độ', color: overdue > 0 ? '#ef4444' : '#64748b', bg: overdue > 0 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(100, 116, 139, 0.1)', border: overdue > 0 ? 'rgba(239, 68, 68, 0.3)' : 'transparent', isOverdue: overdue > 0 }
       ];
 
       document.getElementById('report-kpis').innerHTML = kpis.map(k => `
         <div class="col-6 col-xl-3">
-          <div class="fs-stat-card" style="padding:16px 20px">
+          <div class="fs-card fs-stat-card h-100" style="padding:16px 18px;border-left:3px solid ${k.color};transition:transform 0.2s ease, box-shadow 0.2s ease">
             <div class="d-flex align-items-center justify-content-between mb-2">
-              <span class="fs-stat-label" style="font-weight:600;font-size:13px;color:var(--fs-text-secondary)">${k.label}</span>
-              <div class="fs-stat-icon" style="background:${k.bg};color:${k.color};width:36px;height:36px;font-size:16px;border-radius:10px;display:flex;align-items:center;justify-content:center"><i class="bi ${k.icon}"></i></div>
+              <span class="fs-stat-label" style="font-weight:600;font-size:12px;color:var(--fs-text-secondary);text-transform:uppercase;letter-spacing:0.4px">${k.label}</span>
+              <div class="fs-stat-icon" style="background:${k.bg};color:${k.color};width:34px;height:34px;font-size:16px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="bi ${k.icon}"></i></div>
             </div>
             <div class="fs-stat-value" style="font-size:24px;font-weight:700;margin-bottom:4px;color:${k.isOverdue ? '#ef4444' : 'var(--fs-text)'}">${k.value}</div>
-            <div class="fs-stat-change" style="font-size:12px;color:var(--fs-text-muted)"><i class="bi bi-dot"></i> ${k.sub}</div>
+            <div class="fs-stat-change d-flex align-items-center gap-1" style="font-size:11px;color:var(--fs-text-muted)">
+              <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${k.color}"></span>
+              <span>${k.sub}</span>
+            </div>
           </div>
         </div>`).join('');
     },
@@ -100,6 +103,9 @@
       const logs     = this._logs || [];
       const users    = FS.usersCache || [];
 
+      const gridColor = 'rgba(148, 163, 184, 0.15)';
+      const textColor = '#64748b';
+
       // 1. Project progress bar chart
       const ctx1 = document.getElementById('report-project-chart');
       if (ctx1) {
@@ -107,18 +113,18 @@
         const c1 = new Chart(ctx1, {
           type: 'bar',
           data: {
-            labels: activeProj.map(p => p.name.length > 20 ? p.name.slice(0,18)+'…' : p.name),
+            labels: activeProj.map(p => p.name.length > 18 ? p.name.slice(0,16)+'…' : p.name),
             datasets: [
-              { label: 'Tiến độ (%)', data: activeProj.map(p => p.progress), backgroundColor: '#6366f1', borderRadius: 5, borderSkipped: false },
-              { label: 'Mục tiêu', data: activeProj.map(() => 100), backgroundColor: '#e0e7ff', borderRadius: 5, borderSkipped: false }
+              { label: 'Tiến độ (%)', data: activeProj.map(p => p.progress), backgroundColor: '#6366f1', borderRadius: 6, borderSkipped: false, barPercentage: 0.5 },
+              { label: 'Mục tiêu (100%)', data: activeProj.map(() => 100), backgroundColor: 'rgba(99, 102, 241, 0.12)', borderRadius: 6, borderSkipped: false, barPercentage: 0.5 }
             ]
           },
           options: {
             responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { position: 'top' } },
+            plugins: { legend: { position: 'top', labels: { font: { size: 11 }, usePointStyle: true, boxWidth: 8 } } },
             scales: {
-              x: { grid: { display: false }, border: { display: false } },
-              y: { grid: { color: '#f1f5f9' }, border: { display: false }, max: 100, ticks: { callback: v => v + '%' } }
+              x: { grid: { display: false }, border: { display: false }, ticks: { color: textColor, font: { size: 11 } } },
+              y: { grid: { color: gridColor }, border: { display: false }, max: 100, ticks: { color: textColor, font: { size: 11 }, callback: v => v + '%' } }
             }
           }
         });
@@ -132,12 +138,15 @@
         const c2 = new Chart(ctx2, {
           type: 'doughnut',
           data: {
-            labels: ['Chưa bắt đầu','Đang làm','Chờ duyệt','Hoàn thành'],
-            datasets: [{ data: statusCounts, backgroundColor: ['#e2e8f0','#6366f1','#f59e0b','#10b981'], borderWidth: 2, borderColor: '#fff', hoverOffset: 4 }]
+            labels: ['Chưa làm','Đang làm','Chờ duyệt','Hoàn thành'],
+            datasets: [{ data: statusCounts, backgroundColor: ['#94a3b8','#6366f1','#f59e0b','#10b981'], borderWidth: 2, borderColor: 'var(--fs-bg-card, #ffffff)', hoverOffset: 6 }]
           },
           options: {
-            responsive: true, maintainAspectRatio: true, cutout: '65%',
-            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }, tooltip: { callbacks: { label: c => `${c.label}: ${c.raw}` } } }
+            responsive: true, maintainAspectRatio: true, cutout: '70%',
+            plugins: {
+              legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 }, padding: 12 } },
+              tooltip: { callbacks: { label: c => ` ${c.label}: ${c.raw} công việc` } }
+            }
           }
         });
         this._charts.push(c2);
@@ -149,20 +158,21 @@
         const userHours = users.map(u => ({
           name: u.name.split(' ').pop(),
           hours: logs.filter(l => l.userId === u.id).reduce((s,l) => s + (l.hours||0), 0)
-        })).sort((a, b) => b.hours - a.hours);
+        })).sort((a, b) => b.hours - a.hours).slice(0, 7);
+
         const c3 = new Chart(ctx3, {
           type: 'bar',
           data: {
             labels: userHours.map(u => u.name),
-            datasets: [{ label: 'Giờ làm', data: userHours.map(u => u.hours), backgroundColor: '#8b5cf6', borderRadius: 5, borderSkipped: false }]
+            datasets: [{ label: 'Giờ làm (giờ)', data: userHours.map(u => u.hours), backgroundColor: '#8b5cf6', borderRadius: 6, borderSkipped: false, barThickness: 16 }]
           },
           options: {
             indexAxis: 'y',
             responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.raw + 'h' } } },
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.raw} giờ` } } },
             scales: {
-              x: { grid: { color: '#f1f5f9' }, border: { display: false }, ticks: { callback: v => v + 'h' } },
-              y: { grid: { display: false }, border: { display: false } }
+              x: { grid: { color: gridColor }, border: { display: false }, ticks: { color: textColor, font: { size: 11 }, callback: v => v + 'h' } },
+              y: { grid: { display: false }, border: { display: false }, ticks: { color: textColor, font: { size: 11 } } }
             }
           }
         });
@@ -188,19 +198,20 @@
               label: 'Task hoàn thành',
               data: weekData,
               borderColor: '#10b981',
-              backgroundColor: '#d1fae520',
+              backgroundColor: 'rgba(16, 185, 129, 0.12)',
               fill: true,
               tension: 0.4,
               pointBackgroundColor: '#10b981',
-              pointRadius: 5
+              pointHoverRadius: 6,
+              pointRadius: 4
             }]
           },
           options: {
             responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.raw} công việc` } } },
             scales: {
-              x: { grid: { display: false }, border: { display: false } },
-              y: { grid: { color: '#f1f5f9' }, border: { display: false }, ticks: { stepSize: 1 } }
+              x: { grid: { display: false }, border: { display: false }, ticks: { color: textColor, font: { size: 11 } } },
+              y: { grid: { color: gridColor }, border: { display: false }, ticks: { color: textColor, font: { size: 11 }, stepSize: 1 } }
             }
           }
         });
