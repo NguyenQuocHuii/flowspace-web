@@ -14,6 +14,7 @@
     _zoom: 'week', // 'week' | 'month'
     _projectFilter: '',
     _tasksData: [],
+    _projectsData: [],
 
     async init() {
       await this._loadData();
@@ -31,13 +32,13 @@
       try {
         await FS.loadUsersCache();
 
-        const response = await FS.apiCall({
-          url: FS.API_BASE + '/api/v1/tasks',
-          type: 'GET'
-        });
+        const [tasksRes, projsRes] = await Promise.all([
+          FS.apiCall({ url: FS.API_BASE + '/api/v1/tasks', type: 'GET' }),
+          FS.apiCall({ url: FS.API_BASE + '/api/v1/projects', type: 'GET' })
+        ]);
 
-        if (response && response.success && Array.isArray(response.data)) {
-          this._tasksData = response.data.map(t => ({
+        if (tasksRes && tasksRes.success && Array.isArray(tasksRes.data)) {
+          this._tasksData = tasksRes.data.map(t => ({
             id: t.id,
             code: t.code,
             title: t.title,
@@ -52,13 +53,27 @@
             estimatedHours: t.estimatedHours || 0,
             loggedHours: t.loggedHours || 0
           }));
-          $('#gantt-offline-banner').remove();
         } else {
           this._tasksData = FS.db.get('tasks') || [];
+        }
+
+        if (projsRes && projsRes.success && Array.isArray(projsRes.data)) {
+          this._projectsData = projsRes.data.map(p => ({
+            id: p.id,
+            code: p.code,
+            name: p.name,
+            status: (p.status || 'active').toLowerCase(),
+            startDate: p.startDate,
+            endDate: p.endDate
+          }));
+          $('#gantt-offline-banner').remove();
+        } else {
+          this._projectsData = FS.db.get('projects') || [];
         }
       } catch (err) {
         console.warn('Gantt API request failed, falling back to LocalStorage:', err);
         this._tasksData = FS.db.get('tasks') || [];
+        this._projectsData = FS.db.get('projects') || [];
         if (!$('#gantt-offline-banner').length) {
           $('#page-content').prepend('<div id="gantt-offline-banner" class="fs-login-alert show" style="display:flex; margin-bottom:16px"><i class="bi bi-exclamation-triangle-fill"></i><span>Không thể kết nối máy chủ. Hiện đang hiển thị dữ liệu tạm thời ngoại tuyến.</span></div>');
         }
@@ -200,7 +215,7 @@
     },
 
     _populateFilters() {
-      const projects = FS.db.get('projects') || [];
+      const projects = this._projectsData || [];
       $('#gantt-filter-project').html('<option value="">Tất cả dự án</option>' +
         projects.map(p => `<option value="${p.id}">${FS.str.escape(p.name)}</option>`).join('')
       );
@@ -209,7 +224,7 @@
     _render() {
       const now = new Date();
       const tasks = this._tasksData;
-      let projects = FS.db.get('projects') || [];
+      let projects = this._projectsData || [];
 
       if (this._projectFilter) {
         projects = projects.filter(p => p.id === this._projectFilter);
