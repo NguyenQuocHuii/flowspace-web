@@ -249,9 +249,9 @@
         const overdue = FS.date.isOverdue(t.dueDate) && t.status !== 'done';
         const isDone = t.status === 'done';
 
-        let assigneeName = t.assigneeName;
-        let assigneeAvatar = t.assigneeAvatar;
-        let assigneeColor = t.assigneeColor;
+        let assigneeName = t.assigneeName || '';
+        let assigneeAvatar = t.assigneeAvatar || '';
+        let assigneeColor = t.assigneeColor || '';
 
         if (!assigneeName && t.assigneeId) {
           const u = FS.user.get(t.assigneeId);
@@ -262,9 +262,9 @@
           }
         }
 
-        const avatarHtml = assigneeAvatar
-          ? `<div class="fs-avatar fs-avatar-sm ${assigneeColor || 'av-indigo'}" title="${FS.str.escape(assigneeName)}">${assigneeAvatar}</div>`
-          : FS.user.avatar(t.assigneeId, 'fs-avatar-sm');
+        const avatarHtml = (FS.user && FS.user.avatar)
+          ? FS.user.avatar(t.assigneeId, 'sm', assigneeName || 'Thành viên')
+          : `<div class="fs-avatar fs-avatar-sm ${assigneeColor || 'av-indigo'}" title="${FS.str.escape(assigneeName || 'Thành viên')}">${assigneeAvatar || 'TV'}</div>`;
 
         return `
           <div class="col-12 col-md-6 col-lg-4 col-xl-3">
