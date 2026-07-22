@@ -134,18 +134,37 @@
       // 2. Task status donut
       const ctx2 = document.getElementById('report-status-chart');
       if (ctx2) {
-        const statusCounts = ['todo','in_progress','review','done'].map(s => tasks.filter(t => t.status === s).length);
+        const totalTasks = tasks.length;
+        const totalEl = document.getElementById('report-status-total');
+        if (totalEl) totalEl.textContent = totalTasks;
+
+        const statusCounts = ['todo','in_progress','review','done'].map(s => tasks.filter(t => (t.status || '').toLowerCase() === s).length);
         const c2 = new Chart(ctx2, {
           type: 'doughnut',
           data: {
             labels: ['Chưa làm','Đang làm','Chờ duyệt','Hoàn thành'],
-            datasets: [{ data: statusCounts, backgroundColor: ['#94a3b8','#6366f1','#f59e0b','#10b981'], borderWidth: 2, borderColor: 'var(--fs-bg-card, #ffffff)', hoverOffset: 6 }]
+            datasets: [{
+              data: statusCounts,
+              backgroundColor: ['#94a3b8','#6366f1','#f59e0b','#10b981'],
+              borderWidth: 3,
+              borderColor: 'var(--fs-bg-card, #ffffff)',
+              hoverOffset: 8
+            }]
           },
           options: {
-            responsive: true, maintainAspectRatio: true, cutout: '70%',
+            responsive: true,
+            maintainAspectRatio: true,
+            cutout: '72%',
             plugins: {
-              legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 }, padding: 12 } },
-              tooltip: { callbacks: { label: c => ` ${c.label}: ${c.raw} công việc` } }
+              legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11, weight: '500' }, padding: 10 } },
+              tooltip: {
+                callbacks: {
+                  label: c => {
+                    const pct = totalTasks ? Math.round((c.raw / totalTasks) * 100) : 0;
+                    return ` ${c.label}: ${c.raw} task (${pct}%)`;
+                  }
+                }
+              }
             }
           }
         });
@@ -187,30 +206,63 @@
         const weekData = weeks.map((w, i) => {
           const weekStart = new Date(now); weekStart.setDate(weekStart.getDate() - now.getDay() - (3 - i) * 7);
           const weekEnd   = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 7);
-          return tasks.filter(t => t.status === 'done' && t.completedAt && new Date(t.completedAt) >= weekStart && new Date(t.completedAt) < weekEnd).length;
+          return tasks.filter(t => (t.status || '').toLowerCase() === 'done' && t.completedAt && new Date(t.completedAt) >= weekStart && new Date(t.completedAt) < weekEnd).length;
         });
+
+        // Compute trend growth badge
+        const prevWeek = weekData[2] || 1;
+        const currentWeek = weekData[3] || 0;
+        const diff = currentWeek - prevWeek;
+        const trendPct = Math.round((diff / prevWeek) * 100);
+        const trendBadgeEl = document.getElementById('report-trend-badge');
+        if (trendBadgeEl) {
+          if (diff >= 0) {
+            trendBadgeEl.className = 'fs-badge badge-success';
+            trendBadgeEl.innerHTML = `<i class="bi bi-arrow-up-right me-1"></i>+${diff > 0 ? trendPct : 0}% tuần này`;
+          } else {
+            trendBadgeEl.className = 'fs-badge badge-warning';
+            trendBadgeEl.innerHTML = `<i class="bi bi-arrow-down-right me-1"></i>${trendPct}% tuần này`;
+          }
+        }
+
+        // Canvas Gradient
+        const chartCtx = ctx4.getContext('2d');
+        const gradient = chartCtx.createLinearGradient(0, 0, 0, 200);
+        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.35)');
+        gradient.addColorStop(1, 'rgba(16, 185, 129, 0.01)');
 
         const c4 = new Chart(ctx4, {
           type: 'line',
           data: {
             labels: weeks,
             datasets: [{
-              label: 'Task hoàn thành',
+              label: 'Công việc hoàn thành',
               data: weekData,
               borderColor: '#10b981',
-              backgroundColor: 'rgba(16, 185, 129, 0.12)',
+              borderWidth: 2.5,
+              backgroundColor: gradient,
               fill: true,
-              tension: 0.4,
+              tension: 0.45,
               pointBackgroundColor: '#10b981',
-              pointHoverRadius: 6,
-              pointRadius: 4
+              pointBorderColor: '#ffffff',
+              pointBorderWidth: 2,
+              pointHoverRadius: 7,
+              pointRadius: 5
             }]
           },
           options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.raw} công việc` } } },
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: c => ` ${c.raw} công việc hoàn thành`
+                }
+              }
+            },
             scales: {
-              x: { grid: { display: false }, border: { display: false }, ticks: { color: textColor, font: { size: 11 } } },
+              x: { grid: { display: false }, border: { display: false }, ticks: { color: textColor, font: { size: 11, weight: '500' } } },
               y: { grid: { color: gridColor }, border: { display: false }, ticks: { color: textColor, font: { size: 11 }, stepSize: 1 } }
             }
           }
