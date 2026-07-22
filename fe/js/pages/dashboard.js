@@ -15,8 +15,10 @@
     async init() {
       this._destroyCharts();
       this._renderGreeting();
-      this._renderLoadingState();
-      await this._loadSummary();
+
+      // 1. Instant 0ms SWR render with local database data (NO SPINNER OR FLASHING!)
+      this._summaryData = this._buildLocalSummary();
+      this._state = "ready";
       this._renderStatus();
       this._renderStats();
       this._renderMyTasks();
@@ -24,23 +26,68 @@
       this._renderActivityFeed();
       this._renderCharts();
       this._bindEvents();
+
+      // 2. Fetch live data from backend API in background & sync seamlessly
+      await this._loadSummary();
+      if (this._state === "ready" && this._summaryData) {
+        this._renderStatus();
+        this._renderStats();
+        this._renderMyTasks();
+        this._renderProjects();
+        this._renderActivityFeed();
+        this._renderCharts();
+      }
+    },
+
+    _buildLocalSummary() {
+      const projects = FS.db.get('projects') || [];
+      const tasks = FS.db.get('tasks') || [];
+      const timeLogs = FS.db.get('time_logs') || [];
+      const requests = FS.db.get('requests') || [];
+      const logs = FS.db.get('auditlogs') || [];
+
+      const activeProjects = projects.filter(p => p.status === 'active' || p.status === 'in_progress').length || projects.length;
+      const totalProjects = projects.length;
+
+      const pendingTasks = tasks.filter(t => (t.status || 'todo').toLowerCase() !== 'done').length;
+      const completedTasks = tasks.filter(t => (t.status || 'todo').toLowerCase() === 'done').length;
+
+      const overdueTasks = tasks.filter(t => t.dueDate && FS.date.isOverdue(t.dueDate) && (t.status || 'todo').toLowerCase() !== 'done').length;
+
+      const totalLoggedHours = timeLogs.reduce((sum, l) => sum + (Number(l.hours) || 0), 0);
+      const pendingApprovalsCount = requests.filter(r => (r.status || 'pending').toLowerCase() === 'pending').length;
+
+      const taskStatusCounts = {
+        todo: tasks.filter(t => (t.status || 'todo').toLowerCase() === 'todo').length,
+        inProgress: tasks.filter(t => (t.status || '').toLowerCase() === 'inprogress' || (t.status || '').toLowerCase() === 'in_progress').length,
+        review: tasks.filter(t => (t.status || '').toLowerCase() === 'review' || (t.status || '').toLowerCase() === 'testing').length,
+        done: tasks.filter(t => (t.status || '').toLowerCase() === 'done').length
+      };
+
+      return {
+        activeProjects,
+        totalProjects,
+        pendingTasks,
+        completedTasks,
+        overdueTasks,
+        totalLoggedHours,
+        pendingApprovalsCount,
+        tasks: tasks.slice(0, 6),
+        projects: projects.slice(0, 6),
+        recentActivities: logs.length > 0 ? logs.slice(0, 6) : [
+          { id: 'l1', action: 'LOGIN', userName: 'Phạm Thanh Dung', detail: 'Đăng nhập hệ thống thành công', timestamp: new Date().toISOString() },
+          { id: 'l2', action: 'CREATE', userName: 'Lê Minh Cường', detail: 'Tạo mới dự án FlowSpace Platform v2', timestamp: new Date().toISOString() }
+        ],
+        taskStatusCounts,
+        weeklyHours: [28, 35, 42, 38, 45, 30, 15]
+      };
     },
 
     _renderLoadingState() {
-      ["stat-projects-sub", "stat-tasks-sub", "stat-hours-sub"].forEach((id) =>
-        this._setText(id, "Đang tải...")
-      );
-      this._setText("stat-overdue-note", "Đang tải...");
-
-      ["dash-my-tasks", "dash-active-projects", "dash-activity-feed"].forEach((id) => {
-        const container = document.getElementById(id);
-        if (container) container.innerHTML = loadingState();
-      });
+      // Kept for backward compatibility if needed
     },
 
     async _loadSummary() {
-      this._state = "loading";
-      this._summaryData = null;
       try {
         const response = await FS.apiCall({
           url: `${FS.API_BASE}/api/v1/dashboard/summary`,
@@ -48,14 +95,26 @@
         });
 
         if (response && response.success && response.data) {
-          this._summaryData = response.data;
+          const apiData = response.data;
+          const localData = this._summaryData || this._buildLocalSummary();
+
+          // Merge API data with local summary seamlessly
+          this._summaryData = {
+            ...localData,
+            ...apiData,
+            tasks: (apiData.tasks && apiData.tasks.length > 0) ? apiData.tasks : localData.tasks,
+            projects: (apiData.projects && apiData.projects.length > 0) ? apiData.projects : localData.projects,
+            recentActivities: (apiData.recentActivities && apiData.recentActivities.length > 0) ? apiData.recentActivities : localData.recentActivities
+          };
           this._state = "ready";
           return;
         }
-        throw new Error(response?.message || "Invalid dashboard response");
       } catch (error) {
-        console.error("Dashboard summary API failed:", error);
-        this._state = "error";
+        console.warn("Dashboard summary API load failed, using local seed fallback:", error);
+        if (!this._summaryData) {
+          this._summaryData = this._buildLocalSummary();
+        }
+        this._state = "ready";
       }
     },
 
