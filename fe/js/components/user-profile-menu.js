@@ -104,10 +104,15 @@
     },
 
     _bindEvents() {
-      $('#fs-topbar-user').on('click', () => (this._isOpen ? this.close({ restoreFocus: true }) : this.open()));
-      $('#fs-topbar-user').on('keydown', event => {
+      $(document).on('click.header-profile-toggle', '#fs-topbar-user', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        this._isOpen ? this.close({ restoreFocus: true }) : this.open();
+      });
+      $(document).on('keydown.header-profile-toggle', '#fs-topbar-user', event => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
+          event.stopPropagation();
           this._isOpen ? this.close({ restoreFocus: true }) : this.open();
         }
       });
