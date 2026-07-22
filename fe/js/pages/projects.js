@@ -18,6 +18,10 @@
         $('#proj-new-btn').show();
       }
 
+      this._view = 'list';
+      $('.view-toggle').removeClass('active');
+      $('.view-toggle[data-view="list"]').addClass('active');
+
       // 1. Instant 0ms SWR render with local seed data (NO SPINNER!)
       this._projectsData = (FS.db.get('projects') || []).map(p => ({
         ...p,
@@ -399,10 +403,13 @@
       });
 
       // View toggle
-      $(document).off('click.proj-toggle').on('click.proj-toggle', '.view-toggle', function () {
+      $(document).off('click.proj-toggle').on('click.proj-toggle', '.view-toggle', function (e) {
+        e.preventDefault();
+        const $btn = $(this).closest('.view-toggle');
         $('.view-toggle').removeClass('active').css({ background: '', color: '' });
-        $(this).addClass('active');
-        self._view = $(this).data('view');
+        $btn.addClass('active');
+        const viewType = $btn.data('view') || 'list';
+        self._view = viewType;
         self._render();
       });
 

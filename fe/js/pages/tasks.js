@@ -404,10 +404,13 @@
       const self = this;
 
       // View toggle
-      $('#tasks-header-actions .view-toggle').off('click').on('click', function () {
-        $('#tasks-header-actions .view-toggle').removeClass('active');
-        $(this).addClass('active');
-        self._view = $(this).data('view');
+      $(document).off('click.task-toggle').on('click.task-toggle', '.view-toggle', function (e) {
+        e.preventDefault();
+        const $btn = $(this).closest('.view-toggle');
+        $('.view-toggle').removeClass('active');
+        $btn.addClass('active');
+        const viewType = $btn.data('view') || 'list';
+        self._view = viewType;
         self._render();
       });
 
