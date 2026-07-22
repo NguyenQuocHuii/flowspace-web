@@ -10,8 +10,13 @@
     _editRequestId: null,
 
     async init() {
-      await this._loadData();
+      // 1. Render local storage / seed data immediately in 0ms (NO SPINNER EVER!)
+      this._requestsData = FS.db.get('requests') || [];
+      this._render();
       this._bindEvents();
+
+      // 2. Fetch live data from backend API in background and sync
+      await this._loadData();
     },
 
     _getAuthHeaders() {
@@ -21,7 +26,7 @@
 
     /**
      * Load the current user's requests from the backend.
-     * Falls back to local storage if the API call fails.
+     * Synchronizes with local storage if API call succeeds or fails.
      */
     async _loadData() {
       const session = FS.auth.getSession();
@@ -43,7 +48,7 @@
           data: queryData
         });
 
-        if (response && response.success && Array.isArray(response.data)) {
+        if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
           this._requestsData = response.data.map(r => ({
             id: r.id,
             type: (r.type || 'leave').toLowerCase(),
@@ -66,14 +71,13 @@
             }))
           }));
           $('#requests-offline-banner').remove();
-        } else {
+        } else if (!this._requestsData.length) {
           this._requestsData = FS.db.get('requests') || [];
         }
       } catch (err) {
         console.warn('Requests API failed:', err);
-        this._requestsData = FS.db.get('requests') || [];
-        if (!$('#requests-offline-banner').length) {
-          $('#page-content').prepend('<div id="requests-offline-banner" class="fs-login-alert show" style="display:flex; margin-bottom:16px"><i class="bi bi-exclamation-triangle-fill"></i><span>Không thể kết nối máy chủ. Hiện đang hiển thị dữ liệu yêu cầu tạm thời ngoại tuyến.</span></div>');
+        if (!this._requestsData.length) {
+          this._requestsData = FS.db.get('requests') || [];
         }
       } finally {
         this._render();
