@@ -91,7 +91,7 @@
         });
 
         if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
-          this._requestsData = response.data.map(r => ({
+          const apiRequests = response.data.map(r => ({
             id: r.id,
             type: (r.type || 'leave').toLowerCase(),
             title: r.title,
@@ -112,6 +112,21 @@
               updatedAt: a.updatedAt
             }))
           }));
+
+          // Seamless merge: API items take precedence, seed/demo items fill remaining list
+          const mergedMap = new Map();
+          const seedData = this._getDefaultRequests();
+          
+          // Add seed items first
+          for (const s of seedData) {
+            mergedMap.set(s.id, s);
+          }
+          // Override/insert API items
+          for (const a of apiRequests) {
+            mergedMap.set(a.id, a);
+          }
+
+          this._requestsData = Array.from(mergedMap.values());
           $('#requests-offline-banner').remove();
         } else if (!this._requestsData.length) {
           this._requestsData = this._getDefaultRequests();
