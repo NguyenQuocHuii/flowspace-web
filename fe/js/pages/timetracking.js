@@ -375,7 +375,7 @@
             <td style="font-size:12px;color:var(--fs-text-muted)">${FS.date.format(l.date)}</td>
             <td><span class="fs-badge badge-accent">${l.hours}h</span></td>
             <td style="font-size:12px;color:var(--fs-text-secondary)">${FS.str.escape(l.note || '—')}</td>
-            <td>${editBtn}${deleteBtn}</td>
+            <td style="text-align:center">${editBtn}${deleteBtn}</td>
           </tr>`;
       }).join('');
     },
@@ -409,6 +409,7 @@
           }]
         },
         options: {
+          indexAxis: 'y',
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
@@ -416,8 +417,8 @@
             tooltip: { callbacks: { label: ctx => ctx.raw + 'h' } }
           },
           scales: {
-            x: { grid: { display: false }, border: { display: false } },
-            y: { grid: { color: '#f1f5f9' }, border: { display: false }, ticks: { callback: v => v + 'h' } }
+            x: { grid: { color: '#f1f5f9' }, border: { display: false }, ticks: { callback: v => v + 'h' } },
+            y: { grid: { display: false }, border: { display: false } }
           }
         }
       });
