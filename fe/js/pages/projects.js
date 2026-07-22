@@ -403,10 +403,10 @@
       });
 
       // View toggle
-      $(document).off('click.proj-toggle').on('click.proj-toggle', '.view-toggle', function (e) {
+      $(document).off('click.proj-toggle').on('click.proj-toggle', '#projects-page .view-toggle', function (e) {
         e.preventDefault();
         const $btn = $(this).closest('.view-toggle');
-        $('.view-toggle').removeClass('active').css({ background: '', color: '' });
+        $('#projects-page .view-toggle').removeClass('active').css({ background: '', color: '' });
         $btn.addClass('active');
         const viewType = $btn.data('view') || 'list';
         self._view = viewType;

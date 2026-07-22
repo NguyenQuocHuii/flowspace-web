@@ -238,9 +238,9 @@
         }
       }
 
-      const avatarHtml = assigneeAvatar
-        ? `<div class="fs-avatar fs-avatar-sm ${assigneeColor || 'av-indigo'}" title="${FS.str.escape(assigneeName)}">${assigneeAvatar}</div>`
-        : FS.user.avatar(task.assigneeId, 'fs-avatar-sm');
+      const avatarHtml = (FS.user && FS.user.avatar)
+        ? FS.user.avatar(task.assigneeId, 'sm', assigneeName || 'Thành viên')
+        : `<div class="fs-avatar fs-avatar-sm ${assigneeColor || 'av-indigo'}" title="${FS.str.escape(assigneeName || 'Thành viên')}">${assigneeAvatar || 'TV'}</div>`;
 
       return `
         <div class="kanban-card" data-task-id="${task.id}">

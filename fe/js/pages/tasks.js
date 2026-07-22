@@ -404,10 +404,10 @@
       const self = this;
 
       // View toggle
-      $(document).off('click.task-toggle').on('click.task-toggle', '.view-toggle', function (e) {
+      $(document).off('click.task-toggle').on('click.task-toggle', '#tasks-page .view-toggle', function (e) {
         e.preventDefault();
         const $btn = $(this).closest('.view-toggle');
-        $('.view-toggle').removeClass('active');
+        $('#tasks-page .view-toggle').removeClass('active');
         $btn.addClass('active');
         const viewType = $btn.data('view') || 'list';
         self._view = viewType;
