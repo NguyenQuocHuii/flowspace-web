@@ -138,14 +138,44 @@
         const totalEl = document.getElementById('report-status-total');
         if (totalEl) totalEl.textContent = totalTasks;
 
-        const statusCounts = ['todo','in_progress','review','done'].map(s => tasks.filter(t => (t.status || '').toLowerCase() === s).length);
+        const statusMeta = [
+          { key: 'todo', label: 'Chưa làm', color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.18)' },
+          { key: 'in_progress', label: 'Đang làm', color: '#6366f1', bg: 'rgba(99, 102, 241, 0.18)' },
+          { key: 'review', label: 'Chờ duyệt', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.18)' },
+          { key: 'done', label: 'Hoàn thành', color: '#10b981', bg: 'rgba(16, 185, 129, 0.18)' }
+        ];
+
+        const statusCounts = statusMeta.map(s => tasks.filter(t => (t.status || '').toLowerCase() === s.key).length);
+
+        // Render Custom Senior Status Details Breakdown List
+        const detailsEl = document.getElementById('report-status-details');
+        if (detailsEl) {
+          detailsEl.innerHTML = statusMeta.map((s, idx) => {
+            const count = statusCounts[idx];
+            const pct = totalTasks ? Math.round((count / totalTasks) * 100) : 0;
+            return `
+              <div class="d-flex align-items-center justify-content-between" style="font-size:12px">
+                <div class="d-flex align-items-center gap-2" style="min-width:100px">
+                  <span style="width:8px;height:8px;border-radius:50%;background:${s.color}"></span>
+                  <span style="font-weight:500;color:var(--fs-text)">${s.label}</span>
+                </div>
+                <div style="flex:1;max-width:95px;height:6px;background:${s.bg};border-radius:10px;margin:0 10px;overflow:hidden">
+                  <div style="width:${pct}%;height:100%;background:${s.color};border-radius:10px"></div>
+                </div>
+                <div style="font-weight:600;color:var(--fs-text-secondary);min-width:55px;text-align:right">
+                  ${count} <span style="font-weight:400;font-size:11px;color:var(--fs-text-muted)">(${pct}%)</span>
+                </div>
+              </div>`;
+          }).join('');
+        }
+
         const c2 = new Chart(ctx2, {
           type: 'doughnut',
           data: {
-            labels: ['Chưa làm','Đang làm','Chờ duyệt','Hoàn thành'],
+            labels: statusMeta.map(s => s.label),
             datasets: [{
               data: statusCounts,
-              backgroundColor: ['#94a3b8','#6366f1','#f59e0b','#10b981'],
+              backgroundColor: statusMeta.map(s => s.color),
               borderWidth: 3,
               borderColor: 'var(--fs-bg-card, #ffffff)',
               hoverOffset: 8
@@ -154,14 +184,14 @@
           options: {
             responsive: true,
             maintainAspectRatio: true,
-            cutout: '72%',
+            cutout: '74%',
             plugins: {
-              legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11, weight: '500' }, padding: 10 } },
+              legend: { display: false },
               tooltip: {
                 callbacks: {
                   label: c => {
                     const pct = totalTasks ? Math.round((c.raw / totalTasks) * 100) : 0;
-                    return ` ${c.label}: ${c.raw} task (${pct}%)`;
+                    return ` ${c.label}: ${c.raw} công việc (${pct}%)`;
                   }
                 }
               }
