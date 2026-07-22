@@ -849,47 +849,95 @@
   color: var(--fs-text-muted);
 }
 
+/* ─── Segmented View Toggle Control ───────────────────────── */
+.fs-view-toggle-group {
+  display: flex;
+  background: var(--fs-bg-secondary);
+  padding: 3px;
+  border-radius: var(--fs-radius-md);
+  border: 1px solid var(--fs-border);
+  gap: 2px;
+}
+
+.fs-view-toggle-group .view-toggle {
+  border: none !important;
+  background: transparent !important;
+  color: var(--fs-text-secondary);
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--fs-radius-sm) !important;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.fs-view-toggle-group .view-toggle:hover {
+  color: var(--fs-text);
+}
+
+.fs-view-toggle-group .view-toggle.active {
+  background: var(--fs-bg) !important;
+  color: var(--fs-accent) !important;
+  box-shadow: var(--fs-shadow-xs);
+}
+
 /* ─── Filters Bar ────────────────────────────────────────── */
 .fs-filters {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .fs-filter-select {
-  padding: 6px 12px;
-  border: 1.5px solid var(--fs-border);
-  border-radius: var(--fs-radius);
+  padding: 8px 14px;
+  border: 1px solid var(--fs-border);
+  border-radius: var(--fs-radius-lg);
   font-size: var(--fs-text-sm);
-  color: var(--fs-text);
+  color: var(--fs-text-secondary);
   background: var(--fs-bg);
   cursor: pointer;
   transition: var(--fs-transition);
   font-family: var(--fs-font);
+  box-shadow: var(--fs-shadow-xs);
+}
+
+.fs-filter-select:hover {
+  border-color: var(--fs-text-muted);
 }
 
 .fs-filter-select:focus {
   outline: none;
   border-color: var(--fs-accent);
+  box-shadow: 0 0 0 3px var(--fs-accent-light);
 }
 
 .fs-search-input {
-  padding: 6px 12px;
-  border: 1.5px solid var(--fs-border);
-  border-radius: var(--fs-radius);
+  padding: 8px 14px;
+  border: 1px solid var(--fs-border);
+  border-radius: var(--fs-radius-lg);
   font-size: var(--fs-text-sm);
   color: var(--fs-text);
   background: var(--fs-bg);
   font-family: var(--fs-font);
   transition: var(--fs-transition);
-  min-width: 200px;
+  min-width: 220px;
+  box-shadow: var(--fs-shadow-xs);
+}
+
+.fs-search-input:hover {
+  border-color: var(--fs-text-muted);
 }
 
 .fs-search-input:focus {
   outline: none;
   border-color: var(--fs-accent);
+  box-shadow: 0 0 0 3px var(--fs-accent-light);
 }
 
 .fs-search-input::placeholder {
