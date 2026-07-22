@@ -124,21 +124,31 @@
       });
       $(document).on('click.header-profile', '#user-logout-btn', event => {
         event.preventDefault();
-        const btn = $('#user-logout-btn');
-        
-        // Visual loading state
-        btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status"></span> Đang đăng xuất...');
-        
-        if (FS.toast) {
-          FS.toast("Đang đăng xuất khỏi hệ thống...", "info", 1500);
-        }
-        
-        setTimeout(() => {
-          this.close();
+        this.close();
+
+        if (FS.confirm) {
+          FS.confirm({
+            title: "Đăng xuất tài khoản",
+            message: "Bạn có chắc chắn muốn đăng xuất khỏi phiên làm việc hiện tại không?",
+            confirmText: "Đăng xuất",
+            cancelText: "Hủy bỏ",
+            type: "danger",
+            onConfirm: () => {
+              if (FS.toast) {
+                FS.toast("Đang đăng xuất khỏi hệ thống...", "info", 1500);
+              }
+              setTimeout(() => {
+                if (FS.auth && typeof FS.auth.logout === 'function') {
+                  FS.auth.logout();
+                }
+              }, 800);
+            }
+          });
+        } else {
           if (FS.auth && typeof FS.auth.logout === 'function') {
             FS.auth.logout();
           }
-        }, 1000);
+        }
       });
       $(document).on('click.header-profile', event => {
         if (this._isOpen && !$(event.target).closest('#fs-topbar-user, #fs-user-menu').length) this.close();

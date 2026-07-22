@@ -386,4 +386,61 @@
     }
   });
 
+  /**
+   * Hiển thị dialog xác nhận đẹp mắt, chuẩn Senior UI/UX
+   */
+  FS.confirm = function (options = {}) {
+    const title = options.title || "Xác nhận";
+    const message = options.message || "Bạn có chắc chắn muốn thực hiện hành động này?";
+    const confirmText = options.confirmText || "Đồng ý";
+    const cancelText = options.cancelText || "Hủy";
+    const type = options.type || "info";
+
+    const modalHtml = `
+      <div class="fs-modal-overlay" id="fs-confirm-overlay" role="dialog" aria-modal="true" style="display: none;">
+        <div class="fs-modal fs-confirm-dialog" style="max-width: 400px; padding: 24px;">
+          <div class="fs-modal-header" style="border-bottom: none; padding: 0 0 12px 0;">
+            <h5 class="m-0 d-flex align-items-center gap-2" style="font-size: var(--fs-text-lg); font-weight: 600;">
+              <i class="bi ${type === 'danger' ? 'bi-exclamation-triangle-fill text-danger' : 'bi-question-circle-fill text-primary'}" style="font-size: 20px;"></i>
+              ${title}
+            </h5>
+          </div>
+          <div class="fs-modal-body" style="padding: 0 0 20px 0;">
+            <p class="m-0 text-secondary" style="font-size: var(--fs-text-sm); line-height: 1.5; color: var(--fs-text-secondary);">${message}</p>
+          </div>
+          <div class="fs-modal-footer" style="border-top: none; padding: 0; display: flex; justify-content: flex-end; gap: 12px; background: transparent;">
+            <button class="btn btn-outline-secondary btn-sm" id="fs-confirm-cancel-btn" type="button" style="padding: 6px 16px; border-radius: var(--fs-radius-md); font-weight: 500;">${cancelText}</button>
+            <button class="btn ${type === 'danger' ? 'btn-danger' : 'btn-primary'} btn-sm" id="fs-confirm-ok-btn" type="button" style="padding: 6px 16px; border-radius: var(--fs-radius-md); font-weight: 500;">${confirmText}</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const $overlay = $(modalHtml).appendTo('body');
+    $overlay.fadeIn(150);
+    $('#fs-confirm-ok-btn').trigger('focus');
+
+    return new Promise((resolve) => {
+      $('#fs-confirm-ok-btn').on('click', () => {
+        $overlay.fadeOut(150, () => $overlay.remove());
+        if (typeof options.onConfirm === 'function') options.onConfirm();
+        resolve(true);
+      });
+
+      $('#fs-confirm-cancel-btn, #fs-confirm-overlay').on('click', function (e) {
+        if (e.target === this || e.target.id === 'fs-confirm-cancel-btn') {
+          $overlay.fadeOut(150, () => $overlay.remove());
+          resolve(false);
+        }
+      });
+
+      $(document).one('keydown.fs-confirm-esc', (e) => {
+        if (e.key === 'Escape') {
+          $overlay.fadeOut(150, () => $overlay.remove());
+          resolve(false);
+        }
+      });
+    });
+  };
+
 })(window.FS = window.FS || {});
