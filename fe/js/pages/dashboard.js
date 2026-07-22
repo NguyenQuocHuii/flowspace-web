@@ -102,10 +102,13 @@
         ["stat-projects", "stat-tasks", "stat-overdue", "stat-hours"].forEach((id) =>
           this._setText(id, "—")
         );
-        ["stat-projects-sub", "stat-tasks-sub", "stat-hours-sub"].forEach((id) =>
-          this._setText(id, "Lỗi kết nối")
-        );
-        this._setText("stat-overdue-note", "Lỗi kết nối");
+        ["stat-projects-sub", "stat-tasks-sub", "stat-overdue-sub", "stat-hours-sub"].forEach((id) => {
+          const node = document.getElementById(id);
+          if (node) {
+            node.className = "fs-stat-change text-muted";
+            node.innerHTML = "Lỗi kết nối";
+          }
+        });
         return;
       }
 
@@ -116,28 +119,33 @@
       const totalProj = Number(data.totalProjects) || 0;
       this._setText("stat-projects", activeProj);
       const projSub = document.getElementById("stat-projects-sub");
-      if (projSub) projSub.innerHTML = `<i class="bi bi-arrow-up-short me-1"></i>${totalProj} tổng số dự án`;
+      if (projSub) {
+        projSub.className = "fs-stat-change text-secondary";
+        projSub.innerHTML = `<i class="bi bi-folder-symlink text-primary me-1"></i><span>${totalProj} tổng số dự án</span>`;
+      }
 
       // 2. Pending Tasks
       const pendingTasks = Number(data.pendingTasks) || 0;
       const completedTasks = Number(data.completedTasks) || 0;
       this._setText("stat-tasks", pendingTasks);
-      const tasksChange = document.getElementById("stat-tasks-change");
-      if (tasksChange) {
-        tasksChange.className = "fs-stat-change up";
-        tasksChange.innerHTML = `<i class="bi bi-check2-all me-1"></i><span id="stat-tasks-sub">${completedTasks} đã hoàn thành</span>`;
+      const tasksSub = document.getElementById("stat-tasks-sub");
+      if (tasksSub) {
+        tasksSub.className = "fs-stat-change text-secondary";
+        tasksSub.innerHTML = `<i class="bi bi-check2-circle text-success me-1"></i><span>${completedTasks} đã hoàn thành</span>`;
       }
 
       // 3. Overdue Tasks
       const overdue = Number(data.overdueTasks) || 0;
       this._setText("stat-overdue", overdue);
-      const note = document.getElementById("stat-overdue-note");
-      if (note) {
-        note.className = `fs-stat-change ${overdue > 0 ? "down" : "up"}`;
-        note.innerHTML =
-          overdue > 0
-            ? '<i class="bi bi-exclamation-triangle-fill me-1"></i><span>Cần xử lý ngay</span>'
-            : '<i class="bi bi-check-circle-fill me-1"></i><span>Không có task quá hạn</span>';
+      const overdueSub = document.getElementById("stat-overdue-sub");
+      if (overdueSub) {
+        if (overdue > 0) {
+          overdueSub.className = "fs-stat-change down";
+          overdueSub.innerHTML = `<i class="bi bi-exclamation-triangle-fill text-danger me-1"></i><span class="text-danger fw-semibold">Cần xử lý ngay</span>`;
+        } else {
+          overdueSub.className = "fs-stat-change up";
+          overdueSub.innerHTML = `<i class="bi bi-check-circle-fill text-success me-1"></i><span class="text-success">Không có task quá hạn</span>`;
+        }
       }
 
       // 4. Logged Hours
@@ -146,7 +154,15 @@
       const pendingApprovals = Number(data.pendingApprovalsCount) || 0;
       this._setText("stat-hours", formattedHours);
       const hoursSub = document.getElementById("stat-hours-sub");
-      if (hoursSub) hoursSub.innerHTML = `<i class="bi bi-clock-history me-1"></i>${pendingApprovals} chờ duyệt`;
+      if (hoursSub) {
+        if (pendingApprovals > 0) {
+          hoursSub.className = "fs-stat-change down";
+          hoursSub.innerHTML = `<i class="bi bi-clock-history text-warning me-1"></i><span class="text-warning fw-semibold">${pendingApprovals} chờ duyệt</span>`;
+        } else {
+          hoursSub.className = "fs-stat-change up";
+          hoursSub.innerHTML = `<i class="bi bi-check-circle-fill text-success me-1"></i><span class="text-success">Đã duyệt tất cả</span>`;
+        }
+      }
     },
 
     _renderMyTasks() {
