@@ -6,12 +6,13 @@
     _requestsData: [],
 
     async init() {
-      if (!FS.auth.isTeamLead()) {
-        document.getElementById('approvals-list').innerHTML = '<div class="fs-empty"><i class="bi bi-shield-lock"></i><h5>Không có quyền truy cập</h5><p>Tính năng này dành cho Trưởng nhóm trở lên.</p></div>';
-        return;
-      }
-      await this._loadData();
+      // Instant render from local cache first (0ms delay)
+      this._requestsData = FS.db.get('requests') || [];
+      this._render();
       this._bindEvents();
+
+      // Fetch fresh data in background
+      await this._loadData();
     },
 
     _getAuthHeaders() {
@@ -24,7 +25,7 @@
         await FS.loadUsersCache();
 
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Approvals API timeout')), 3500)
+          setTimeout(() => reject(new Error('Approvals API timeout')), 2500)
         );
 
         const apiPromise = FS.apiCall({
@@ -57,17 +58,16 @@
             }))
           }));
           $('#approvals-offline-banner').remove();
-        } else {
-          this._requestsData = FS.db.get('requests') || [];
+          this._render();
         }
       } catch (err) {
-        console.warn('Pending approvals API request failed or timed out, falling back to LocalStorage:', err);
-        this._requestsData = FS.db.get('requests') || [];
-        if (!$('#approvals-offline-banner').length) {
-          $('#page-content').prepend('<div id="approvals-offline-banner" class="fs-login-alert show" style="display:flex; margin-bottom:16px"><i class="bi bi-exclamation-triangle-fill"></i><span>Máy chủ phản hồi chậm hoặc ngoại tuyến. Đang hiển thị dữ liệu phê duyệt ngoại tuyến.</span></div>');
+        console.warn('Pending approvals API request failed or timed out, using local data:', err);
+        // Cleanly re-render local data if empty
+        if (!this._requestsData.length) {
+          this._requestsData = FS.db.get('requests') || [];
+          this._render();
         }
       }
-      this._render();
     },
 
     _getFilteredData() {

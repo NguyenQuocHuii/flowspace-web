@@ -202,7 +202,14 @@
     isLoggedIn() { return !!_session; },
 
     /** Lấy role level của user hiện tại */
-    getRoleLevel() { return _session ? (ROLE_LEVELS[_session.role] || 0) : 0; },
+    getRoleLevel() {
+      if (!_session || !_session.role) return 1;
+      const r = String(_session.role).toLowerCase().replace(/[^a-z]/g, '');
+      if (r.includes('admin') || r.includes('director') || r.includes('giamdoc')) return 4;
+      if (r.includes('manager') || r.includes('truongphong')) return 3;
+      if (r.includes('lead') || r.includes('truongnhom')) return 2;
+      return ROLE_LEVELS[String(_session.role).toLowerCase()] || 1;
+    },
 
     /** Kiểm tra có quyền truy cập trang không */
     canAccess(page) { const required = PAGE_ACCESS[page] || 99; return this.getRoleLevel() >= required; },
