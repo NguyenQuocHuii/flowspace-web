@@ -189,6 +189,7 @@
         'cancelled':   { cls: 'badge-neutral',  label: 'Đã huỷ' },
         'active':      { cls: 'badge-success',  label: 'Đang chạy' },
         'on_hold':     { cls: 'badge-warning',  label: 'Tạm dừng' },
+        'onhold':      { cls: 'badge-warning',  label: 'Tạm dừng' },
         'approved':    { cls: 'badge-success',  label: 'Đã duyệt' },
         'pending':     { cls: 'badge-warning',  label: 'Chờ duyệt' },
         'rejected':    { cls: 'badge-danger',   label: 'Từ chối' }

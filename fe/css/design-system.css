@@ -191,6 +191,17 @@ img { max-width: 100%; display: block; }
   color: var(--fs-accent-dark);
 }
 
+.btn-outline-neutral {
+  background: transparent;
+  color: var(--fs-text-secondary);
+  border-color: var(--fs-border);
+}
+.btn-outline-neutral:hover {
+  background: var(--fs-bg-secondary);
+  color: var(--fs-text);
+  border-color: var(--fs-text-muted);
+}
+
 .btn-ghost {
   background: transparent;
   color: var(--fs-text-secondary);
