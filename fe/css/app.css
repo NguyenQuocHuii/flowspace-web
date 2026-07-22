@@ -1208,7 +1208,11 @@
   }
 }
 
-/* ─── Page transition ────────────────────────────────────── */
+/* ─── Page transition & Spacing Tweaks ──────────────────── */
+#fs-main-content {
+  padding-bottom: 48px !important;
+}
+
 .page-enter {
   animation: page-slide-in 0.2s ease;
 }
@@ -1224,3 +1228,4 @@
     transform: translateY(0);
   }
 }
+

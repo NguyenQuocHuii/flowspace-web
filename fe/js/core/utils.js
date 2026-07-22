@@ -178,6 +178,35 @@
       return `<div class="fs-avatar ${size} ${bgClass}" style="${bgStyle}" title="${FS.str.escape(name)}">${initials}</div>`;
     },
 
+    /** Render Avatar Stack chuyên nghiệp với max limit & indicator +N */
+    avatarStack(members = [], maxDisplay = 4) {
+      if (!Array.isArray(members) || members.length === 0) {
+        return '<span class="text-muted" style="font-size:12px">—</span>';
+      }
+
+      const total = members.length;
+      const visibleMembers = members.slice(0, maxDisplay);
+      const remaining = total - maxDisplay;
+
+      let html = '<div class="fs-avatar-stack d-flex align-items-center" style="padding-left:4px">';
+      visibleMembers.forEach((m, idx) => {
+        let userId = typeof m === 'object' ? (m.id || m.userId) : m;
+        let name = typeof m === 'object' ? m.name : '';
+        const zIndex = 10 - idx;
+        const marginStyle = idx > 0 ? 'margin-left:-8px;' : '';
+        
+        let avatarHtml = FS.user.avatar(userId, 'sm', name);
+        avatarHtml = avatarHtml.replace('class="fs-avatar sm', `class="fs-avatar sm" style="z-index:${zIndex};${marginStyle}border:2px solid var(--fs-bg, #fff);box-shadow:0 2px 4px rgba(0,0,0,0.08);`);
+        html += avatarHtml;
+      });
+
+      if (remaining > 0) {
+        html += `<div class="fs-avatar sm fs-avatar-more" style="margin-left:-8px;z-index:5;border:2px solid var(--fs-bg, #fff);background-color:#475569;color:#ffffff;font-size:10px;font-weight:700;box-shadow:0 2px 4px rgba(0,0,0,0.08)" title="Thêm ${remaining} thành viên">+${remaining}</div>`;
+      }
+      html += '</div>';
+      return html;
+    },
+
     /** Lấy tên user */
     name(id, fallback = '—') {
       const u = FS.user.get(id);
@@ -185,16 +214,72 @@
     }
   };
 
+  /* ── Data Normalizers (Data Transformers BE <-> FE) ──────── */
+  FS.data = {
+    normalizeProject(p) {
+      if (!p) return null;
+      return {
+        id: p.id,
+        code: p.code || 'FS-' + (p.id || '00'),
+        name: p.name || 'Dự án không tên',
+        description: p.description || '',
+        status: (p.status || 'active').toLowerCase(),
+        priority: (p.priority || 'medium').toLowerCase(),
+        startDate: p.startDate || null,
+        endDate: p.endDate || null,
+        progress: typeof p.progress === 'number' ? Math.min(100, Math.max(0, p.progress)) : 0,
+        ownerId: p.ownerId || '',
+        ownerName: p.ownerName || '',
+        members: Array.isArray(p.members) ? p.members : [],
+        createdAt: p.createdAt || new Date().toISOString(),
+        client: p.client || '',
+        budget: p.budget || null,
+        taskCount: p.taskCount || 0,
+        completedTaskCount: p.completedTaskCount || 0
+      };
+    },
+
+    normalizeTask(t) {
+      if (!t) return null;
+      return {
+        id: t.id,
+        code: t.code || 'TSK-' + (t.id || '00'),
+        title: t.title || 'Công việc không tên',
+        description: t.description || '',
+        projectId: t.projectId || '',
+        projectName: t.projectName || '',
+        assigneeId: t.assigneeId || '',
+        assigneeName: t.assigneeName || '',
+        assigneeAvatar: t.assigneeAvatar || '',
+        assigneeColor: t.assigneeColor || '',
+        status: (t.status || 'todo').toLowerCase(),
+        priority: (t.priority || 'medium').toLowerCase(),
+        startDate: t.startDate || null,
+        dueDate: t.dueDate || null,
+        completedAt: t.completedAt || null,
+        estimatedHours: t.estimatedHours || 0,
+        loggedHours: t.loggedHours || 0,
+        subtasks: Array.isArray(t.subtasks) ? t.subtasks : [],
+        comments: Array.isArray(t.comments) ? t.comments : [],
+        createdAt: t.createdAt || new Date().toISOString(),
+        difficulty: t.difficulty || '',
+        completionScore: t.completionScore || null
+      };
+    }
+  };
 
   /* ── Status / Priority badge helpers ────────────────────── */
   FS.badge = {
     status(status) {
+      const st = String(status || '').toLowerCase();
       const map = {
         'todo':        { cls: 'badge-neutral',  label: 'Chưa bắt đầu' },
         'in_progress': { cls: 'badge-accent',   label: 'Đang làm' },
         'inprogress':  { cls: 'badge-accent',   label: 'Đang thực hiện' },
+        'running':     { cls: 'badge-accent',   label: 'Đang chạy' },
         'review':      { cls: 'badge-warning',  label: 'Chờ duyệt' },
         'done':        { cls: 'badge-success',  label: 'Hoàn thành' },
+        'completed':   { cls: 'badge-success',  label: 'Hoàn thành' },
         'cancelled':   { cls: 'badge-neutral',  label: 'Đã huỷ' },
         'active':      { cls: 'badge-success',  label: 'Đang chạy' },
         'on_hold':     { cls: 'badge-warning',  label: 'Đang chờ' },
@@ -203,7 +288,7 @@
         'pending':     { cls: 'badge-warning',  label: 'Chờ duyệt' },
         'rejected':    { cls: 'badge-danger',   label: 'Từ chối' }
       };
-      const b = map[status] || { cls: 'badge-neutral', label: status };
+      const b = map[st] || { cls: 'badge-neutral', label: status };
       return `<span class="fs-badge ${b.cls}">${b.label}</span>`;
     },
 

@@ -23,13 +23,7 @@
       $('.view-toggle[data-view="list"]').addClass('active');
 
       // 1. Instant 0ms SWR render with local seed data (NO SPINNER!)
-      this._projectsData = (FS.db.get('projects') || []).map(p => ({
-        ...p,
-        client: p.client || '',
-        budget: p.budget || null,
-        taskCount: p.taskCount || 0,
-        completedTaskCount: p.completedTaskCount || 0
-      }));
+      this._projectsData = (FS.db.get('projects') || []).map(p => FS.data.normalizeProject(p));
       this._render();
       this._bindEvents();
 
@@ -50,40 +44,22 @@
         });
 
         if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
-          const apiProjects = response.data.map(p => ({
-            id: p.id,
-            code: p.code,
-            name: p.name,
-            description: p.description || '',
-            status: (p.status || 'active').toLowerCase(),
-            priority: (p.priority || 'medium').toLowerCase(),
-            startDate: p.startDate,
-            endDate: p.endDate,
-            progress: p.progress || 0,
-            ownerId: p.ownerId,
-            ownerName: p.ownerName || '',
-            members: p.members || [],
-            createdAt: p.createdAt,
-            client: p.client || '',
-            budget: p.budget || null,
-            taskCount: p.taskCount || 0,
-            completedTaskCount: p.completedTaskCount || 0
-          }));
+          const apiProjects = response.data.map(p => FS.data.normalizeProject(p));
 
           const mergedMap = new Map();
-          const seedData = FS.db.get('projects') || [];
+          const seedData = (FS.db.get('projects') || []).map(p => FS.data.normalizeProject(p));
           for (const s of seedData) mergedMap.set(s.id, s);
           for (const a of apiProjects) mergedMap.set(a.id, a);
 
           this._projectsData = Array.from(mergedMap.values());
           $('#projects-offline-banner').remove();
         } else if (!this._projectsData.length) {
-          this._projectsData = FS.db.get('projects') || [];
+          this._projectsData = (FS.db.get('projects') || []).map(p => FS.data.normalizeProject(p));
         }
       } catch (err) {
         console.warn('Projects API request failed:', err);
         if (!this._projectsData.length) {
-          this._projectsData = FS.db.get('projects') || [];
+          this._projectsData = (FS.db.get('projects') || []).map(p => FS.data.normalizeProject(p));
         }
       } finally {
         this._render();
@@ -178,51 +154,28 @@
       }
 
       $('#proj-table-body').html(projects.map(p => {
-        const membersHtml = (p.members || []).slice(0, 4).map(m => {
-          let userId = typeof m === 'object' ? (m.id || m.userId) : m;
-          let name = typeof m === 'object' ? m.name : '';
-
-          if (userId && FS.user && FS.user.get) {
-            const u = FS.user.get(userId);
-            if (u) {
-              if (!name) name = u.name;
-            }
-          }
-
-          if (FS.user && FS.user.avatar) {
-            return FS.user.avatar(userId, 'sm', name || 'Thành viên');
-          }
-
-          let initials = 'TV';
-          if (name) {
-            const parts = name.trim().split(/\s+/);
-            initials = parts.length > 1 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : name.substring(0, 2).toUpperCase();
-          }
-
-          return `<div class="fs-avatar fs-avatar-sm" title="${FS.str.escape(name || 'Thành viên')}" style="margin-left:-6px;border:2px solid var(--fs-bg);background-color:#6366f1;color:#ffffff;font-size:11px;font-weight:600">${initials}</div>`;
-        }).join('');
-
-        const overdue = FS.date.isOverdue(p.endDate) && p.status !== 'done';
+        const membersHtml = FS.user.avatarStack(p.members, 4);
+        const overdue = FS.date.isOverdue(p.endDate) && p.status !== 'done' && p.status !== 'completed';
 
         return `
           <tr class="hover-row" data-proj-id="${p.id}">
-            <td style="white-space:nowrap"><span class="fs-badge badge-neutral" style="font-family:monospace;font-weight:600;font-size:11px">${FS.str.escape(p.code)}</span></td>
+            <td style="white-space:nowrap"><span class="fs-badge badge-neutral" style="font-family:monospace;font-weight:600;font-size:11px;letter-spacing:0.5px">${FS.str.escape(p.code)}</span></td>
             <td>
-              <div style="font-weight:500;font-size:13px">${FS.str.escape(p.name)}</div>
-              <div class="fs-small truncate" style="max-width:260px">${FS.str.escape(p.description || '')}</div>
+              <div style="font-weight:600;font-size:13px;color:var(--fs-text-heading, #0f172a)">${FS.str.escape(p.name)}</div>
+              <div class="fs-small truncate" style="max-width:280px;color:var(--fs-text-muted, #64748b);font-size:12px">${FS.str.escape(p.description || '')}</div>
             </td>
             <td>${FS.badge.status(p.status)}</td>
             <td>${FS.badge.priority(p.priority)}</td>
-            <td style="min-width:120px">
+            <td style="min-width:130px">
               <div class="d-flex align-items-center gap-2">
-                <div class="fs-progress" style="flex:1"><div class="fs-progress-bar" style="width:${p.progress}%"></div></div>
-                <span style="font-size:11px;font-weight:600;color:var(--fs-accent);min-width:30px">${p.progress}%</span>
+                <div class="fs-progress" style="flex:1;height:6px;background:rgba(99,102,241,0.12);border-radius:10px;overflow:hidden"><div class="fs-progress-bar" style="width:${p.progress}%;height:100%;background:linear-gradient(90deg, #6366f1, #8b5cf6);border-radius:10px;transition:width 0.4s ease"></div></div>
+                <span style="font-size:12px;font-weight:700;color:var(--fs-accent, #6366f1);min-width:32px">${p.progress}%</span>
               </div>
             </td>
             <td>
-              <div class="d-flex" style="padding-left:6px">${membersHtml}</div>
+              ${membersHtml}
             </td>
-            <td style="font-size:12px;${overdue ? 'color:var(--fs-danger);font-weight:600' : 'color:var(--fs-text-muted)'}">
+            <td style="font-size:12px;${overdue ? 'color:var(--fs-danger, #ef4444);font-weight:600' : 'color:var(--fs-text-muted, #64748b)'}">
               ${FS.date.format(p.endDate)}
             </td>
             <td>
@@ -450,7 +403,8 @@
       });
 
       // New project
-      $('#proj-new-btn').off('click').on('click', function () {
+      $(document).off('click.proj-new').on('click.proj-new', '#proj-new-btn', function (e) {
+        e.preventDefault();
         self._openModal();
       });
 

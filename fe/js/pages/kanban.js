@@ -13,6 +13,15 @@
     { id: 'done',        label: 'Done',         color: '#10b981', bg: '#f0fdf4' }
   ];
 
+  function normalizeStatus(s) {
+    let st = (s || 'todo').toLowerCase();
+    if (st === 'in_progress' || st === 'inprogress' || st === 'doing') return 'inprogress';
+    if (st === 'in_review' || st === 'review' || st === 'on_hold' || st === 'onhold') return 'review';
+    if (st === 'testing' || st === 'test' || st === 'qa') return 'testing';
+    if (st === 'done' || st === 'completed' || st === 'finished') return 'done';
+    return 'todo';
+  }
+
   FS.pages.kanban = {
     _sortables: [],
     _filter: { project: '', employee: '', department: '' },
@@ -21,12 +30,10 @@
 
     async init() {
       // 1. Instant 0ms SWR render with local seed data (NO SPINNER!)
-      this._tasksData = (FS.db.get('tasks') || []).map(t => {
-        let st = (t.status || 'todo').toLowerCase();
-        if (st === 'in_progress') st = 'inprogress';
-        if (st === 'on_hold') st = 'onhold';
-        return { ...t, status: st };
-      });
+      this._tasksData = (FS.db.get('tasks') || []).map(t => ({
+        ...t,
+        status: normalizeStatus(t.status)
+      }));
       this._projectsData = FS.db.get('projects') || [];
       this._populateFilters();
       this._renderBoard();
@@ -50,40 +57,35 @@
         ]);
 
         if (tasksRes && tasksRes.success && Array.isArray(tasksRes.data) && tasksRes.data.length > 0) {
-          const apiTasks = tasksRes.data.map(t => {
-            let st = (t.status || 'todo').toLowerCase();
-            if (st === 'in_progress') st = 'inprogress';
-            if (st === 'on_hold') st = 'onhold';
-            return {
-              id: t.id,
-              code: t.code,
-              title: t.title,
-              description: t.description || '',
-              projectId: t.projectId,
-              projectName: t.projectName || '',
-              assigneeId: t.assigneeId,
-              assigneeName: t.assigneeName || '',
-              assigneeAvatar: t.assigneeAvatar || '',
-              assigneeColor: t.assigneeColor || '',
-              status: st,
-              priority: (t.priority || 'medium').toLowerCase(),
-              startDate: t.startDate,
-              dueDate: t.dueDate,
-              completedAt: t.completedAt,
-              subtasks: t.subtasks || [],
-              comments: t.comments || [],
-              createdAt: t.createdAt
-            };
-          });
+          const apiTasks = tasksRes.data.map(t => ({
+            id: t.id,
+            code: t.code,
+            title: t.title,
+            description: t.description || '',
+            projectId: t.projectId,
+            projectName: t.projectName || '',
+            assigneeId: t.assigneeId,
+            assigneeName: t.assigneeName || '',
+            assigneeAvatar: t.assigneeAvatar || '',
+            assigneeColor: t.assigneeColor || '',
+            status: normalizeStatus(t.status),
+            priority: (t.priority || 'medium').toLowerCase(),
+            startDate: t.startDate,
+            dueDate: t.dueDate,
+            completedAt: t.completedAt,
+            subtasks: t.subtasks || [],
+            comments: t.comments || [],
+            createdAt: t.createdAt
+          }));
 
           const mergedMap = new Map();
-          const seedData = FS.db.get('tasks') || [];
+          const seedData = (FS.db.get('tasks') || []).map(t => ({ ...t, status: normalizeStatus(t.status) }));
           for (const s of seedData) mergedMap.set(s.id, s);
           for (const a of apiTasks) mergedMap.set(a.id, a);
 
           this._tasksData = Array.from(mergedMap.values());
         } else if (!this._tasksData.length) {
-          this._tasksData = FS.db.get('tasks') || [];
+          this._tasksData = (FS.db.get('tasks') || []).map(t => ({ ...t, status: normalizeStatus(t.status) }));
         }
 
         if (projsRes && projsRes.success && Array.isArray(projsRes.data) && projsRes.data.length > 0) {
@@ -95,7 +97,7 @@
       } catch (err) {
         console.warn('Kanban API load failed:', err);
         if (!this._tasksData.length) {
-          this._tasksData = FS.db.get('tasks') || [];
+          this._tasksData = (FS.db.get('tasks') || []).map(t => ({ ...t, status: normalizeStatus(t.status) }));
         }
       } finally {
         this._populateFilters();
