@@ -7,6 +7,7 @@
 
   const PAGE_SIZE = 10;
 
+  FS.pages.tasks = {
     _view: 'list',
     _filter: { search: '', status: '', priority: '', project: '', assignee: '' },
     _page: 1,
