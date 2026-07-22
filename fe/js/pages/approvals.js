@@ -21,10 +21,18 @@
 
     async _loadData() {
       try {
-        const response = await FS.apiCall({
+        await FS.loadUsersCache();
+
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Approvals API timeout')), 3500)
+        );
+
+        const apiPromise = FS.apiCall({
           url: FS.API_BASE + '/api/v1/approvals/pending',
           type: 'GET'
         });
+
+        const response = await Promise.race([apiPromise, timeoutPromise]);
 
         if (response && response.success && Array.isArray(response.data)) {
           this._requestsData = response.data.map(r => ({
@@ -53,10 +61,10 @@
           this._requestsData = FS.db.get('requests') || [];
         }
       } catch (err) {
-        console.warn('Pending approvals API request failed, falling back to LocalStorage:', err);
+        console.warn('Pending approvals API request failed or timed out, falling back to LocalStorage:', err);
         this._requestsData = FS.db.get('requests') || [];
         if (!$('#approvals-offline-banner').length) {
-          $('#page-content').prepend('<div id="approvals-offline-banner" class="fs-login-alert show" style="display:flex; margin-bottom:16px"><i class="bi bi-exclamation-triangle-fill"></i><span>Không thể kết nối máy chủ. Hiện đang hiển thị dữ liệu phê duyệt ngoại tuyến.</span></div>');
+          $('#page-content').prepend('<div id="approvals-offline-banner" class="fs-login-alert show" style="display:flex; margin-bottom:16px"><i class="bi bi-exclamation-triangle-fill"></i><span>Máy chủ phản hồi chậm hoặc ngoại tuyến. Đang hiển thị dữ liệu phê duyệt ngoại tuyến.</span></div>');
         }
       }
       this._render();
