@@ -7,7 +7,7 @@
   <div class="fs-page-header">
     <div>
       <h1 class="fs-page-title">Quản lý Công việc</h1>
-      <p class="fs-page-subtitle" id="tasks-count-label">Đang tải...</p>
+      <p class="fs-page-subtitle" id="tasks-count-label">Danh sách công việc đang xử lý</p>
     </div>
     <div class="d-flex gap-2 align-items-center" id="tasks-header-actions">
       <!-- Toggle view -->
@@ -26,9 +26,12 @@
   </div>
 
   <!-- Filters -->
-  <div class="fs-filters">
-    <input type="text" class="fs-search-input" id="task-search" placeholder="Tìm công việc...">
-    <select class="fs-filter-select" id="task-filter-status">
+  <div class="fs-filters d-flex align-items-center flex-wrap gap-2 mb-3" style="padding:12px;background:var(--fs-card-bg);border:1px solid var(--fs-border);border-radius:var(--fs-radius-md)">
+    <div class="position-relative flex-grow-1" style="min-width:160px;max-width:220px">
+      <input type="text" class="fs-search-input" id="task-search" placeholder="Tìm công việc..." style="height:34px;font-size:13px;padding-left:30px">
+      <i class="bi bi-search position-absolute top-50 translate-middle-y text-muted" style="left:10px;font-size:12px"></i>
+    </div>
+    <select class="fs-filter-select" id="task-filter-status" style="height:34px;font-size:13px;min-width:130px">
       <option value="">Tất cả trạng thái</option>
       <option value="todo">Chưa bắt đầu</option>
       <option value="inprogress">Đang thực hiện</option>
@@ -36,19 +39,19 @@
       <option value="done">Đã hoàn thành</option>
       <option value="cancelled">Đã hủy</option>
     </select>
-    <select class="fs-filter-select" id="task-filter-priority">
+    <select class="fs-filter-select" id="task-filter-priority" style="height:34px;font-size:13px;min-width:120px">
       <option value="">Tất cả ưu tiên</option>
       <option value="high">Cao</option>
       <option value="medium">Trung bình</option>
       <option value="low">Thấp</option>
     </select>
-    <select class="fs-filter-select" id="task-filter-project">
+    <select class="fs-filter-select" id="task-filter-project" style="height:34px;font-size:13px;min-width:140px">
       <option value="">Tất cả dự án</option>
     </select>
-    <select class="fs-filter-select" id="task-filter-assignee">
+    <select class="fs-filter-select" id="task-filter-assignee" style="height:34px;font-size:13px;min-width:140px">
       <option value="">Tất cả người thực hiện</option>
     </select>
-    <button class="btn btn-ghost btn-sm" id="task-filter-reset" style="color:var(--fs-text-muted)">
+    <button class="btn btn-ghost btn-sm" id="task-filter-reset" style="color:var(--fs-text-muted);height:34px">
       <i class="bi bi-x-circle"></i> Xoá lọc
     </button>
   </div>

@@ -203,7 +203,7 @@
 
         return `
           <tr class="hover-row" data-proj-id="${p.id}">
-            <td style="color:var(--fs-text-muted);font-size:12px">${p.code}</td>
+            <td style="white-space:nowrap"><span class="fs-badge badge-neutral" style="font-family:monospace;font-weight:600;font-size:11px">${FS.str.escape(p.code)}</span></td>
             <td>
               <div style="font-weight:500;font-size:13px">${FS.str.escape(p.name)}</div>
               <div class="fs-small truncate" style="max-width:260px">${FS.str.escape(p.description || '')}</div>

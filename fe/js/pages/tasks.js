@@ -14,23 +14,35 @@
     _tasksData: [],
 
     async init() {
-      await this._loadData();
+      // 1. Instant 0ms SWR render with local seed data (NO SPINNER!)
+      this._tasksData = (FS.db.get('tasks') || []).map(t => ({
+        ...t,
+        difficulty: t.difficulty || '',
+        completionScore: t.completionScore || null
+      }));
       this._populateFilters();
+      this._render();
       this._bindEvents();
+
+      // 2. Fetch live data from backend API in background & sync seamlessly
+      await this._loadData();
     },
 
     async _loadData() {
       try {
-        // Load users cache trước để hiển thị tên/avatar chính xác
-        await FS.loadUsersCache();
+        try {
+          await FS.loadUsersCache();
+        } catch (e) {
+          console.warn('loadUsersCache failed in tasks page:', e);
+        }
 
         const response = await FS.apiCall({
           url: FS.API_BASE + '/api/v1/tasks',
           type: 'GET'
         });
 
-        if (response && response.success && Array.isArray(response.data)) {
-          this._tasksData = response.data.map(t => ({
+        if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
+          const apiTasks = response.data.map(t => ({
             id: t.id,
             code: t.code,
             title: t.title,
@@ -54,22 +66,26 @@
             difficulty: t.difficulty || '',
             completionScore: t.completionScore || null
           }));
+
+          const mergedMap = new Map();
+          const seedData = FS.db.get('tasks') || [];
+          for (const s of seedData) mergedMap.set(s.id, s);
+          for (const a of apiTasks) mergedMap.set(a.id, a);
+
+          this._tasksData = Array.from(mergedMap.values());
           $('#tasks-offline-banner').remove();
-        } else {
-          this._tasksData = (FS.db.get('tasks') || []).map(t => ({
-            ...t,
-            difficulty: t.difficulty || '',
-            completionScore: t.completionScore || null
-          }));
+        } else if (!this._tasksData.length) {
+          this._tasksData = FS.db.get('tasks') || [];
         }
       } catch (err) {
         console.warn('Tasks API request failed:', err);
-        this._tasksData = FS.db.get('tasks') || [];
-        if (!$('#tasks-offline-banner').length) {
-          $('#page-content').prepend('<div id="tasks-offline-banner" class="fs-login-alert show" style="display:flex; margin-bottom:16px"><i class="bi bi-exclamation-triangle-fill"></i><span>Không thể kết nối máy chủ. Hiện đang hiển thị dữ liệu tạm thời ngoại tuyến.</span></div>');
+        if (!this._tasksData.length) {
+          this._tasksData = FS.db.get('tasks') || [];
         }
+      } finally {
+        this._populateFilters();
+        this._render();
       }
-      this._render();
     },
 
     _populateFilters() {

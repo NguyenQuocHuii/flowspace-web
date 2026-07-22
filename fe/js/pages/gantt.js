@@ -17,10 +17,15 @@
     _projectsData: [],
 
     async init() {
-      await this._loadData();
+      // 1. Instant 0ms SWR render with local seed data (NO SPINNER!)
+      this._tasksData = FS.db.get('tasks') || [];
+      this._projectsData = FS.db.get('projects') || [];
       this._populateFilters();
       this._render();
       this._bindEvents();
+
+      // 2. Fetch live data from backend API in background & sync seamlessly
+      await this._loadData();
     },
 
     _getAuthHeaders() {
@@ -30,15 +35,19 @@
 
     async _loadData() {
       try {
-        await FS.loadUsersCache();
+        try {
+          await FS.loadUsersCache();
+        } catch (e) {
+          console.warn('loadUsersCache failed in gantt page:', e);
+        }
 
         const [tasksRes, projsRes] = await Promise.all([
           FS.apiCall({ url: FS.API_BASE + '/api/v1/tasks', type: 'GET' }),
           FS.apiCall({ url: FS.API_BASE + '/api/v1/projects', type: 'GET' })
         ]);
 
-        if (tasksRes && tasksRes.success && Array.isArray(tasksRes.data)) {
-          this._tasksData = tasksRes.data.map(t => ({
+        if (tasksRes && tasksRes.success && Array.isArray(tasksRes.data) && tasksRes.data.length > 0) {
+          const apiTasks = tasksRes.data.map(t => ({
             id: t.id,
             code: t.code,
             title: t.title,
@@ -53,30 +62,32 @@
             estimatedHours: t.estimatedHours || 0,
             loggedHours: t.loggedHours || 0
           }));
-        } else {
+
+          const mergedMap = new Map();
+          const seedData = FS.db.get('tasks') || [];
+          for (const s of seedData) mergedMap.set(s.id, s);
+          for (const a of apiTasks) mergedMap.set(a.id, a);
+
+          this._tasksData = Array.from(mergedMap.values());
+          $('#gantt-offline-banner').remove();
+        } else if (!this._tasksData.length) {
           this._tasksData = FS.db.get('tasks') || [];
         }
 
-        if (projsRes && projsRes.success && Array.isArray(projsRes.data)) {
-          this._projectsData = projsRes.data.map(p => ({
-            id: p.id,
-            code: p.code,
-            name: p.name,
-            status: (p.status || 'active').toLowerCase(),
-            startDate: p.startDate,
-            endDate: p.endDate
-          }));
-          $('#gantt-offline-banner').remove();
-        } else {
+        if (projsRes && projsRes.success && Array.isArray(projsRes.data) && projsRes.data.length > 0) {
+          this._projectsData = projsRes.data;
+        } else if (!this._projectsData.length) {
           this._projectsData = FS.db.get('projects') || [];
         }
+
       } catch (err) {
-        console.warn('Gantt API request failed, falling back to LocalStorage:', err);
-        this._tasksData = FS.db.get('tasks') || [];
-        this._projectsData = FS.db.get('projects') || [];
-        if (!$('#gantt-offline-banner').length) {
-          $('#page-content').prepend('<div id="gantt-offline-banner" class="fs-login-alert show" style="display:flex; margin-bottom:16px"><i class="bi bi-exclamation-triangle-fill"></i><span>Không thể kết nối máy chủ. Hiện đang hiển thị dữ liệu tạm thời ngoại tuyến.</span></div>');
+        console.warn('Gantt API load failed:', err);
+        if (!this._tasksData.length) {
+          this._tasksData = FS.db.get('tasks') || [];
         }
+      } finally {
+        this._populateFilters();
+        this._render();
       }
     },
 

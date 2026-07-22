@@ -13,9 +13,14 @@
     _logs: [],
 
     async init() {
-      await this._loadData();
+      // 1. Instant 0ms SWR render with local seed data (NO SPINNER!)
+      this._tasks = FS.db.get('tasks') || [];
+      this._projects = FS.db.get('projects') || [];
+      this._logs = FS.db.get('time_logs') || [];
       this._renderKPIs();
       this._renderCharts();
+
+      // Event listeners
       document.getElementById('report-period')?.addEventListener('change', async (e) => {
         this._period = e.target.value;
         this._destroyCharts();
@@ -27,11 +32,18 @@
       document.getElementById('report-export-excel')?.addEventListener('click', (e) => { e.preventDefault(); this._exportExcel(); });
       document.getElementById('report-export-csv')?.addEventListener('click', (e) => { e.preventDefault(); this._exportCSV(); });
       document.getElementById('report-export-pdf')?.addEventListener('click', (e) => { e.preventDefault(); this._exportPDF(); });
+
+      // 2. Fetch live data from backend API in background & sync seamlessly
+      await this._loadData();
     },
 
     async _loadData() {
       try {
-        await FS.loadUsersCache();
+        try {
+          await FS.loadUsersCache();
+        } catch (e) {
+          console.warn('loadUsersCache failed in reports page:', e);
+        }
 
         const [tasksRes, projsRes, logsRes] = await Promise.all([
           FS.apiCall({ url: FS.API_BASE + '/api/v1/tasks', type: 'GET' }),
@@ -39,20 +51,37 @@
           FS.apiCall({ url: FS.API_BASE + '/api/v1/timetracking/logs', type: 'GET' })
         ]);
 
-        if (tasksRes && tasksRes.success && Array.isArray(tasksRes.data)) this._tasks = tasksRes.data;
-        else this._tasks = FS.db.get('tasks') || [];
+        if (tasksRes && tasksRes.success && Array.isArray(tasksRes.data) && tasksRes.data.length > 0) {
+          const mergedMap = new Map();
+          const seedData = FS.db.get('tasks') || [];
+          for (const s of seedData) mergedMap.set(s.id, s);
+          for (const a of tasksRes.data) mergedMap.set(a.id, a);
+          this._tasks = Array.from(mergedMap.values());
+        } else if (!this._tasks.length) {
+          this._tasks = FS.db.get('tasks') || [];
+        }
 
-        if (projsRes && projsRes.success && Array.isArray(projsRes.data)) this._projects = projsRes.data;
-        else this._projects = FS.db.get('projects') || [];
+        if (projsRes && projsRes.success && Array.isArray(projsRes.data) && projsRes.data.length > 0) {
+          this._projects = projsRes.data;
+        } else if (!this._projects.length) {
+          this._projects = FS.db.get('projects') || [];
+        }
 
-        if (logsRes && logsRes.success && Array.isArray(logsRes.data)) this._logs = logsRes.data;
-        else this._logs = FS.db.get('time_logs') || [];
+        if (logsRes && logsRes.success && Array.isArray(logsRes.data) && logsRes.data.length > 0) {
+          this._logs = logsRes.data;
+        } else if (!this._logs.length) {
+          this._logs = FS.db.get('time_logs') || [];
+        }
 
       } catch (e) {
         console.warn('Reports API request failed:', e);
-        this._tasks = FS.db.get('tasks') || [];
-        this._projects = FS.db.get('projects') || [];
-        this._logs = FS.db.get('time_logs') || [];
+        if (!this._tasks.length) this._tasks = FS.db.get('tasks') || [];
+        if (!this._projects.length) this._projects = FS.db.get('projects') || [];
+        if (!this._logs.length) this._logs = FS.db.get('time_logs') || [];
+      } finally {
+        this._destroyCharts();
+        this._renderKPIs();
+        this._renderCharts();
       }
     },
 

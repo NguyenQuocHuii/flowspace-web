@@ -36,8 +36,8 @@
           FS.apiCall({ url: FS.API_BASE + '/api/v1/timetracking/logs', type: 'GET' })
         ]);
 
-        if (usersRes && usersRes.success && Array.isArray(usersRes.data)) {
-          this._usersCache = usersRes.data.map(u => ({
+        if (usersRes && usersRes.success && Array.isArray(usersRes.data) && usersRes.data.length > 0) {
+          const apiUsers = usersRes.data.map(u => ({
             id: u.id,
             name: u.name,
             email: u.email,
@@ -47,8 +47,15 @@
             color: u.color || 'av-indigo',
             isActive: u.isActive !== false
           }));
+
+          const mergedMap = new Map();
+          const seedData = FS.db.get('users') || [];
+          for (const s of seedData) mergedMap.set(s.id, s);
+          for (const a of apiUsers) mergedMap.set(a.id, a);
+
+          this._usersCache = Array.from(mergedMap.values());
           $('#users-offline-banner').remove();
-        } else {
+        } else if (!this._usersCache.length) {
           this._usersCache = FS.db.get('users') || [];
         }
 
@@ -58,10 +65,12 @@
 
       } catch (err) {
         console.warn('Users API failed:', err);
-        this._usersCache = FS.db.get('users') || [];
-        this._tasksData = FS.db.get('tasks') || [];
-        this._projectsData = FS.db.get('projects') || [];
-        this._logsData = FS.db.get('time_logs') || [];
+        if (!this._usersCache.length) this._usersCache = FS.db.get('users') || [];
+        if (!this._tasksData.length) this._tasksData = FS.db.get('tasks') || [];
+        if (!this._projectsData.length) this._projectsData = FS.db.get('projects') || [];
+        if (!this._logsData.length) this._logsData = FS.db.get('time_logs') || [];
+      } finally {
+        this._render();
       }
     },
 

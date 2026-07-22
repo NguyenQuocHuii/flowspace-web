@@ -18,13 +18,17 @@
     _editingLogId: null, // null when creating, id when editing
 
     async init() {
-      await this._loadLogs();
-      await this._loadTasks();
+      // 1. Instant 0ms SWR render with local seed data (NO SPINNER!)
+      this._logsData = FS.db.get('time_logs') || [];
+      this._tasksList = FS.db.get('tasks') || [];
       this._populateTaskSelect();
       this._renderLogs();
       this._renderChart();
       this._renderControls();
       this._bindEvents();
+
+      // 2. Fetch live data from backend API in background & sync seamlessly
+      await Promise.all([this._loadLogs(), this._loadTasks()]);
     },
 
     _getAuthHeaders() {
@@ -60,30 +64,38 @@
           type: 'GET'
         });
 
-        if (response && response.success && Array.isArray(response.data)) {
-          this._logsData = response.data.map(l => ({
+        if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
+          const apiLogs = response.data.map(l => ({
             id: l.id,
             taskId: l.taskId,
+            taskCode: l.taskCode || '',
             taskTitle: l.taskTitle || '',
             userId: l.userId,
             userName: l.userName || '',
-            hours: l.hours || 0,
-            note: l.description || '',
-            date: l.loggedDate,
-            createdAt: l.createdAt,
-            projectId: l.projectId,
-            projectName: l.projectName || ''
+            hours: l.hours,
+            note: l.note || '',
+            date: l.date,
+            createdAt: l.createdAt
           }));
+
+          const mergedMap = new Map();
+          const seedData = FS.db.get('time_logs') || [];
+          for (const s of seedData) mergedMap.set(s.id, s);
+          for (const a of apiLogs) mergedMap.set(a.id, a);
+
+          this._logsData = Array.from(mergedMap.values());
           $('#timetracking-offline-banner').remove();
-        } else {
-          this._logsData = [];
+        } else if (!this._logsData.length) {
+          this._logsData = FS.db.get('time_logs') || [];
         }
       } catch (err) {
-        console.warn('Time logs API request failed:', err);
-        this._logsData = [];
-        if (!$('#timetracking-offline-banner').length) {
-          $('#page-content').prepend('<div id="timetracking-offline-banner" class="fs-login-alert show" style="display:flex; margin-bottom:16px"><i class="bi bi-exclamation-triangle-fill"></i><span>Không thể kết nối máy chủ. Hiện đang hiển thị dữ liệu nhật ký tạm thời ngoại tuyến.</span></div>');
+        console.warn('TimeTracking API request failed:', err);
+        if (!this._logsData.length) {
+          this._logsData = FS.db.get('time_logs') || [];
         }
+      } finally {
+        this._renderLogs();
+        this._renderChart();
       }
     },
 

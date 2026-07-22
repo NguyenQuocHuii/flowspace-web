@@ -20,23 +20,37 @@
     _projectsData: [],
 
     async init() {
-      await this._loadData();
+      // 1. Instant 0ms SWR render with local seed data (NO SPINNER!)
+      this._tasksData = (FS.db.get('tasks') || []).map(t => {
+        let st = (t.status || 'todo').toLowerCase();
+        if (st === 'in_progress') st = 'inprogress';
+        if (st === 'on_hold') st = 'onhold';
+        return { ...t, status: st };
+      });
+      this._projectsData = FS.db.get('projects') || [];
       this._populateFilters();
       this._renderBoard();
       this._bindEvents();
+
+      // 2. Fetch live data from backend API in background & sync seamlessly
+      await this._loadData();
     },
 
     async _loadData() {
       try {
-        await FS.loadUsersCache();
+        try {
+          await FS.loadUsersCache();
+        } catch (e) {
+          console.warn('loadUsersCache failed in kanban page:', e);
+        }
 
         const [tasksRes, projsRes] = await Promise.all([
           FS.apiCall({ url: FS.API_BASE + '/api/v1/tasks', type: 'GET' }),
           FS.apiCall({ url: FS.API_BASE + '/api/v1/projects', type: 'GET' })
         ]);
 
-        if (tasksRes && tasksRes.success && Array.isArray(tasksRes.data)) {
-          this._tasksData = tasksRes.data.map(t => {
+        if (tasksRes && tasksRes.success && Array.isArray(tasksRes.data) && tasksRes.data.length > 0) {
+          const apiTasks = tasksRes.data.map(t => {
             let st = (t.status || 'todo').toLowerCase();
             if (st === 'in_progress') st = 'inprogress';
             if (st === 'on_hold') st = 'onhold';
@@ -61,23 +75,31 @@
               createdAt: t.createdAt
             };
           });
-        } else {
+
+          const mergedMap = new Map();
+          const seedData = FS.db.get('tasks') || [];
+          for (const s of seedData) mergedMap.set(s.id, s);
+          for (const a of apiTasks) mergedMap.set(a.id, a);
+
+          this._tasksData = Array.from(mergedMap.values());
+        } else if (!this._tasksData.length) {
           this._tasksData = FS.db.get('tasks') || [];
         }
 
-        if (projsRes && projsRes.success && Array.isArray(projsRes.data)) {
+        if (projsRes && projsRes.success && Array.isArray(projsRes.data) && projsRes.data.length > 0) {
           this._projectsData = projsRes.data;
-          $('#kanban-offline-banner').remove();
-        } else {
+        } else if (!this._projectsData.length) {
           this._projectsData = FS.db.get('projects') || [];
         }
+
       } catch (err) {
-        console.warn('Kanban Tasks API request failed:', err);
-        this._tasksData = FS.db.get('tasks') || [];
-        this._projectsData = FS.db.get('projects') || [];
-        if (!$('#kanban-offline-banner').length) {
-          $('#page-content').prepend('<div id="kanban-offline-banner" class="fs-login-alert show" style="display:flex; margin-bottom:16px"><i class="bi bi-exclamation-triangle-fill"></i><span>Không thể kết nối máy chủ. Hiện đang hiển thị dữ liệu tạm thời ngoại tuyến.</span></div>');
+        console.warn('Kanban API load failed:', err);
+        if (!this._tasksData.length) {
+          this._tasksData = FS.db.get('tasks') || [];
         }
+      } finally {
+        this._populateFilters();
+        this._renderBoard();
       }
     },
 
