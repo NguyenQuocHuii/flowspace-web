@@ -10,12 +10,34 @@
     </button>
   </div>
 
-  <!-- Tabs -->
-  <div class="fs-tabs" id="req-tabs">
-    <button class="fs-tab active" data-tab="all">Tất cả</button>
-    <button class="fs-tab" data-tab="pending">Chờ duyệt</button>
-    <button class="fs-tab" data-tab="approved">Đã duyệt</button>
-    <button class="fs-tab" data-tab="rejected">Từ chối</button>
+  <!-- Filters Bar & Tabs -->
+  <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+    <div class="fs-tabs m-0" id="req-tabs">
+      <button class="fs-tab active" data-tab="all">Tất cả <span class="badge rounded-pill bg-secondary ms-1" id="tab-cnt-all">0</span></button>
+      <button class="fs-tab" data-tab="pending">Chờ duyệt <span class="badge rounded-pill bg-warning text-dark ms-1" id="tab-cnt-pending">0</span></button>
+      <button class="fs-tab" data-tab="approved">Đã duyệt <span class="badge rounded-pill bg-success ms-1" id="tab-cnt-approved">0</span></button>
+      <button class="fs-tab" data-tab="rejected">Từ chối <span class="badge rounded-pill bg-danger ms-1" id="tab-cnt-rejected">0</span></button>
+    </div>
+
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <div class="position-relative" style="min-width:180px">
+        <input type="text" class="fs-search-input" id="req-search" placeholder="Tìm yêu cầu..." style="height:34px;font-size:13px;padding-left:30px">
+        <i class="bi bi-search position-absolute top-50 translate-middle-y text-muted" style="left:10px;font-size:12px"></i>
+      </div>
+      <select class="fs-filter-select" id="req-filter-type" style="height:34px;font-size:13px">
+        <option value="">Tất cả loại yêu cầu</option>
+        <option value="leave">🏖️ Nghỉ phép</option>
+        <option value="purchase">🛒 Xin mua hàng</option>
+        <option value="payment">💳 Xin thanh toán</option>
+        <option value="advance">💵 Xin tạm ứng</option>
+        <option value="device">💻 Xin cấp thiết bị</option>
+        <option value="it_support">🛠️ Xin hỗ trợ IT</option>
+        <option value="tech_support">🔧 Xin hỗ trợ KT</option>
+        <option value="repair">⚡ Đề nghị sửa chữa</option>
+        <option value="recruitment">👥 Đề nghị tuyển dụng</option>
+        <option value="budget_increase">📈 Đề nghị tăng ngân sách</option>
+      </select>
+    </div>
   </div>
 
   <div id="req-list">

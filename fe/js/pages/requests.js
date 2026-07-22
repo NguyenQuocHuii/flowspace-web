@@ -3,6 +3,8 @@
 
   FS.pages.requests = {
     _tab: 'all',
+    _search: '',
+    _typeFilter: '',
     _page: 1,
     PAGE_SIZE: 6,
     _requestsData: [],
@@ -138,6 +140,15 @@
         requests = requests.filter(r => r.requesterId === session?.userId || r.requesterName === session?.name);
       }
 
+      if (this._search) {
+        const q = this._search.toLowerCase();
+        requests = requests.filter(r => ((r.title || '') + (r.description || '') + (r.requesterName || '')).toLowerCase().includes(q));
+      }
+
+      if (this._typeFilter) {
+        requests = requests.filter(r => r.type === this._typeFilter);
+      }
+
       if (this._tab !== 'all') {
         requests = requests.filter(r => (r.status || '').toLowerCase() === this._tab.toLowerCase());
       }
@@ -145,6 +156,18 @@
     },
 
     _render() {
+      // Update tab counts
+      const rawRequests = this._requestsData || [];
+      const session = FS.auth.getSession();
+      const scopedRequests = FS.auth.getRoleLevel() >= 2
+        ? rawRequests
+        : rawRequests.filter(r => r.requesterId === session?.userId || r.requesterName === session?.name);
+
+      $('#tab-cnt-all').text(scopedRequests.length);
+      $('#tab-cnt-pending').text(scopedRequests.filter(r => (r.status || '').toLowerCase() === 'pending').length);
+      $('#tab-cnt-approved').text(scopedRequests.filter(r => (r.status || '').toLowerCase() === 'approved').length);
+      $('#tab-cnt-rejected').text(scopedRequests.filter(r => (r.status || '').toLowerCase() === 'rejected').length);
+
       const allFiltered = this._getFilteredData();
       const total = allFiltered.length;
       $('#req-count-label').text(`${total} yêu cầu`);
@@ -405,6 +428,19 @@
 
     _bindEvents() {
       const self = this;
+
+      // Search input & Type filter
+      $('#req-search').off('input').on('input', function () {
+        self._search = this.value;
+        self._page = 1;
+        self._render();
+      });
+
+      $('#req-filter-type').off('change').on('change', function () {
+        self._typeFilter = this.value;
+        self._page = 1;
+        self._render();
+      });
 
       // Pagination links
       $(document).off('click.req-page').on('click.req-page', '.req-page-link', function (e) {
