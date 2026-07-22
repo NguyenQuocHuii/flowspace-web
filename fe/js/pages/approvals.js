@@ -34,7 +34,7 @@
 
         const response = await Promise.race([apiPromise, timeoutPromise]);
 
-        if (response && response.success && Array.isArray(response.data)) {
+        if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
           this._requestsData = response.data.map(r => ({
             id: r.id,
             type: (r.type || 'leave').toLowerCase(),
@@ -78,14 +78,15 @@
         requests = requests.filter(r => {
           if (this._statusFilter === 'pending') {
             const activeStep = (r.approvals || []).find(a => (a.status || '').toLowerCase() === 'pending');
-            if (!activeStep) return false;
+            if (!activeStep) return (r.status || '').toLowerCase() === 'pending';
             const stepRole = (activeStep.role || '').toLowerCase();
             return stepRole === sessionRole || 
                    sessionRole === 'director' || 
-                   (sessionRole === 'manager' && stepRole === 'team_lead');
+                   sessionRole === 'manager' ||
+                   sessionRole === 'team_lead';
           }
-          const myStep = (r.approvals || []).find(a => (a.role || '').toLowerCase() === sessionRole || sessionRole === 'director');
-          return myStep && (myStep.status || '').toLowerCase() === this._statusFilter.toLowerCase();
+          const myStep = (r.approvals || []).find(a => (a.role || '').toLowerCase() === sessionRole || sessionRole === 'director' || sessionRole === 'manager');
+          return myStep ? (myStep.status || '').toLowerCase() === this._statusFilter.toLowerCase() : (r.status || '').toLowerCase() === this._statusFilter.toLowerCase();
         });
       }
       return requests;
@@ -95,10 +96,7 @@
       try {
         const requests = this._getFilteredData();
         const sessionRole = (FS.auth.getSession()?.role || 'employee').toLowerCase();
-        const pendingCount = this._requestsData.filter(r => {
-          const step = (r.approvals || []).find(a => (a.role || '').toLowerCase() === sessionRole);
-          return step && (step.status || '').toLowerCase() === 'pending';
-        }).length;
+        const pendingCount = requests.filter(r => (r.status || '').toLowerCase() === 'pending').length;
 
         $('#approvals-pending-badge').text(`${pendingCount} chờ duyệt`);
         if (pendingCount > 0) $('#nav-approval-badge').text(pendingCount).show();
