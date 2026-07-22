@@ -129,7 +129,7 @@
       });
 
       // Restore sidebar state from localStorage
-      const isCollapsed = localStorage.getItem('fs-sidebar-collapsed') === 'true';
+      const isCollapsed = localStorage.getItem('fs_sidebar_collapsed') === 'true';
       if (isCollapsed) {
         $('#fs-sidebar').addClass('collapsed');
         $('#sidebar-toggle-icon').removeClass('bi-layout-sidebar-reverse').addClass('bi-layout-sidebar');
@@ -140,7 +140,7 @@
         e.preventDefault();
         const $sidebar = $('#fs-sidebar');
         const isNowCollapsed = $sidebar.toggleClass('collapsed').hasClass('collapsed');
-        localStorage.setItem('fs-sidebar-collapsed', isNowCollapsed);
+        localStorage.setItem('fs_sidebar_collapsed', isNowCollapsed);
 
         const $icon = $('#sidebar-toggle-icon');
         if (isNowCollapsed) {
@@ -176,6 +176,19 @@
             FS.auth.logout();
           }
         }
+      });
+
+      // Mobile menu triggers
+      $(document).on('click', '#fs-mobile-menu-btn', function (e) {
+        e.preventDefault();
+        $('#fs-sidebar').addClass('mobile-open');
+        $('#fs-sidebar-overlay').addClass('show');
+      });
+
+      $(document).on('click', '#fs-sidebar-overlay', function (e) {
+        e.preventDefault();
+        $('#fs-sidebar').removeClass('mobile-open');
+        $(this).removeClass('show');
       });
     },
 

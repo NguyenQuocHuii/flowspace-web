@@ -113,12 +113,14 @@
 
       <!-- Footer -->
       <div class="fs-sidebar-footer">
-        <button class="fs-sidebar-collapse-btn" id="fs-sidebar-toggle" title="Thu/mở sidebar" tabindex="0" aria-label="Thu/mở sidebar">
-          <i class="bi bi-layout-sidebar-reverse" id="sidebar-toggle-icon"></i>
-        </button>
-        <button class="btn btn-ghost btn-icon btn-sm" id="fs-logout-btn" title="Đăng xuất" tabindex="0" aria-label="Đăng xuất">
-          <i class="bi bi-box-arrow-right"></i>
-        </button>
+        <div class="fs-sidebar-footer-actions">
+          <button class="fs-sidebar-action-btn" id="fs-sidebar-toggle" title="Thu/mở sidebar" tabindex="0" aria-label="Thu/mở sidebar">
+            <i class="bi bi-layout-sidebar-reverse" id="sidebar-toggle-icon"></i>
+          </button>
+          <button class="fs-sidebar-action-btn danger" id="fs-logout-btn" title="Đăng xuất" tabindex="0" aria-label="Đăng xuất">
+            <i class="bi bi-box-arrow-right"></i>
+          </button>
+        </div>
       </div>
 
     </nav><!-- /fs-sidebar -->
@@ -340,43 +342,6 @@
 
       // 6. Bind sidebar project list
       FS.syncSidebarProjects();
-
-      // 7. Sidebar collapse/expand toggle & state persistence
-      const sidebar = $('#fs-sidebar');
-      const toggleBtn = $('#fs-sidebar-toggle');
-      const toggleIcon = $('#sidebar-toggle-icon');
-
-      function setSidebarCollapsed(collapsed) {
-        if (collapsed) {
-          sidebar.addClass('collapsed');
-          toggleIcon.removeClass('bi-layout-sidebar-reverse').addClass('bi-layout-sidebar');
-          localStorage.setItem('fs_sidebar_collapsed', 'true');
-        } else {
-          sidebar.removeClass('collapsed');
-          toggleIcon.removeClass('bi-layout-sidebar').addClass('bi-layout-sidebar-reverse');
-          localStorage.setItem('fs_sidebar_collapsed', 'false');
-        }
-      }
-
-      // Restore saved sidebar collapsed state
-      const isSavedCollapsed = localStorage.getItem('fs_sidebar_collapsed') === 'true';
-      setSidebarCollapsed(isSavedCollapsed);
-
-      toggleBtn.on('click', function () {
-        const isCollapsed = sidebar.hasClass('collapsed');
-        setSidebarCollapsed(!isCollapsed);
-      });
-
-      // Mobile menu triggers
-      $('#fs-mobile-menu-btn').on('click', function () {
-        sidebar.addClass('mobile-open');
-        $('#fs-sidebar-overlay').addClass('show');
-      });
-
-      $('#fs-sidebar-overlay').on('click', function () {
-        sidebar.removeClass('mobile-open');
-        $(this).removeClass('show');
-      });
     });
   </script>
 </body>
