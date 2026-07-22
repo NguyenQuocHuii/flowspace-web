@@ -1,0 +1,105 @@
+/* Dashboard only: full-width, API-driven workspace */
+#dashboard-page {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+}
+
+#dashboard-page .dashboard-summary-row,
+#dashboard-page .dashboard-content-row {
+  margin-right: 0;
+  margin-left: 0;
+}
+
+#dashboard-page .dashboard-summary-row > [class*="col-"],
+#dashboard-page .dashboard-content-row > [class*="col-"] {
+  min-width: 0;
+}
+
+.dashboard-stat-card {
+  height: 100%;
+  min-height: 176px;
+}
+
+.dashboard-icon-accent { background: var(--fs-accent-light); color: var(--fs-accent); }
+.dashboard-icon-info { background: #dbeafe; color: var(--fs-info); }
+.dashboard-icon-danger { background: var(--fs-danger-light); color: var(--fs-danger); }
+.dashboard-icon-success { background: var(--fs-success-light); color: var(--fs-success); }
+.dashboard-icon-warning { background: var(--fs-warning-light); color: var(--fs-warning); }
+
+.dashboard-chart-card {
+  height: 300px;
+}
+
+.dashboard-chart-body {
+  position: relative;
+  height: 220px;
+}
+
+.dashboard-status-chart {
+  display: grid;
+  place-items: center;
+  height: 220px;
+}
+
+.dashboard-status-chart canvas {
+  max-width: 170px;
+  max-height: 170px;
+}
+
+.dashboard-list-item,
+.dashboard-quick-action {
+  border-bottom: 1px solid var(--fs-border);
+}
+
+.dashboard-list-item:last-child {
+  border-bottom: 0;
+}
+
+.dashboard-quick-action {
+  width: 100%;
+  border: 1.5px solid var(--fs-border);
+  border-radius: var(--fs-radius);
+  background: var(--fs-bg);
+}
+
+.dashboard-quick-action:hover,
+.dashboard-quick-action:focus-visible {
+  border-color: var(--fs-accent);
+  background: var(--fs-accent-light);
+}
+
+.dashboard-alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 12px 14px;
+  border: 1px solid #fcd34d;
+  border-radius: var(--fs-radius);
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.dashboard-empty-chart {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--fs-text-muted);
+  font-size: var(--fs-text-sm);
+}
+
+@media (max-width: 991.98px) {
+  #page-content { padding: 24px; }
+  .dashboard-chart-card { height: 280px; }
+}
+
+@media (max-width: 575.98px) {
+  #page-content { padding: 18px 14px; }
+  .dashboard-stat-card { min-height: 158px; padding: 16px; }
+  .dashboard-chart-card { height: 260px; padding: 16px; }
+  .dashboard-chart-body,
+  .dashboard-status-chart { height: 185px; }
+  .dashboard-status-chart canvas { max-width: 140px; max-height: 140px; }
+}

@@ -12,12 +12,21 @@ namespace FlowSpace.Application.Common.Dtos
         public int OverdueTasks { get; set; }
         public int PendingApprovalsCount { get; set; }
         public decimal TotalLoggedHours { get; set; }
+        public TaskStatusSummaryDto TaskStatuses { get; set; } = new TaskStatusSummaryDto();
 
         // Bổ sung các trường dữ liệu thật
         public List<TaskResponse> Tasks { get; set; } = new List<TaskResponse>();
         public List<ProjectResponse> Projects { get; set; } = new List<ProjectResponse>();
         public List<AuditLogDto> Activities { get; set; } = new List<AuditLogDto>();
         public List<TimeLogDto> WeeklyTimeLogs { get; set; } = new List<TimeLogDto>();
+    }
+
+    public class TaskStatusSummaryDto
+    {
+        public int Todo { get; set; }
+        public int InProgress { get; set; }
+        public int Review { get; set; }
+        public int Done { get; set; }
     }
 
     public class AuditLogDto
