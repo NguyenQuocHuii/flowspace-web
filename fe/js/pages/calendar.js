@@ -82,6 +82,7 @@
             title: t.title,
             start: t.startDate || t.dueDate,
             end: t.dueDate,
+            allDay: true,
             backgroundColor: overdue ? '#ef4444' : statusColors[t.status] || '#6366f1',
             extendedProps: { task: t, projectName: projName }
           };
