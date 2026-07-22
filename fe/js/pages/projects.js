@@ -177,26 +177,25 @@
         const membersHtml = (p.members || []).slice(0, 4).map(m => {
           let userId = typeof m === 'object' ? (m.id || m.userId) : m;
           let name = typeof m === 'object' ? m.name : '';
-          let avatar = typeof m === 'object' ? (m.avatar || (name ? name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '')) : '';
-          let color = typeof m === 'object' ? (m.color || '#6366f1') : '#6366f1';
 
           if (userId && FS.user && FS.user.get) {
             const u = FS.user.get(userId);
             if (u) {
               if (!name) name = u.name;
-              if (!avatar) avatar = u.avatar;
-              if (!color || color === 'av-teal') color = u.color || '#6366f1';
             }
           }
 
-          if (!avatar && name) {
-            avatar = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+          if (FS.user && FS.user.avatar) {
+            return FS.user.avatar(userId, 'sm', name || 'Thành viên');
           }
 
-          const bgStyle = color.startsWith('#') ? `background-color:${color};color:#ffffff` : '';
-          const bgClass = !color.startsWith('#') ? color : '';
+          let initials = 'TV';
+          if (name) {
+            const parts = name.trim().split(/\s+/);
+            initials = parts.length > 1 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : name.substring(0, 2).toUpperCase();
+          }
 
-          return `<div class="fs-avatar fs-avatar-sm ${bgClass}" title="${FS.str.escape(name || 'Thành viên')}" style="margin-left:-6px;border:2px solid var(--fs-bg);${bgStyle}">${avatar || '??'}</div>`;
+          return `<div class="fs-avatar fs-avatar-sm" title="${FS.str.escape(name || 'Thành viên')}" style="margin-left:-6px;border:2px solid var(--fs-bg);background-color:#6366f1;color:#ffffff;font-size:11px;font-weight:600">${initials}</div>`;
         }).join('');
 
         const overdue = FS.date.isOverdue(p.endDate) && p.status !== 'done';
@@ -245,26 +244,25 @@
         const membersHtml = (p.members || []).slice(0, 5).map(m => {
           let userId = typeof m === 'object' ? (m.id || m.userId) : m;
           let name = typeof m === 'object' ? m.name : '';
-          let avatar = typeof m === 'object' ? (m.avatar || (name ? name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '')) : '';
-          let color = typeof m === 'object' ? (m.color || '#6366f1') : '#6366f1';
 
           if (userId && FS.user && FS.user.get) {
             const u = FS.user.get(userId);
             if (u) {
               if (!name) name = u.name;
-              if (!avatar) avatar = u.avatar;
-              if (!color || color === 'av-teal') color = u.color || '#6366f1';
             }
           }
 
-          if (!avatar && name) {
-            avatar = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+          if (FS.user && FS.user.avatar) {
+            return FS.user.avatar(userId, 'sm', name || 'Thành viên');
           }
 
-          const bgStyle = color.startsWith('#') ? `background-color:${color};color:#ffffff` : '';
-          const bgClass = !color.startsWith('#') ? color : '';
+          let initials = 'TV';
+          if (name) {
+            const parts = name.trim().split(/\s+/);
+            initials = parts.length > 1 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : name.substring(0, 2).toUpperCase();
+          }
 
-          return `<div class="fs-avatar fs-avatar-sm ${bgClass}" title="${FS.str.escape(name || 'Thành viên')}" style="margin-left:-6px;border:2px solid var(--fs-bg);${bgStyle}">${avatar || '??'}</div>`;
+          return `<div class="fs-avatar fs-avatar-sm" title="${FS.str.escape(name || 'Thành viên')}" style="margin-left:-6px;border:2px solid var(--fs-bg);background-color:#6366f1;color:#ffffff;font-size:11px;font-weight:600">${initials}</div>`;
         }).join('');
 
         const overdue = FS.date.isOverdue(p.endDate) && p.status !== 'done';
