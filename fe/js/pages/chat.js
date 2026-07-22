@@ -263,10 +263,12 @@
       });
 
       $container.innerHTML = html;
-      
+
       // Scroll to bottom only if not searching (otherwise keeps jumping)
       if(!this._searchQuery) {
-        $container.scrollTop = $container.scrollHeight;
+        setTimeout(() => {
+          $container.scrollTop = $container.scrollHeight;
+        }, 50);
       }
     },
 

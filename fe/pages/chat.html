@@ -93,9 +93,14 @@
 .chat-channel-item .ch-hash { font-size: 14px; width: 16px; text-align: center; flex-shrink: 0; }
 .chat-msg {
   display: flex;
-  gap: 10px;
-  padding: 4px 0;
-  group: 1;
+  gap: 12px;
+  padding: 8px 16px;
+  transition: background 0.15s ease;
+  border-radius: var(--fs-radius-md);
+  margin: 2px 8px;
+}
+.chat-msg:hover {
+  background: var(--fs-bg-secondary);
 }
 .chat-msg:hover .chat-msg-time { opacity: 1; }
 .chat-msg-body { flex: 1; min-width: 0; }
@@ -103,10 +108,20 @@
 .chat-msg-name { font-size: 13px; font-weight: 600; color: var(--fs-text); }
 .chat-msg-time { font-size: 11px; color: var(--fs-text-muted); opacity: 0; transition: opacity 0.15s; }
 .chat-msg-text { font-size: 13px; color: var(--fs-text-secondary); line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
-.chat-msg-divider { text-align: center; font-size: 11px; color: var(--fs-text-muted); margin: 12px 0; position: relative; }
+.chat-msg-divider { text-align: center; font-size: 11px; color: var(--fs-text-muted); margin: 16px 0; position: relative; }
 .chat-msg-divider::before, .chat-msg-divider::after { content:''; position:absolute; top:50%; width:calc(50% - 60px); height:1px; background:var(--fs-border); }
 .chat-msg-divider::before { left:0; }
 .chat-msg-divider::after { right:0; }
+
+#chat-input-wrap {
+  border: 1px solid var(--fs-border) !important;
+  box-shadow: var(--fs-shadow-xs);
+  transition: all 0.2s ease;
+}
+#chat-input-wrap:focus-within {
+  border-color: var(--fs-accent) !important;
+  box-shadow: 0 0 0 3px var(--fs-accent-light) !important;
+}
 
 .chat-msg-actions {
   display: flex; gap: 4px; opacity: 0; transition: opacity 0.2s; align-items: center; padding: 2px 8px;
