@@ -863,16 +863,17 @@
   border: none !important;
   background: transparent !important;
   color: var(--fs-text-secondary);
-  width: 32px;
+  min-width: 32px;
   height: 32px;
-  padding: 0;
+  padding: 0 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--fs-radius-sm) !important;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .fs-view-toggle-group .view-toggle:hover {
