@@ -231,11 +231,8 @@
       }).join(''));
     },
 
-    _renderCards() {
-      const projects = this._getFilteredData();
-      $('#proj-count-label').text(`${projects.length} dự án`);
-
-      if (!projects.length) {
+    _renderCards(projects, total) {
+      if (!projects || !projects.length) {
         $('#proj-card-grid').html('<div class="col-12"><div class="fs-empty"><i class="bi bi-folder2"></i><h5>Không tìm thấy dự án</h5></div></div>');
         return;
       }
