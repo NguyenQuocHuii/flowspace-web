@@ -9,14 +9,20 @@
     _logsData: [],
 
     async init() {
-      if (!FS.auth.isDirector()) {
+      if (!FS.auth.isManager() && !FS.auth.isDirector()) {
         document.getElementById('users-table-body').innerHTML =
-          '<tr><td colspan="7"><div class="fs-empty"><i class="bi bi-shield-lock"></i><h5>Không có quyền truy cập</h5></div></td></tr>';
+          '<tr><td colspan="7"><div class="fs-empty"><i class="bi bi-shield-lock"></i><h5>Không có quyền truy cập</h5><p>Tính năng này dành cho Quản lý / Ban Giám Đốc.</p></div></td></tr>';
         return;
       }
-      await this._loadUsers();
+      this._usersCache = FS.db.get('users') || [];
+      this._tasksData = FS.db.get('tasks') || [];
+      this._projectsData = FS.db.get('projects') || [];
+      this._logsData = FS.db.get('time_logs') || [];
       this._render();
       this._bindEvents();
+
+      await this._loadUsers();
+      this._render();
     },
 
     async _loadUsers() {
@@ -99,7 +105,7 @@
                 <div class="fs-avatar ${u.color || 'av-indigo'}">${FS.str.escape(u.avatar || '?')}</div>
                 <div>
                   <div style="font-size:13px;font-weight:600">${FS.str.escape(u.name || '—')}</div>
-                  <div class="fs-small">${FS.str.escape(u.department || 'Thành viên')}</div>
+                  ${(u.department || u.position) ? `<div class="fs-small">${FS.str.escape(u.department || u.position)}</div>` : ''}
                 </div>
               </div>
             </td>
