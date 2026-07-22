@@ -117,6 +117,9 @@
 
       document.getElementById('logs-table-body').innerHTML = logs.map(log => {
         const user = (this._usersCache || []).find(u => u.id === log.userId);
+        const userName = log.userName || (user ? user.name : 'Hệ thống');
+        const userAvatar = user ? user.avatar : (userName ? userName.substring(0, 2).toUpperCase() : 'SYS');
+        const userColor = user ? user.color : 'av-indigo';
         const d = new Date(log.createdAt);
         return `
           <tr class="hover-row">
@@ -125,14 +128,14 @@
             </td>
             <td>
               <div class="d-flex align-items-center gap-2">
-                ${user ? `<div class="fs-avatar fs-avatar-sm ${user.color}">${user.avatar}</div>` : '<div class="fs-avatar fs-avatar-sm av-teal"><i class="bi bi-robot"></i></div>'}
-                <span style="font-size:12px">${user ? FS.str.escape(user.name) : 'System'}</span>
+                <div class="fs-avatar fs-avatar-sm ${userColor}">${FS.str.escape(userAvatar)}</div>
+                <span style="font-size:12px;font-weight:500">${FS.str.escape(userName)}</span>
               </div>
             </td>
             <td>${actionBadge(log.action)}</td>
-            <td><span class="fs-badge badge-neutral" style="font-size:10px">${log.module}</span></td>
-            <td style="font-size:12px;color:var(--fs-text-secondary)">${FS.str.escape(log.detail)}</td>
-            <td style="font-size:11px;color:var(--fs-text-muted)">${log.ip || '127.0.0.1'}</td>
+            <td><span class="fs-badge badge-neutral" style="font-size:10px">${FS.str.escape(log.module || 'Hệ thống')}</span></td>
+            <td style="font-size:12px;color:var(--fs-text-secondary)">${FS.str.escape(log.detail || '—')}</td>
+            <td style="font-size:11px;color:var(--fs-text-muted)">${FS.str.escape(log.ipAddress || log.ip || '127.0.0.1')}</td>
           </tr>`;
       }).join('') || '<tr><td colspan="6"><div class="fs-empty"><i class="bi bi-journal"></i><h5>Không tìm thấy log</h5></div></td></tr>';
 
