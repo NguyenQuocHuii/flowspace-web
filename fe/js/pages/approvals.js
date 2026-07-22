@@ -3,15 +3,17 @@
 
   FS.pages.approvals = {
     _statusFilter: 'pending',
+    _page: 1,
+    PAGE_SIZE: 6,
     _requestsData: [],
 
     async init() {
-      // Instant render from local cache first (0ms delay)
+      // 0ms instant load from local database cache
       this._requestsData = FS.db.get('requests') || [];
       this._render();
       this._bindEvents();
 
-      // Fetch fresh data in background
+      // Background fetch
       await this._loadData();
     },
 
@@ -24,16 +26,10 @@
       try {
         await FS.loadUsersCache();
 
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Approvals API timeout')), 2500)
-        );
-
-        const apiPromise = FS.apiCall({
+        const response = await FS.apiCall({
           url: FS.API_BASE + '/api/v1/approvals/pending',
           type: 'GET'
         });
-
-        const response = await Promise.race([apiPromise, timeoutPromise]);
 
         if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
           this._requestsData = response.data.map(r => ({
@@ -58,63 +54,68 @@
             }))
           }));
           $('#approvals-offline-banner').remove();
-          this._render();
+        } else if (!this._requestsData.length) {
+          this._requestsData = FS.db.get('requests') || [];
         }
       } catch (err) {
-        console.warn('Pending approvals API request failed or timed out, using local data:', err);
-        // Cleanly re-render local data if empty
+        console.warn('Pending approvals API request failed, using local fallback:', err);
         if (!this._requestsData.length) {
           this._requestsData = FS.db.get('requests') || [];
-          this._render();
         }
+      } finally {
+        this._render();
       }
     },
 
     _getFilteredData() {
-      const sessionRole = (FS.auth.getSession()?.role || 'employee').toLowerCase();
       let requests = [...this._requestsData];
+      const isManagerOrAbove = FS.auth.getRoleLevel() >= 2;
 
       if (this._statusFilter) {
+        const filterVal = this._statusFilter.toLowerCase();
         requests = requests.filter(r => {
-          if (this._statusFilter === 'pending') {
-            const activeStep = (r.approvals || []).find(a => (a.status || '').toLowerCase() === 'pending');
-            if (!activeStep) return (r.status || '').toLowerCase() === 'pending';
-            const stepRole = (activeStep.role || '').toLowerCase();
-            return stepRole === sessionRole || 
-                   sessionRole === 'director' || 
-                   sessionRole === 'manager' ||
-                   sessionRole === 'team_lead';
+          const reqStatus = (r.status || 'pending').toLowerCase();
+          if (filterVal === 'pending') {
+            return reqStatus === 'pending';
           }
-          const myStep = (r.approvals || []).find(a => (a.role || '').toLowerCase() === sessionRole || sessionRole === 'director' || sessionRole === 'manager');
-          return myStep ? (myStep.status || '').toLowerCase() === this._statusFilter.toLowerCase() : (r.status || '').toLowerCase() === this._statusFilter.toLowerCase();
+          return reqStatus === filterVal;
         });
       }
+
       return requests;
     },
 
     _render() {
       try {
-        const requests = this._getFilteredData();
-        const sessionRole = (FS.auth.getSession()?.role || 'employee').toLowerCase();
-        const pendingCount = requests.filter(r => (r.status || '').toLowerCase() === 'pending').length;
+        const allFiltered = this._getFilteredData();
+        const total = allFiltered.length;
+        const pendingCount = this._requestsData.filter(r => (r.status || '').toLowerCase() === 'pending').length;
 
         $('#approvals-pending-badge').text(`${pendingCount} chờ duyệt`);
         if (pendingCount > 0) $('#nav-approval-badge').text(pendingCount).show();
         else $('#nav-approval-badge').hide();
 
-        if (!requests.length) {
-          $('#approvals-list').html('<div class="fs-empty"><i class="bi bi-inbox-fill"></i><h5>Không có yêu cầu nào cần duyệt</h5></div>');
+        const totalPages = Math.ceil(total / this.PAGE_SIZE) || 1;
+        if (this._page > totalPages) this._page = totalPages;
+        if (this._page < 1) this._page = 1;
+
+        const start = (this._page - 1) * this.PAGE_SIZE;
+        const pagedRequests = allFiltered.slice(start, start + this.PAGE_SIZE);
+
+        if (!total) {
+          $('#approvals-list').html('<div class="fs-empty"><i class="bi bi-inbox-fill"></i><h5>Không có yêu cầu nào trong danh mục này</h5></div>');
+          this._renderPagination(0, 1);
           return;
         }
 
-        const typeLabels = { leave: '🏖️ Nghỉ phép', overtime: '⏰ Tăng ca', purchase: '🛒 Mua sắm', remote: '🏠 Làm remote' };
+        const sessionRole = (FS.auth.getSession()?.role || 'employee').toLowerCase();
 
-        $('#approvals-list').html(requests.map(r => {
+        $('#approvals-list').html(pagedRequests.map(r => {
           const requesterName = r.requesterName || (FS.user.get(r.requesterId)?.name || '—');
-          const myStep = (r.approvals || []).find(a => (a.role || '').toLowerCase() === sessionRole);
-          const isPending = myStep?.status === 'pending';
+          const myStep = (r.approvals || []).find(a => (a.status || '').toLowerCase() === 'pending') || (r.approvals || [])[0];
+          const isPending = (r.status || '').toLowerCase() === 'pending';
           return `
-            <div class="fs-card mb-2" style="border-radius:var(--fs-radius-md);border-left:3px solid ${isPending ? 'var(--fs-warning)' : myStep?.status === 'approved' ? 'var(--fs-success)' : 'var(--fs-danger')}">
+            <div class="fs-card mb-2" style="border-radius:var(--fs-radius-md);border-left:3px solid ${isPending ? 'var(--fs-warning)' : r.status === 'approved' ? 'var(--fs-success)' : 'var(--fs-danger)'}">
               <div class="d-flex align-items-start gap-3">
                 <div>
                   ${FS.user.avatar(r.requesterId)}
@@ -129,22 +130,64 @@
                   <div class="d-flex align-items-center gap-2 gap-md-3 flex-wrap">
                     <span class="fs-small"><i class="bi bi-person me-1"></i>${FS.str.escape(requesterName)}</span>
                     <span class="fs-small"><i class="bi bi-calendar3 me-1"></i>${FS.date.format(r.createdAt)}</span>
-                    ${myStep ? `<span class="fs-small text-muted"><i class="bi bi-shield-check me-1"></i>${FS.auth.getRoleLabel(myStep.role)}</span>` : ''}
+                    ${myStep ? `<span class="fs-small text-muted"><i class="bi bi-shield-check me-1"></i>Cấp: ${FS.auth.getRoleLabel(myStep.role || 'manager')}</span>` : ''}
                   </div>
-                  ${isPending ? `
+                  ${isPending && FS.auth.getRoleLevel() >= 2 ? `
                     <div class="mt-3 d-flex gap-2">
-                      <button class="btn btn-sm btn-success app-action-btn approvals-accept-btn" data-req-id="${r.id}" data-approval-id="${myStep.id}" data-action="approved"><i class="bi bi-check-lg"></i> Phê duyệt</button>
-                      <button class="btn btn-sm btn-danger app-action-btn approvals-reject-btn" data-req-id="${r.id}" data-approval-id="${myStep.id}" data-action="rejected"><i class="bi bi-x-lg"></i> Từ chối</button>
+                      <button class="btn btn-sm btn-success app-action-btn approvals-accept-btn" data-req-id="${r.id}" data-approval-id="${myStep?.id || ''}" data-action="approved"><i class="bi bi-check-lg"></i> Phê duyệt</button>
+                      <button class="btn btn-sm btn-danger app-action-btn approvals-reject-btn" data-req-id="${r.id}" data-approval-id="${myStep?.id || ''}" data-action="rejected"><i class="bi bi-x-lg"></i> Từ chối</button>
                     </div>
                   ` : ''}
                 </div>
               </div>
             </div>`;
         }).join(''));
+
+        this._renderPagination(total, totalPages);
       } catch (err) {
-        console.error('Error rendering approvals:', err);
+        console.error('Approvals render error:', err);
         $('#approvals-list').html('<div class="fs-empty"><i class="bi bi-inbox-fill"></i><h5>Không có yêu cầu nào cần duyệt</h5></div>');
+        this._renderPagination(0, 1);
       }
+    },
+
+    _renderPagination(total, totalPages) {
+      const $ul = $('#approvals-pagination-ul');
+      const $info = $('#approvals-pagination-info');
+
+      if (total === 0) {
+        $info.text('Hiển thị 0 trong 0 yêu cầu');
+        $ul.html('');
+        return;
+      }
+
+      const start = (this._page - 1) * this.PAGE_SIZE + 1;
+      const end = Math.min(this._page * this.PAGE_SIZE, total);
+      $info.text(`Hiển thị ${start}-${end} trong ${total} yêu cầu`);
+
+      let html = '';
+
+      if (this._page === 1) {
+        html += `<li class="page-item disabled" aria-disabled="true"><span class="page-link">&laquo; Trước</span></li>`;
+      } else {
+        html += `<li class="page-item"><a class="page-link approvals-page-link" data-page="${this._page - 1}" href="#">&laquo; Trước</a></li>`;
+      }
+
+      for (let p = 1; p <= totalPages; p++) {
+        if (p === this._page) {
+          html += `<li class="page-item active" aria-current="page"><span class="page-link">${p}</span></li>`;
+        } else {
+          html += `<li class="page-item"><a class="page-link approvals-page-link" data-page="${p}" href="#">${p}</a></li>`;
+        }
+      }
+
+      if (this._page === totalPages) {
+        html += `<li class="page-item disabled" aria-disabled="true"><span class="page-link">Sau &raquo;</span></li>`;
+      } else {
+        html += `<li class="page-item"><a class="page-link approvals-page-link" data-page="${this._page + 1}" href="#">Sau &raquo;</a></li>`;
+      }
+
+      $ul.html(html);
     },
 
     async _processApproval(reqId, approvalId, decision) {
@@ -190,6 +233,15 @@
 
     _bindEvents() {
       const self = this;
+
+      $(document).off('click.approv-page').on('click.approv-page', '.approvals-page-link', function (e) {
+        e.preventDefault();
+        const p = parseInt($(this).data('page'), 10);
+        if (p && p !== self._page) {
+          self._page = p;
+          self._render();
+        }
+      });
 
       $('#approvals-filter').off('change').on('change', function () { self._statusFilter = this.value; self._render(); });
 
