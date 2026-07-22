@@ -4,6 +4,10 @@
   FS.pages.users = {
     _filter: { search: '', role: '' },
     _usersCache: null,
+    _tasksData: [],
+    _projectsData: [],
+    _logsData: [],
+
     async init() {
       if (!FS.auth.isDirector()) {
         document.getElementById('users-table-body').innerHTML =
@@ -14,93 +18,102 @@
       this._render();
       this._bindEvents();
     },
+
     async _loadUsers() {
       try {
-        const response = await FS.apiCall({
-          url: FS.API_BASE + '/api/v1/chat/users',
-          type: 'GET',
-          headers: this._getAuthHeaders()
-        });
-        if (response && response.success && response.data) {
-          this._usersCache = response.data;
+        const [usersRes, tasksRes, projsRes, logsRes] = await Promise.all([
+          FS.apiCall({ url: FS.API_BASE + '/api/v1/users?pageSize=100', type: 'GET' }),
+          FS.apiCall({ url: FS.API_BASE + '/api/v1/tasks', type: 'GET' }),
+          FS.apiCall({ url: FS.API_BASE + '/api/v1/projects', type: 'GET' }),
+          FS.apiCall({ url: FS.API_BASE + '/api/v1/timetracking/logs', type: 'GET' })
+        ]);
+
+        if (usersRes && usersRes.success && Array.isArray(usersRes.data)) {
+          this._usersCache = usersRes.data.map(u => ({
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            role: (u.role || 'employee').toLowerCase(),
+            department: u.department || '',
+            avatar: u.avatar || (u.name ? u.name.substring(0,2).toUpperCase() : '??'),
+            color: u.color || 'av-indigo',
+            isActive: u.isActive !== false
+          }));
           $('#users-offline-banner').remove();
         } else {
-          this._usersCache = null;
-          this._showOfflineBanner('Không nhận được dữ liệu người dùng hợp lệ. Đang hiển thị dữ liệu offline.');
+          this._usersCache = FS.db.get('users') || [];
         }
+
+        this._tasksData = (tasksRes && tasksRes.success && Array.isArray(tasksRes.data)) ? tasksRes.data : (FS.db.get('tasks') || []);
+        this._projectsData = (projsRes && projsRes.success && Array.isArray(projsRes.data)) ? projsRes.data : (FS.db.get('projects') || []);
+        this._logsData = (logsRes && logsRes.success && Array.isArray(logsRes.data)) ? logsRes.data : (FS.db.get('time_logs') || []);
+
       } catch (err) {
         console.warn('Users API failed:', err);
-        this._usersCache = null;
-        this._showOfflineBanner('Không thể kết nối máy chủ. Đang hiển thị dữ liệu offline (Demo).');
+        this._usersCache = FS.db.get('users') || [];
+        this._tasksData = FS.db.get('tasks') || [];
+        this._projectsData = FS.db.get('projects') || [];
+        this._logsData = FS.db.get('time_logs') || [];
       }
     },
-    _getAuthHeaders() {
-      const session = FS.auth.getSession();
-      return session && session.token ? { 'Authorization': 'Bearer ' + session.token } : {};
-    },
-    _showOfflineBanner(message) {
-      if (!$('#users-offline-banner').length) {
-        $('#page-content').prepend(`
-          <div id="users-offline-banner" class="fs-login-alert show" style="display:flex; margin-bottom:16px; background:#fff3cd; border:1px solid #ffeeba; color:#856404">
-            <i class="bi bi-exclamation-triangle-fill" style="margin-right:8px"></i>
-            <span>${message}</span>
-          </div>
-        `);
-      }
-    },
+
     _getData() {
       const users = this._usersCache || [];
       const { search, role } = this._filter;
       let filtered = users;
       if (search) {
         const q = search.toLowerCase();
-        filtered = filtered.filter(u => (u.name + u.email).toLowerCase().includes(q));
+        filtered = filtered.filter(u => ((u.name || '') + (u.email || '')).toLowerCase().includes(q));
       }
       if (role) filtered = filtered.filter(u => u.role === role);
       return filtered;
     },
+
     _render() {
       const users = this._getData();
       $('#users-count-label').text(`${users.length} người dùng`);
 
-      // No fallback data; rely on API
-      const tasks = [];
-      const logs = [];
-      const projects = [];
+      const tasks = this._tasksData || [];
+      const logs = this._logsData || [];
+
+      if (!users.length) {
+        $('#users-table-body').html('<tr><td colspan="7"><div class="fs-empty"><i class="bi bi-people"></i><p>Không tìm thấy người dùng nào</p></div></td></tr>');
+        return;
+      }
 
       $('#users-table-body').html(users.map(u => {
         const userTasks = tasks.filter(t => t.assigneeId === u.id);
         const userLogs = logs.filter(l => l.userId === u.id);
-        const userProjects = [...new Set(userTasks.map(t => t.projectId))];
-        const totalHours = userLogs.reduce((s, l) => s + (l.hours || 0), 0);
+        const userProjects = [...new Set(userTasks.map(t => t.projectId).filter(Boolean))];
+        const totalHours = Math.round(userLogs.reduce((s, l) => s + (l.hours || 0), 0) * 10) / 10;
         const roleLabels = {
           employee: '<span class="fs-badge badge-neutral">Nhân viên</span>',
           team_lead: '<span class="fs-badge badge-accent">Trưởng nhóm</span>',
-          manager: '<span class="fs-badge badge-warning">Quản lý</span>',
-          director: '<span class="fs-badge badge-success">Ban GĐ</span>'
+          manager: '<span class="fs-badge badge-warning">Trưởng phòng</span>',
+          director: '<span class="fs-badge badge-success">Ban giám đốc</span>'
         };
         return `
           <tr class="hover-row">
             <td>
               <div class="d-flex align-items-center gap-3">
-                <div class="fs-avatar ${u.color}">${u.avatar}</div>
+                <div class="fs-avatar ${u.color || 'av-indigo'}">${FS.str.escape(u.avatar || '?')}</div>
                 <div>
-                  <div style="font-size:13px;font-weight:600">${FS.str.escape(u.name)}</div>
-                  <div class="fs-small">${u.department || '—'}</div>
+                  <div style="font-size:13px;font-weight:600">${FS.str.escape(u.name || '—')}</div>
+                  <div class="fs-small">${FS.str.escape(u.department || 'Thành viên')}</div>
                 </div>
               </div>
             </td>
-            <td style="font-size:12px">${u.email}</td>
-            <td>${roleLabels[u.role] || u.role}</td>
+            <td style="font-size:12px">${FS.str.escape(u.email || '—')}</td>
+            <td>${roleLabels[u.role] || '<span class="fs-badge badge-neutral">' + FS.str.escape(u.role) + '</span>'}</td>
             <td style="font-size:13px">${userProjects.length}</td>
             <td>
               <div class="d-flex align-items-center gap-2">
-                <span style="font-size:13px">${userTasks.filter(t=>t.status==='done').length}/${userTasks.length}</span>
+                <span style="font-size:13px">${userTasks.filter(t => (t.status||'').toLowerCase() === 'done').length}/${userTasks.length}</span>
               </div>
             </td>
             <td style="font-size:13px">${totalHours}h</td>
             <td>
-              <button class="btn btn-ghost btn-icon btn-sm" title="Xem chi tiết" onclick="FS.toast('Xem hồ sơ ${FS.str.escape(u.name)}', 'info')">
+              <button class="btn btn-ghost btn-icon btn-sm" title="Xem chi tiết" onclick="FS.toast('Hồ sơ thành viên: ${FS.str.escape(u.name)}', 'info')">
                 <i class="bi bi-eye"></i>
               </button>
             </td>
