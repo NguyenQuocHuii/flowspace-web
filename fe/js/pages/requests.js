@@ -26,17 +26,24 @@
     async _loadData() {
       const session = FS.auth.getSession();
       const userId = session?.userId;
+      const isManagement = FS.auth.getRoleLevel() >= 2;
+
       try {
-        await FS.loadUsersCache();
+        try {
+          await FS.loadUsersCache();
+        } catch (e) {
+          console.warn('loadUsersCache failed in requests page:', e);
+        }
+
+        const queryData = (!isManagement && userId) ? { requesterId: userId } : {};
 
         const response = await FS.apiCall({
           url: FS.API_BASE + '/api/v1/requests',
           type: 'GET',
-          data: userId ? { requesterId: userId } : {}
+          data: queryData
         });
 
         if (response && response.success && Array.isArray(response.data)) {
-          // Normalise data shape for the UI
           this._requestsData = response.data.map(r => ({
             id: r.id,
             type: (r.type || 'leave').toLowerCase(),
@@ -60,7 +67,6 @@
           }));
           $('#requests-offline-banner').remove();
         } else {
-          // Unexpected payload – fall back to local storage
           this._requestsData = FS.db.get('requests') || [];
         }
       } catch (err) {
@@ -69,29 +75,27 @@
         if (!$('#requests-offline-banner').length) {
           $('#page-content').prepend('<div id="requests-offline-banner" class="fs-login-alert show" style="display:flex; margin-bottom:16px"><i class="bi bi-exclamation-triangle-fill"></i><span>Không thể kết nối máy chủ. Hiện đang hiển thị dữ liệu yêu cầu tạm thời ngoại tuyến.</span></div>');
         }
+      } finally {
+        this._render();
       }
-      this._render();
     },
 
-    /**
-     * Helper to decide whether the current user can edit / delete a request.
-     * Only pending requests created by the current user are editable.
-     */
     _canEdit(req) {
       const session = FS.auth.getSession();
-      return req.status === 'pending' && req.requesterId === session?.userId;
+      return req.status === 'pending' && (req.requesterId === session?.userId || FS.auth.getRoleLevel() >= 3);
     },
 
     _getFilteredData() {
       const session = FS.auth.getSession();
       let requests = [...this._requestsData];
 
-      if (!FS.auth.isManager()) {
-        requests = requests.filter(r => r.requesterId === session?.userId);
+      // Regular employees (Level 1) only see their own requests; Managers/Directors (Level >= 2) see all requests
+      if (FS.auth.getRoleLevel() < 2) {
+        requests = requests.filter(r => r.requesterId === session?.userId || r.requesterName === session?.name);
       }
 
       if (this._tab !== 'all') {
-        requests = requests.filter(r => r.status.toLowerCase() === this._tab.toLowerCase());
+        requests = requests.filter(r => (r.status || '').toLowerCase() === this._tab.toLowerCase());
       }
       return requests;
     },
