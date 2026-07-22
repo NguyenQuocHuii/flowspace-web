@@ -124,10 +124,21 @@
       });
       $(document).on('click.header-profile', '#user-logout-btn', event => {
         event.preventDefault();
-        this.close();
-        if (FS.auth && typeof FS.auth.logout === 'function') {
-          FS.auth.logout();
+        const btn = $('#user-logout-btn');
+        
+        // Visual loading state
+        btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status"></span> Đang đăng xuất...');
+        
+        if (FS.toast) {
+          FS.toast("Đang đăng xuất khỏi hệ thống...", "info", 1500);
         }
+        
+        setTimeout(() => {
+          this.close();
+          if (FS.auth && typeof FS.auth.logout === 'function') {
+            FS.auth.logout();
+          }
+        }, 1000);
       });
       $(document).on('click.header-profile', event => {
         if (this._isOpen && !$(event.target).closest('#fs-topbar-user, #fs-user-menu').length) this.close();

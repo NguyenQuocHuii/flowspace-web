@@ -498,6 +498,7 @@ img { max-width: 100%; display: block; }
 .fs-dropdown-item:hover { background: var(--fs-bg-secondary); }
 .fs-dropdown-item:focus-visible { outline: 2px solid var(--fs-accent); outline-offset: -2px; background: var(--fs-bg-secondary); }
 .fs-dropdown-item.danger { color: var(--fs-danger); }
+.fs-dropdown-item.danger:hover { background: var(--fs-danger-light); color: var(--fs-danger); }
 .fs-dropdown-divider { height: 1px; background: var(--fs-border); margin: 4px 0; }
 .fs-dropdown-header { padding: 8px 14px; font-size: var(--fs-text-xs); font-weight: 600; color: var(--fs-text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
 
