@@ -3,6 +3,8 @@
 
   FS.pages.users = {
     _filter: { search: '', role: '' },
+    _page: 1,
+    PAGE_SIZE: 6,
     _usersCache: null,
     _tasksData: [],
     _projectsData: [],
@@ -76,18 +78,27 @@
     },
 
     _render() {
-      const users = this._getData();
-      $('#users-count-label').text(`${users.length} người dùng`);
+      const allFiltered = this._getData();
+      const total = allFiltered.length;
+      $('#users-count-label').text(`${total} người dùng`);
 
       const tasks = this._tasksData || [];
       const logs = this._logsData || [];
 
-      if (!users.length) {
+      if (!total) {
         $('#users-table-body').html('<tr><td colspan="7"><div class="fs-empty"><i class="bi bi-people"></i><p>Không tìm thấy người dùng nào</p></div></td></tr>');
+        this._renderPagination(0);
         return;
       }
 
-      $('#users-table-body').html(users.map(u => {
+      const totalPages = Math.ceil(total / this.PAGE_SIZE) || 1;
+      if (this._page > totalPages) this._page = totalPages;
+      if (this._page < 1) this._page = 1;
+
+      const start = (this._page - 1) * this.PAGE_SIZE;
+      const pagedUsers = allFiltered.slice(start, start + this.PAGE_SIZE);
+
+      $('#users-table-body').html(pagedUsers.map(u => {
         const userTasks = tasks.filter(t => t.assigneeId === u.id);
         const userLogs = logs.filter(l => l.userId === u.id);
         const userProjects = [...new Set(userTasks.map(t => t.projectId).filter(Boolean))];
@@ -98,11 +109,16 @@
           manager: '<span class="fs-badge badge-warning">Trưởng phòng</span>',
           director: '<span class="fs-badge badge-success">Ban giám đốc</span>'
         };
+
+        const color = u.color || '#6366f1';
+        const bgStyle = color.startsWith('#') ? `background-color:${color};color:#ffffff;` : '';
+        const bgClass = !color.startsWith('#') ? color : '';
+
         return `
           <tr class="hover-row">
             <td>
               <div class="d-flex align-items-center gap-3">
-                <div class="fs-avatar ${u.color || 'av-indigo'}">${FS.str.escape(u.avatar || '?')}</div>
+                <div class="fs-avatar ${bgClass}" style="${bgStyle}">${FS.str.escape(u.avatar || '?')}</div>
                 <div>
                   <div style="font-size:13px;font-weight:600">${FS.str.escape(u.name || '—')}</div>
                   ${(u.department || u.position) ? `<div class="fs-small">${FS.str.escape(u.department || u.position)}</div>` : ''}
@@ -125,11 +141,64 @@
             </td>
           </tr>`;
       }).join(''));
+
+      this._renderPagination(total);
     },
+
+    _renderPagination(total) {
+      if (!total || total <= this.PAGE_SIZE) {
+        $('#users-pagination-wrap').hide();
+        return;
+      }
+      $('#users-pagination-wrap').show();
+
+      const totalPages = Math.ceil(total / this.PAGE_SIZE);
+      const start = (this._page - 1) * this.PAGE_SIZE + 1;
+      const end = Math.min(this._page * this.PAGE_SIZE, total);
+
+      $('#users-pagination-info').text(`Hiển thị ${start}–${end} trên tổng số ${total} người dùng`);
+
+      let pagesHtml = '';
+
+      // Previous Button
+      if (this._page === 1) {
+        pagesHtml += `<li class="page-item disabled" aria-disabled="true"><span class="page-link">&laquo; Trước</span></li>`;
+      } else {
+        pagesHtml += `<li class="page-item"><a class="page-link users-page-link" href="#" data-page="${this._page - 1}">&laquo; Trước</a></li>`;
+      }
+
+      // Page Numbers
+      for (let i = 1; i <= totalPages; i++) {
+        if (i === this._page) {
+          pagesHtml += `<li class="page-item active" aria-current="page"><span class="page-link">${i}</span></li>`;
+        } else {
+          pagesHtml += `<li class="page-item"><a class="page-link users-page-link" href="#" data-page="${i}">${i}</a></li>`;
+        }
+      }
+
+      // Next Button
+      if (this._page === totalPages) {
+        pagesHtml += `<li class="page-item disabled" aria-disabled="true"><span class="page-link">Sau &raquo;</span></li>`;
+      } else {
+        pagesHtml += `<li class="page-item"><a class="page-link users-page-link" href="#" data-page="${this._page + 1}">Sau &raquo;</a></li>`;
+      }
+
+      $('#users-pagination-ul').html(pagesHtml);
+    },
+
     _bindEvents() {
       const self = this;
-      $('#users-search').off('input').on('input', function () { self._filter.search = this.value; self._render(); });
-      $('#users-filter-role').off('change').on('change', function () { self._filter.role = this.value; self._render(); });
+      $('#users-search').off('input').on('input', function () { self._filter.search = this.value; self._page = 1; self._render(); });
+      $('#users-filter-role').off('change').on('change', function () { self._filter.role = this.value; self._page = 1; self._render(); });
+
+      $(document).off('click.users-page').on('click.users-page', '.users-page-link', function (e) {
+        e.preventDefault();
+        const p = parseInt($(this).data('page'));
+        if (p && p !== self._page) {
+          self._page = p;
+          self._render();
+        }
+      });
     }
   };
 })(window.FS = window.FS || {}, jQuery);
