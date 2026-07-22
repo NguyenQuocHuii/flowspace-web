@@ -161,20 +161,29 @@
       }
 
       $('#proj-table-body').html(projects.map(p => {
-        const membersHtml = (p.members || []).slice(0, 3).map(m => {
+        const membersHtml = (p.members || []).slice(0, 4).map(m => {
+          let userId = typeof m === 'object' ? (m.id || m.userId) : m;
           let name = typeof m === 'object' ? m.name : '';
-          let avatar = typeof m === 'object' ? (m.avatar || name.substring(0, 2).toUpperCase()) : '';
-          let color = typeof m === 'object' ? (m.color || 'av-teal') : 'av-teal';
+          let avatar = typeof m === 'object' ? (m.avatar || (name ? name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '')) : '';
+          let color = typeof m === 'object' ? (m.color || '#6366f1') : '#6366f1';
 
-          if (typeof m === 'string') {
-            const u = FS.db.find('users', m);
+          if (userId && FS.user && FS.user.get) {
+            const u = FS.user.get(userId);
             if (u) {
-              name = u.name;
-              avatar = u.avatar;
-              color = u.color;
+              if (!name) name = u.name;
+              if (!avatar) avatar = u.avatar;
+              if (!color || color === 'av-teal') color = u.color || '#6366f1';
             }
           }
-          return avatar ? `<div class="fs-avatar fs-avatar-sm ${color}" title="${FS.str.escape(name)}" style="margin-left:-6px;border:2px solid #fff">${avatar}</div>` : '';
+
+          if (!avatar && name) {
+            avatar = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+          }
+
+          const bgStyle = color.startsWith('#') ? `background-color:${color};color:#ffffff` : '';
+          const bgClass = !color.startsWith('#') ? color : '';
+
+          return `<div class="fs-avatar fs-avatar-sm ${bgClass}" title="${FS.str.escape(name || 'Thành viên')}" style="margin-left:-6px;border:2px solid var(--fs-bg);${bgStyle}">${avatar || '??'}</div>`;
         }).join('');
 
         const overdue = FS.date.isOverdue(p.endDate) && p.status !== 'done';
@@ -220,20 +229,29 @@
       }
 
       $('#proj-card-grid').html(projects.map(p => {
-        const membersHtml = (p.members || []).slice(0, 4).map(m => {
+        const membersHtml = (p.members || []).slice(0, 5).map(m => {
+          let userId = typeof m === 'object' ? (m.id || m.userId) : m;
           let name = typeof m === 'object' ? m.name : '';
-          let avatar = typeof m === 'object' ? (m.avatar || name.substring(0, 2).toUpperCase()) : '';
-          let color = typeof m === 'object' ? (m.color || 'av-teal') : 'av-teal';
+          let avatar = typeof m === 'object' ? (m.avatar || (name ? name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '')) : '';
+          let color = typeof m === 'object' ? (m.color || '#6366f1') : '#6366f1';
 
-          if (typeof m === 'string') {
-            const u = FS.db.find('users', m);
+          if (userId && FS.user && FS.user.get) {
+            const u = FS.user.get(userId);
             if (u) {
-              name = u.name;
-              avatar = u.avatar;
-              color = u.color;
+              if (!name) name = u.name;
+              if (!avatar) avatar = u.avatar;
+              if (!color || color === 'av-teal') color = u.color || '#6366f1';
             }
           }
-          return avatar ? `<div class="fs-avatar fs-avatar-sm ${color}" title="${FS.str.escape(name)}" style="margin-left:-8px;border:2px solid #fff">${avatar}</div>` : '';
+
+          if (!avatar && name) {
+            avatar = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+          }
+
+          const bgStyle = color.startsWith('#') ? `background-color:${color};color:#ffffff` : '';
+          const bgClass = !color.startsWith('#') ? color : '';
+
+          return `<div class="fs-avatar fs-avatar-sm ${bgClass}" title="${FS.str.escape(name || 'Thành viên')}" style="margin-left:-6px;border:2px solid var(--fs-bg);${bgStyle}">${avatar || '??'}</div>`;
         }).join('');
 
         const overdue = FS.date.isOverdue(p.endDate) && p.status !== 'done';
@@ -244,18 +262,18 @@
         const accentColor = colorMap[p.status] || 'var(--fs-accent)';
 
         return `
-          <div class="col-12 col-md-6 col-xl-4">
-            <div class="fs-card proj-view-btn" data-proj-id="${p.id}" style="cursor:pointer;height:100%">
+          <div class="col-12 col-md-6 col-xl-4 mb-3">
+            <div class="fs-card proj-view-btn" data-proj-id="${p.id}" style="cursor:pointer;height:100%;border-radius:var(--fs-radius-md)">
               <!-- Top stripe -->
-              <div style="height:4px;background:${accentColor};margin:-20px -20px 16px;border-radius:var(--fs-radius-lg) var(--fs-radius-lg) 0 0"></div>
+              <div style="height:4px;background:${accentColor};margin:-16px -16px 14px;border-radius:var(--fs-radius-md) var(--fs-radius-md) 0 0"></div>
               <div class="d-flex align-items-start justify-content-between mb-2">
                 <div>
-                  <div class="fs-small" style="color:var(--fs-accent);margin-bottom:3px">${p.code}</div>
+                  <div class="fs-small" style="color:var(--fs-accent);margin-bottom:3px;font-weight:600">${p.code}</div>
                   <h6 style="font-weight:600;font-size:14px;margin:0;line-height:1.3">${FS.str.escape(p.name)}</h6>
                 </div>
                 ${FS.badge.status(p.status)}
               </div>
-              <p class="fs-small truncate mb-3" style="max-height:36px;overflow:hidden;line-height:1.5">${FS.str.escape(p.description || '')}</p>
+              <p class="fs-small truncate mb-3" style="max-height:36px;overflow:hidden;line-height:1.5;color:var(--fs-text-secondary)">${FS.str.escape(p.description || '')}</p>
 
               <!-- Progress -->
               <div class="d-flex align-items-center gap-2 mb-3">
@@ -264,9 +282,9 @@
               </div>
 
               <div class="d-flex align-items-center justify-content-between">
-                <div class="d-flex" style="padding-left:8px">${membersHtml}</div>
+                <div class="d-flex" style="padding-left:6px">${membersHtml}</div>
                 <div class="text-end">
-                  <div class="fs-small">${done}/${totalTasks} tasks</div>
+                  <div class="fs-small" style="font-weight:600">${done}/${totalTasks} tasks</div>
                   <div style="font-size:11px;${overdue?'color:var(--fs-danger);font-weight:600':'color:var(--fs-text-muted)'}">${FS.date.format(p.endDate)}</div>
                 </div>
               </div>

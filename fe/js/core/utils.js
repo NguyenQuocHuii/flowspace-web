@@ -167,7 +167,11 @@
     avatar(id, size = '') {
       const u = FS.user.get(id);
       if (!u) return `<div class="fs-avatar ${size}">?</div>`;
-      return `<div class="fs-avatar ${size} ${u.color || 'av-indigo'}" title="${u.name}">${u.avatar || u.name.substring(0, 2).toUpperCase()}</div>`;
+      const color = u.color || '#6366f1';
+      const bgStyle = color.startsWith('#') ? `background-color:${color};color:#ffffff;` : '';
+      const bgClass = !color.startsWith('#') ? color : '';
+      const initials = u.avatar || (u.name ? u.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '??');
+      return `<div class="fs-avatar ${size} ${bgClass}" style="${bgStyle}" title="${FS.str.escape(u.name)}">${initials}</div>`;
     },
 
     /** Lấy tên user */
