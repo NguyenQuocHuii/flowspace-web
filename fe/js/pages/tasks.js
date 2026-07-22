@@ -7,7 +7,7 @@
 
   const PAGE_SIZE = 10;
 
-  FS.pages.tasks = {
+    _view: 'list',
     _filter: { search: '', status: '', priority: '', project: '', assignee: '' },
     _page: 1,
     _tasksData: [],
@@ -110,10 +110,35 @@
 
       $('#tasks-count-label').text(`${total} công việc`);
 
+      if (this._view === 'list') {
+        $('#tasks-list-view').show();
+        $('#tasks-card-view').hide();
+        this._renderTable(tasks);
+      } else {
+        $('#tasks-list-view').hide();
+        $('#tasks-card-view').show();
+        this._renderCards(tasks);
+      }
+
+      // Pagination
+      const totalPages = Math.ceil(total / PAGE_SIZE);
+      $('#tasks-pagination-info').text(`Hiển thị ${start + 1}–${Math.min(start + PAGE_SIZE, total)} / ${total}`);
+
+      if (totalPages <= 1) {
+        $('#tasks-pagination-btns').html('');
+        return;
+      }
+      const self = this;
+      let paginHtml = '';
+      for (let i = 1; i <= totalPages; i++) {
+        paginHtml += `<button class="btn btn-sm ${i === self._page ? 'btn-primary' : 'btn-ghost'} page-btn" data-page="${i}">${i}</button>`;
+      }
+      $('#tasks-pagination-btns').html(paginHtml);
+    },
+
+    _renderTable(tasks) {
       if (!tasks.length) {
         $('#tasks-table-body').html('<tr><td colspan="8"><div class="fs-empty"><i class="bi bi-check-square"></i><h5>Không tìm thấy công việc</h5><p>Thử thay đổi bộ lọc hoặc tạo công việc mới</p></div></td></tr>');
-        $('#tasks-pagination-info').text('');
-        $('#tasks-pagination-btns').html('');
         return;
       }
 
@@ -170,21 +195,70 @@
             </td>
           </tr>`;
       }).join(''));
+    },
 
-      // Pagination
-      const totalPages = Math.ceil(total / PAGE_SIZE);
-      $('#tasks-pagination-info').text(`Hiển thị ${start + 1}–${Math.min(start + PAGE_SIZE, total)} / ${total}`);
-
-      if (totalPages <= 1) {
-        $('#tasks-pagination-btns').html('');
+    _renderCards(tasks) {
+      if (!tasks.length) {
+        $('#tasks-card-view').html('<div class="col-12"><div class="fs-empty"><i class="bi bi-check-square"></i><h5>Không tìm thấy công việc</h5><p>Thử thay đổi bộ lọc hoặc tạo công việc mới</p></div></div>');
         return;
       }
-      const self = this;
-      let paginHtml = '';
-      for (let i = 1; i <= totalPages; i++) {
-        paginHtml += `<button class="btn btn-sm ${i === self._page ? 'btn-primary' : 'btn-ghost'} page-btn" data-page="${i}">${i}</button>`;
-      }
-      $('#tasks-pagination-btns').html(paginHtml);
+
+      $('#tasks-card-view').html(tasks.map(t => {
+        const overdue = FS.date.isOverdue(t.dueDate) && t.status !== 'done';
+        const isDone = t.status === 'done';
+
+        let assigneeName = t.assigneeName;
+        let assigneeAvatar = t.assigneeAvatar;
+        let assigneeColor = t.assigneeColor;
+
+        if (!assigneeName && t.assigneeId) {
+          const u = FS.user.get(t.assigneeId);
+          if (u) {
+            assigneeName = u.name;
+            assigneeAvatar = u.avatar;
+            assigneeColor = u.color;
+          }
+        }
+
+        const avatarHtml = assigneeAvatar
+          ? `<div class="fs-avatar fs-avatar-sm ${assigneeColor || 'av-indigo'}" title="${FS.str.escape(assigneeName)}">${assigneeAvatar}</div>`
+          : FS.user.avatar(t.assigneeId, 'fs-avatar-sm');
+
+        return `
+          <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+            <div class="fs-card task-row" data-task-id="${t.id}" style="cursor:pointer;height:100%;display:flex;flex-direction:column;justify-content:space-between">
+              <div>
+                <div class="d-flex align-items-start justify-content-between mb-2">
+                  <span class="fs-small" style="color:var(--fs-accent);font-weight:600">${t.code}</span>
+                  ${FS.badge.status(t.status)}
+                </div>
+                <h6 style="font-weight:600;font-size:14px;margin-bottom:6px;line-height:1.4;${isDone ? 'text-decoration:line-through;color:var(--fs-text-muted)' : ''}">
+                  ${FS.str.escape(t.title)}
+                </h6>
+                <div class="fs-small text-muted mb-3" style="font-size:12px">
+                  <i class="bi bi-folder2-open me-1"></i>${FS.str.escape(t.projectName || '—')}
+                </div>
+              </div>
+
+              <div>
+                <div class="d-flex align-items-center justify-content-between pt-2" style="border-top:1px solid var(--fs-border)">
+                  <div class="d-flex align-items-center gap-2">
+                    ${avatarHtml}
+                    ${FS.badge.priority(t.priority)}
+                  </div>
+                  <div class="d-flex align-items-center gap-1">
+                    <span style="font-size:11px;${overdue ? 'color:var(--fs-danger);font-weight:600' : 'color:var(--fs-text-muted)'}">
+                      ${overdue ? '<i class="bi bi-exclamation-triangle-fill me-1"></i>' : ''}${FS.date.format(t.dueDate)}
+                    </span>
+                    <button class="btn btn-ghost btn-icon btn-sm task-done-toggle ms-1" data-task-id="${t.id}" title="${isDone ? 'Đánh dấu chưa xong' : 'Đánh dấu hoàn thành'}" style="color:${isDone ? 'var(--fs-success)' : 'var(--fs-border)'}">
+                      <i class="bi bi-${isDone ? 'check-circle-fill' : 'circle'}" style="font-size:16px"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>`;
+      }).join(''));
     },
 
     _openModal(taskId = null) {
@@ -286,6 +360,14 @@
 
     _bindEvents() {
       const self = this;
+
+      // View toggle
+      $('#tasks-header-actions .view-toggle').off('click').on('click', function () {
+        $('#tasks-header-actions .view-toggle').removeClass('active');
+        $(this).addClass('active');
+        self._view = $(this).data('view');
+        self._render();
+      });
 
       // Search
       $('#task-search').off('input').on('input', function () {
