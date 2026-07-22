@@ -125,7 +125,7 @@
       document.getElementById('chat-dm-list').innerHTML = dms.map(c => {
         const session = FS.auth.getSession();
         const partnerId = c.partnerId || c.members.find(m => m !== session?.userId);
-        const partner   = FS.db.find('users', partnerId);
+        const partner   = FS.user.get(partnerId);
         return `
           <div class="chat-channel-item${this._currentChannel === c.id ? ' active' : ''}" data-channel-id="${c.id}">
             <div class="fs-avatar fs-avatar-sm ${partner?.color || 'av-indigo'}" style="width:18px;height:18px;font-size:9px">${partner?.avatar || '?'}</div>
@@ -195,7 +195,7 @@
       let lastUserId = null;
 
       msgs.forEach(msg => {
-        const user = FS.db.find('users', msg.userId);
+        const user = FS.user.get(msg.userId);
         const showHeader = msg.userId !== lastUserId || !!msg.replyTo;
         lastUserId = msg.userId;
         const isMe = msg.userId === FS.auth.getSession()?.userId;
@@ -222,7 +222,7 @@
         if (msg.replyTo) {
            const origMsg = (messagesMap[channelId] || []).find(m => m.id === msg.replyTo);
            if (origMsg) {
-             const origUser = FS.db.find('users', origMsg.userId);
+             const origUser = FS.user.get(origMsg.userId);
              let origText = origMsg.recalled ? 'Tin nhắn đã được thu hồi' : origMsg.text;
              quoteHtml = `<div class="chat-quoted-msg">
                 <strong>${FS.str.escape(origUser?.name || 'Unknown')}</strong>: ${FS.str.escape(origText)}

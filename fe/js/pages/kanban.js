@@ -7,8 +7,9 @@
 
   const COLUMNS = [
     { id: 'todo',        label: 'Chưa bắt đầu', color: '#64748b', bg: '#f1f5f9' },
-    { id: 'in_progress', label: 'Đang làm',     color: '#6366f1', bg: '#eef2ff' },
-    { id: 'review',      label: 'Chờ duyệt',    color: '#f59e0b', bg: '#fefce8' },
+    { id: 'inprogress',  label: 'Đang làm',     color: '#6366f1', bg: '#eef2ff' },
+    { id: 'onhold',      label: 'Đang chờ',     color: '#f59e0b', bg: '#fff7ed' },
+    { id: 'review',      label: 'Chờ duyệt',    color: '#8b5cf6', bg: '#faf5ff' },
     { id: 'done',        label: 'Hoàn thành',   color: '#10b981', bg: '#f0fdf4' }
   ];
 
@@ -16,6 +17,7 @@
     _sortables: [],
     _filter: { project: '', employee: '', department: '' },
     _tasksData: [],
+    _projectsData: [],
 
     async init() {
       await this._loadData();
@@ -28,39 +30,51 @@
       try {
         await FS.loadUsersCache();
 
-        const response = await FS.apiCall({
-          url: FS.API_BASE + '/api/v1/tasks',
-          type: 'GET'
-        });
+        const [tasksRes, projsRes] = await Promise.all([
+          FS.apiCall({ url: FS.API_BASE + '/api/v1/tasks', type: 'GET' }),
+          FS.apiCall({ url: FS.API_BASE + '/api/v1/projects', type: 'GET' })
+        ]);
 
-        if (response && response.success && Array.isArray(response.data)) {
-          this._tasksData = response.data.map(t => ({
-            id: t.id,
-            code: t.code,
-            title: t.title,
-            description: t.description || '',
-            projectId: t.projectId,
-            projectName: t.projectName || '',
-            assigneeId: t.assigneeId,
-            assigneeName: t.assigneeName || '',
-            assigneeAvatar: t.assigneeAvatar || '',
-            assigneeColor: t.assigneeColor || '',
-            status: (t.status || 'todo').toLowerCase(),
-            priority: (t.priority || 'medium').toLowerCase(),
-            startDate: t.startDate,
-            dueDate: t.dueDate,
-            completedAt: t.completedAt,
-            subtasks: t.subtasks || [],
-            comments: t.comments || [],
-            createdAt: t.createdAt
-          }));
-          $('#kanban-offline-banner').remove();
+        if (tasksRes && tasksRes.success && Array.isArray(tasksRes.data)) {
+          this._tasksData = tasksRes.data.map(t => {
+            let st = (t.status || 'todo').toLowerCase();
+            if (st === 'in_progress') st = 'inprogress';
+            if (st === 'on_hold') st = 'onhold';
+            return {
+              id: t.id,
+              code: t.code,
+              title: t.title,
+              description: t.description || '',
+              projectId: t.projectId,
+              projectName: t.projectName || '',
+              assigneeId: t.assigneeId,
+              assigneeName: t.assigneeName || '',
+              assigneeAvatar: t.assigneeAvatar || '',
+              assigneeColor: t.assigneeColor || '',
+              status: st,
+              priority: (t.priority || 'medium').toLowerCase(),
+              startDate: t.startDate,
+              dueDate: t.dueDate,
+              completedAt: t.completedAt,
+              subtasks: t.subtasks || [],
+              comments: t.comments || [],
+              createdAt: t.createdAt
+            };
+          });
         } else {
           this._tasksData = FS.db.get('tasks') || [];
+        }
+
+        if (projsRes && projsRes.success && Array.isArray(projsRes.data)) {
+          this._projectsData = projsRes.data;
+          $('#kanban-offline-banner').remove();
+        } else {
+          this._projectsData = FS.db.get('projects') || [];
         }
       } catch (err) {
         console.warn('Kanban Tasks API request failed:', err);
         this._tasksData = FS.db.get('tasks') || [];
+        this._projectsData = FS.db.get('projects') || [];
         if (!$('#kanban-offline-banner').length) {
           $('#page-content').prepend('<div id="kanban-offline-banner" class="fs-login-alert show" style="display:flex; margin-bottom:16px"><i class="bi bi-exclamation-triangle-fill"></i><span>Không thể kết nối máy chủ. Hiện đang hiển thị dữ liệu tạm thời ngoại tuyến.</span></div>');
         }
@@ -68,7 +82,7 @@
     },
 
     _populateFilters() {
-      const projects = FS.db.get('projects') || [];
+      const projects = this._projectsData || [];
       $('#kanban-filter-project').html('<option value="">Tất cả dự án</option>' +
         projects.map(p => `<option value="${p.id}">${FS.str.escape(p.name)}</option>`).join('')
       );
