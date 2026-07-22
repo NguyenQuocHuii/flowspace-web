@@ -37,6 +37,7 @@ namespace FlowSpace.Application.Common.Dtos
         public string Action { get; set; } = string.Empty;
         public string? Detail { get; set; }
         public string Module { get; set; } = "System";
+        public string? IpAddress { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 

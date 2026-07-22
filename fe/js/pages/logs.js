@@ -45,21 +45,18 @@
     async _loadUsers() {
       try {
         const response = await FS.apiCall({
-          url: FS.API_BASE + '/api/v1/chat/users',
-          type: 'GET',
-          headers: this._getAuthHeaders()
+          url: FS.API_BASE + '/api/v1/users?pageSize=100',
+          type: 'GET'
         });
-        if (response && response.success && response.data) {
+        if (response && response.success && Array.isArray(response.data)) {
           this._usersCache = response.data;
           $('#logs-offline-banner').remove();
         } else {
-          this._usersCache = [];
-          this._showOfflineBanner('Không nhận được dữ liệu người dùng hợp lệ. Đang hiển thị dữ liệu offline.');
+          this._usersCache = FS.db.get('users') || [];
         }
       } catch (err) {
         console.warn('Users API failed for logs page:', err);
-        this._usersCache = [];
-        this._showOfflineBanner('Không thể kết nối máy chủ để tải danh sách người dùng. Đang hiển thị dữ liệu offline.');
+        this._usersCache = FS.db.get('users') || [];
       }
     },
 
@@ -67,20 +64,17 @@
       try {
         const response = await FS.apiCall({
           url: FS.API_BASE + '/api/v1/auditlogs',
-          type: 'GET',
-          headers: this._getAuthHeaders()
+          type: 'GET'
         });
-        if (response && response.success && response.data) {
+        if (response && response.success && Array.isArray(response.data)) {
           this._logsCache = response.data;
           $('#logs-offline-banner').remove();
         } else {
           this._logsCache = [];
-          this._showOfflineBanner('Không nhận được dữ liệu log hợp lệ. Đang hiển thị dữ liệu offline.');
         }
       } catch (err) {
-        console.warn('Logs API failed (expected missing endpoint):', err);
+        console.warn('Logs API failed:', err);
         this._logsCache = [];
-        this._showOfflineBanner('Backend API chưa khả dụng cho logs. Hiển thị giao diện offline (Demo).');
       }
     },
 
