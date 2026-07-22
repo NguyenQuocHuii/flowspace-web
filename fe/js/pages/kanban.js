@@ -6,11 +6,11 @@
   'use strict';
 
   const COLUMNS = [
-    { id: 'todo',        label: 'Chưa bắt đầu', color: '#64748b', bg: '#f1f5f9' },
-    { id: 'inprogress',  label: 'Đang làm',     color: '#6366f1', bg: '#eef2ff' },
-    { id: 'onhold',      label: 'Đang chờ',     color: '#f59e0b', bg: '#fff7ed' },
-    { id: 'review',      label: 'Chờ duyệt',    color: '#8b5cf6', bg: '#faf5ff' },
-    { id: 'done',        label: 'Hoàn thành',   color: '#10b981', bg: '#f0fdf4' }
+    { id: 'todo',        label: 'Todo',         color: '#64748b', bg: '#f1f5f9' },
+    { id: 'inprogress',  label: 'In Progress',  color: '#6366f1', bg: '#eef2ff' },
+    { id: 'review',      label: 'Review',       color: '#8b5cf6', bg: '#faf5ff' },
+    { id: 'testing',     label: 'Testing',      color: '#ec4899', bg: '#fdf2f8' },
+    { id: 'done',        label: 'Done',         color: '#10b981', bg: '#f0fdf4' }
   ];
 
   FS.pages.kanban = {

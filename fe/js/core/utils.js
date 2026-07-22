@@ -211,10 +211,18 @@
 
     reqType(type) {
       const map = {
-        'leave':    { cls: 'badge-info',    label: 'Nghỉ phép' },
-        'overtime': { cls: 'badge-warning', label: 'Tăng ca' },
-        'purchase': { cls: 'badge-accent',  label: 'Mua sắm' },
-        'remote':   { cls: 'badge-neutral', label: 'Làm remote' }
+        'leave':            { cls: 'badge-info',    label: '🏖️ Nghỉ phép' },
+        'purchase':         { cls: 'badge-accent',  label: '🛒 Mua hàng' },
+        'payment':          { cls: 'badge-success', label: '💳 Thanh toán' },
+        'advance':          { cls: 'badge-warning', label: '💵 Tạm ứng' },
+        'device':           { cls: 'badge-info',    label: '💻 Cấp thiết bị' },
+        'it_support':       { cls: 'badge-neutral', label: '🛠️ Hỗ trợ IT' },
+        'tech_support':     { cls: 'badge-neutral', label: '🔧 Hỗ trợ KT' },
+        'repair':           { cls: 'badge-danger',  label: '⚡ Sửa chữa' },
+        'recruitment':      { cls: 'badge-accent',  label: '👥 Tuyển dụng' },
+        'budget_increase': { cls: 'badge-warning', label: '📈 Tăng ngân sách' },
+        'overtime':         { cls: 'badge-warning', label: '⏰ Tăng ca' },
+        'remote':           { cls: 'badge-neutral', label: '🏠 Làm remote' }
       };
       const b = map[type] || { cls: 'badge-neutral', label: type };
       return `<span class="fs-badge ${b.cls}">${b.label}</span>`;
