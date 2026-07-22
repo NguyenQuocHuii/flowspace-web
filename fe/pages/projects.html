@@ -26,21 +26,24 @@
   </div>
 
   <!-- Filters -->
-  <div class="fs-filters">
-    <input type="text" class="fs-search-input" id="proj-search" placeholder="Tìm kiếm dự án...">
-    <select class="fs-filter-select" id="proj-filter-status">
+  <div class="fs-filters d-flex align-items-center flex-wrap gap-2 mb-3" style="padding:12px;background:var(--fs-card-bg);border:1px solid var(--fs-border);border-radius:var(--fs-radius-md)">
+    <div class="position-relative" style="min-width:220px;flex:1">
+      <input type="text" class="fs-search-input" id="proj-search" placeholder="Tìm kiếm dự án..." style="height:34px;font-size:13px;padding-left:30px">
+      <i class="bi bi-search position-absolute top-50 translate-middle-y text-muted" style="left:10px;font-size:12px"></i>
+    </div>
+    <select class="fs-filter-select" id="proj-filter-status" style="height:34px;font-size:13px;min-width:140px">
       <option value="">Tất cả trạng thái</option>
       <option value="active">Đang chạy</option>
       <option value="on_hold">Tạm dừng</option>
       <option value="done">Hoàn thành</option>
     </select>
-    <select class="fs-filter-select" id="proj-filter-priority">
+    <select class="fs-filter-select" id="proj-filter-priority" style="height:34px;font-size:13px;min-width:140px">
       <option value="">Tất cả độ ưu tiên</option>
       <option value="high">Cao</option>
       <option value="medium">Trung bình</option>
       <option value="low">Thấp</option>
     </select>
-    <button class="btn btn-ghost btn-sm" id="proj-filter-reset" style="color:var(--fs-text-muted)">
+    <button class="btn btn-ghost btn-sm" id="proj-filter-reset" style="color:var(--fs-text-muted);height:34px">
       <i class="bi bi-x-circle"></i> Xoá lọc
     </button>
   </div>
