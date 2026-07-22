@@ -47,14 +47,18 @@
             members: p.members || [],
             createdAt: p.createdAt,
             client: p.client || '',
-            budget: p.budget || null
+            budget: p.budget || null,
+            taskCount: p.taskCount || 0,
+            completedTaskCount: p.completedTaskCount || 0
           }));
           $('#projects-offline-banner').remove();
         } else {
           this._projectsData = (FS.db.get('projects') || []).map(p => ({
             ...p,
             client: p.client || '',
-            budget: p.budget || null
+            budget: p.budget || null,
+            taskCount: 0,
+            completedTaskCount: 0
           }));
         }
       } catch (err) {
@@ -169,8 +173,8 @@
         }).join('');
 
         const overdue = FS.date.isOverdue(p.endDate) && p.status !== 'done';
-        const tasks   = FS.db.get('tasks').filter(t => t.projectId === p.id);
-        const done    = tasks.filter(t => t.status === 'done').length;
+        const done = p.completedTaskCount || 0;
+        const totalTasks = p.taskCount || 0;
 
         const colorMap = { active: 'var(--fs-accent)', on_hold: 'var(--fs-warning)', done: 'var(--fs-success)' };
         const accentColor = colorMap[p.status] || 'var(--fs-accent)';
@@ -198,7 +202,7 @@
               <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex" style="padding-left:8px">${membersHtml}</div>
                 <div class="text-end">
-                  <div class="fs-small">${done}/${tasks.length} tasks</div>
+                  <div class="fs-small">${done}/${totalTasks} tasks</div>
                   <div style="font-size:11px;${overdue?'color:var(--fs-danger);font-weight:600':'color:var(--fs-text-muted)'}">${FS.date.format(p.endDate)}</div>
                 </div>
               </div>

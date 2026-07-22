@@ -28,6 +28,7 @@ namespace FlowSpace.Application.Services
             var projects = await _unitOfWork.Repository<Project>().GetQueryable()
                 .Include(p => p.Owner)
                 .Include(p => p.Members)
+                .Include(p => p.Tasks)
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -39,6 +40,7 @@ namespace FlowSpace.Application.Services
             var project = await _unitOfWork.Repository<Project>().GetQueryable()
                 .Include(p => p.Owner)
                 .Include(p => p.Members)
+                .Include(p => p.Tasks)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id == id);
 
