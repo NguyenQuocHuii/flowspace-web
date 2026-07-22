@@ -127,6 +127,56 @@
           $(this).trigger('click');
         }
       });
+
+      // Restore sidebar state from localStorage
+      const isCollapsed = localStorage.getItem('fs-sidebar-collapsed') === 'true';
+      if (isCollapsed) {
+        $('#fs-sidebar').addClass('collapsed');
+        $('#sidebar-toggle-icon').removeClass('bi-layout-sidebar-reverse').addClass('bi-layout-sidebar');
+      }
+
+      // Sidebar collapse toggle handler
+      $(document).on('click', '#fs-sidebar-toggle', function (e) {
+        e.preventDefault();
+        const $sidebar = $('#fs-sidebar');
+        const isNowCollapsed = $sidebar.toggleClass('collapsed').hasClass('collapsed');
+        localStorage.setItem('fs-sidebar-collapsed', isNowCollapsed);
+
+        const $icon = $('#sidebar-toggle-icon');
+        if (isNowCollapsed) {
+          $icon.removeClass('bi-layout-sidebar-reverse').addClass('bi-layout-sidebar');
+        } else {
+          $icon.removeClass('bi-layout-sidebar').addClass('bi-layout-sidebar-reverse');
+        }
+      });
+
+      // Sidebar footer logout button handler
+      $(document).on('click', '#fs-logout-btn', function (e) {
+        e.preventDefault();
+        if (FS.confirm) {
+          FS.confirm({
+            title: "Đăng xuất tài khoản",
+            message: "Bạn có chắc chắn muốn đăng xuất khỏi phiên làm việc hiện tại không?",
+            confirmText: "Đăng xuất",
+            cancelText: "Hủy bỏ",
+            type: "danger",
+            onConfirm: () => {
+              if (FS.toast) {
+                FS.toast("Đang đăng xuất khỏi hệ thống...", "info", 1500);
+              }
+              setTimeout(() => {
+                if (FS.auth && typeof FS.auth.logout === 'function') {
+                  FS.auth.logout();
+                }
+              }, 800);
+            }
+          });
+        } else {
+          if (FS.auth && typeof FS.auth.logout === 'function') {
+            FS.auth.logout();
+          }
+        }
+      });
     },
 
     /** Cập nhật trạng thái active trên sidebar */
