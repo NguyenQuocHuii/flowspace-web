@@ -406,7 +406,6 @@
     _bindEvents() {
       const self = this;
 
-      // Tabs
       // Pagination links
       $(document).off('click.req-page').on('click.req-page', '.req-page-link', function (e) {
         e.preventDefault();
@@ -418,9 +417,11 @@
       });
 
       // Tabs
+      $('#req-tabs .fs-tab').off('click').on('click', function () {
         $('#req-tabs .fs-tab').removeClass('active');
         $(this).addClass('active');
         self._tab = $(this).data('tab');
+        self._page = 1;
         self._render();
       });
 
@@ -473,11 +474,12 @@
         const title = $('#req-modal-title').val().trim();
         if (!title) { FS.toast('Vui lòng nhập tiêu đề!', 'warning'); return; }
         const type = $('#req-modal-type').val() || 'leave';
+        const priority = $('#req-modal-priority').val() || 'medium';
         const description = $('#req-modal-desc').val() || '';
 
         if (self._editMode && self._editRequestId) {
           // Update existing request
-          await self._updateRequest(self._editRequestId, { type, title, description });
+          await self._updateRequest(self._editRequestId, { type, priority, title, description });
           $('#req-modal-overlay').hide();
         } else {
           // Create new request
@@ -485,7 +487,7 @@
             const response = await FS.apiCall({
               url: FS.API_BASE + '/api/v1/requests',
               type: 'POST',
-              data: { type, title, description }
+              data: { type, priority, title, description }
             });
 
             if (response && response.success) {
