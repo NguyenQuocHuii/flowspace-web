@@ -25,6 +25,8 @@
       const session = FS.auth.getSession();
       const userId = session?.userId;
       try {
+        await FS.loadUsersCache();
+
         const response = await FS.apiCall({
           url: FS.API_BASE + '/api/v1/requests',
           type: 'GET',
@@ -102,7 +104,7 @@
       }
 
       const html = requests.map(r => {
-        const requesterName = r.requesterName || (FS.db.find('users', r.requesterId)?.name || '—');
+        const requesterName = r.requesterName || (FS.user.get(r.requesterId)?.name || '—');
         const approvals = r.approvals || [];
         const currentStep = approvals.find(a => a.status === 'pending');
         const canEdit = this._canEdit(r);
@@ -148,10 +150,10 @@
     _openDetail(reqId) {
       const r = this._requestsData.find(x => x.id === reqId) || FS.db.find('requests', reqId);
       if (!r) return;
-      const requesterName = r.requesterName || (FS.db.find('users', r.requesterId)?.name || '—');
+      const requesterName = r.requesterName || (FS.user.get(r.requesterId)?.name || '—');
 
       const approvalSteps = (r.approvals || []).map(a => {
-        const approverName = a.approverName || (a.approverId ? FS.db.find('users', a.approverId)?.name : null);
+        const approverName = a.approverName || (a.approverId ? FS.user.get(a.approverId)?.name : null);
         const icon = a.status === 'approved' ? 'bi-check-circle-fill text-success' :
           a.status === 'rejected' ? 'bi-x-circle-fill text-danger' :
             'bi-clock text-warning';
