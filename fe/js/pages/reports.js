@@ -147,23 +147,21 @@
 
         const statusCounts = statusMeta.map(s => tasks.filter(t => (t.status || '').toLowerCase() === s.key).length);
 
-        // Render Custom Senior Status Details Breakdown List
+        // Render Dashboard Parity Status Legend Items
         const detailsEl = document.getElementById('report-status-details');
         if (detailsEl) {
           detailsEl.innerHTML = statusMeta.map((s, idx) => {
             const count = statusCounts[idx];
             const pct = totalTasks ? Math.round((count / totalTasks) * 100) : 0;
             return `
-              <div class="d-flex align-items-center justify-content-between" style="font-size:12px">
-                <div class="d-flex align-items-center gap-2" style="min-width:100px">
-                  <span style="width:8px;height:8px;border-radius:50%;background:${s.color}"></span>
-                  <span style="font-weight:500;color:var(--fs-text)">${s.label}</span>
+              <div class="dashboard-legend-item">
+                <div class="dashboard-legend-label">
+                  <span class="dashboard-legend-color" style="background:${s.color}"></span>
+                  <span>${s.label}</span>
                 </div>
-                <div style="flex:1;max-width:95px;height:6px;background:${s.bg};border-radius:10px;margin:0 10px;overflow:hidden">
-                  <div style="width:${pct}%;height:100%;background:${s.color};border-radius:10px"></div>
-                </div>
-                <div style="font-weight:600;color:var(--fs-text-secondary);min-width:55px;text-align:right">
-                  ${count} <span style="font-weight:400;font-size:11px;color:var(--fs-text-muted)">(${pct}%)</span>
+                <div class="d-flex align-items-center gap-1">
+                  <span style="font-weight:700;color:var(--fs-text)">${count}</span>
+                  <span style="font-size:11px;color:var(--fs-text-muted)">(${pct}%)</span>
                 </div>
               </div>`;
           }).join('');

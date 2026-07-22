@@ -38,21 +38,22 @@
       </div>
     </div>
     <div class="col-12 col-lg-4">
-      <div class="fs-card h-100 d-flex flex-column">
+      <div class="fs-card h-100">
         <div class="fs-card-header d-flex align-items-center justify-content-between">
           <h6 class="fs-h6 m-0"><i class="bi bi-pie-chart-fill me-2" style="color:var(--fs-accent)"></i>Phân bố task</h6>
           <span class="fs-badge badge-neutral" id="report-status-badge" style="font-size:11px">Tổng số</span>
         </div>
-        <div style="height:190px;position:relative;display:flex;align-items:center;justify-content:center;margin-top:6px">
-          <canvas id="report-status-chart" style="max-width:180px;max-height:180px"></canvas>
-          <div id="report-status-center-text" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none">
-            <div style="font-size:24px;font-weight:700;line-height:1;color:var(--fs-text)" id="report-status-total">0</div>
-            <div style="font-size:10px;color:var(--fs-text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-top:3px">Công việc</div>
+        <div class="dashboard-status-chart-container" style="height:220px">
+          <div class="dashboard-status-chart-wrap" style="position:relative">
+            <canvas id="report-status-chart" style="max-width:130px;max-height:130px"></canvas>
+            <div id="report-status-center-text" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none">
+              <div style="font-size:20px;font-weight:700;line-height:1;color:var(--fs-text)" id="report-status-total">0</div>
+              <div style="font-size:9px;color:var(--fs-text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">Tasks</div>
+            </div>
           </div>
-        </div>
-        <!-- Custom Senior Legend List -->
-        <div id="report-status-details" class="mt-auto pt-2" style="border-top:1px solid var(--fs-border);display:flex;flex-direction:column;gap:8px">
-          <!-- Rendered dynamically -->
+          <div class="dashboard-status-legend" id="report-status-details">
+            <!-- Rendered dynamically matching Dashboard -->
+          </div>
         </div>
       </div>
     </div>
