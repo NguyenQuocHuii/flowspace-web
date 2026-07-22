@@ -222,12 +222,15 @@
 
       return `
         <div class="kanban-card" data-task-id="${task.id}">
+          <div class="d-flex align-items-center justify-content-between mb-1">
+            <span class="fs-small" style="color:var(--fs-accent);font-weight:600">${task.code || ''}</span>
+            ${projName ? `<span class="fs-small text-muted truncate" style="max-width:140px">${FS.str.escape(projName)}</span>` : ''}
+          </div>
           <div class="kanban-card-title">${FS.str.escape(task.title)}</div>
-          ${projName ? `<div class="fs-small mb-2" style="color:var(--fs-accent)">${FS.str.escape(projName)}</div>` : ''}
           <div class="kanban-card-meta">
             <div class="d-flex align-items-center gap-1 flex-wrap">
               ${FS.badge.priority(task.priority)}
-              ${subtasksTotal > 0 ? `<span class="fs-badge badge-neutral"><i class="bi bi-check2-square"></i>${subtasksDone}/${subtasksTotal}</span>` : ''}
+              ${subtasksTotal > 0 ? `<span class="fs-badge badge-neutral"><i class="bi bi-check2-square me-1"></i>${subtasksDone}/${subtasksTotal}</span>` : ''}
             </div>
             <div class="d-flex align-items-center gap-2">
               ${overdue ? `<i class="bi bi-clock-history" style="color:var(--fs-danger);font-size:12px" title="Quá hạn"></i>` : ''}
