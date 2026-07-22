@@ -116,7 +116,7 @@
       const self = this;
       this._calendar = new FullCalendar.Calendar(el, {
         locale: 'vi',
-        initialView: 'dayGridMonth',
+        initialView: window.innerWidth < 768 ? 'timeGridDay' : 'dayGridMonth',
         editable: true,
         headerToolbar: {
           left: 'prev,next today',

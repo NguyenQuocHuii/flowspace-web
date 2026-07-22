@@ -58,17 +58,41 @@
 .fc-button-group .fc-button {
   border: none !important;
   background: transparent !important;
-  color: var(--fs-text-secondary) !important;
-  border-radius: var(--fs-radius-sm) !important;
-  padding: 0 14px !important;
-  font-size: 12px !important;
-  font-weight: 500 !important;
   box-shadow: none !important;
-  height: 28px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+  border-radius: var(--fs-radius-sm) !important;
 }
+.fc-event {
+  border-radius: 4px !important;
+  padding: 2px 5px !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: transform 0.15s ease !important;
+}
+.fc-event:hover {
+  transform: translateY(-1px) !important;
+  filter: brightness(1.08) !important;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 767.98px) {
+  .fc-header-toolbar {
+    flex-direction: column !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+  }
+  .fc-toolbar-chunk {
+    display: flex !important;
+    justify-content: center !important;
+  }
+  .fc-toolbar-title {
+    font-size: 15px !important;
+  }
+  .fc .fc-view-harness {
+    min-height: 480px !important;
+  }
+}
+
 .fc-button-group .fc-button:hover {
   color: var(--fs-text) !important;
 }
