@@ -69,72 +69,76 @@
       if (this._statusFilter) {
         requests = requests.filter(r => {
           if (this._statusFilter === 'pending') {
-            const activeStep = (r.approvals || []).find(a => a.status === 'pending');
+            const activeStep = (r.approvals || []).find(a => (a.status || '').toLowerCase() === 'pending');
             if (!activeStep) return false;
-            return activeStep.role.toLowerCase() === sessionRole || 
+            const stepRole = (activeStep.role || '').toLowerCase();
+            return stepRole === sessionRole || 
                    sessionRole === 'director' || 
-                   (sessionRole === 'manager' && activeStep.role.toLowerCase() === 'team_lead');
+                   (sessionRole === 'manager' && stepRole === 'team_lead');
           }
-          const myStep = (r.approvals || []).find(a => a.role.toLowerCase() === sessionRole || sessionRole === 'director');
-          return myStep && myStep.status.toLowerCase() === this._statusFilter.toLowerCase();
+          const myStep = (r.approvals || []).find(a => (a.role || '').toLowerCase() === sessionRole || sessionRole === 'director');
+          return myStep && (myStep.status || '').toLowerCase() === this._statusFilter.toLowerCase();
         });
       }
       return requests;
     },
 
     _render() {
-      const requests = this._getFilteredData();
-      const sessionRole = FS.auth.getSession()?.role || 'employee';
-      const pendingCount = this._requestsData.filter(r => {
-        const step = (r.approvals || []).find(a => a.role.toLowerCase() === sessionRole.toLowerCase());
-        return step && step.status.toLowerCase() === 'pending';
-      }).length;
+      try {
+        const requests = this._getFilteredData();
+        const sessionRole = (FS.auth.getSession()?.role || 'employee').toLowerCase();
+        const pendingCount = this._requestsData.filter(r => {
+          const step = (r.approvals || []).find(a => (a.role || '').toLowerCase() === sessionRole);
+          return step && (step.status || '').toLowerCase() === 'pending';
+        }).length;
 
-      $('#approvals-pending-badge').text(`${pendingCount} chờ duyệt`);
-      if (pendingCount > 0) $('#nav-approval-badge').text(pendingCount).show();
-      else $('#nav-approval-badge').hide();
+        $('#approvals-pending-badge').text(`${pendingCount} chờ duyệt`);
+        if (pendingCount > 0) $('#nav-approval-badge').text(pendingCount).show();
+        else $('#nav-approval-badge').hide();
 
-      if (!requests.length) {
-        $('#approvals-list').html('<div class="fs-empty"><i class="bi bi-inbox-fill"></i><h5>Không có yêu cầu nào</h5></div>');
-        return;
-      }
+        if (!requests.length) {
+          $('#approvals-list').html('<div class="fs-empty"><i class="bi bi-inbox-fill"></i><h5>Không có yêu cầu nào cần duyệt</h5></div>');
+          return;
+        }
 
-      const typeLabels = { leave: '🏖️ Nghỉ phép', overtime: '⏰ Tăng ca', purchase: '🛒 Mua sắm', remote: '🏠 Làm remote' };
+        const typeLabels = { leave: '🏖️ Nghỉ phép', overtime: '⏰ Tăng ca', purchase: '🛒 Mua sắm', remote: '🏠 Làm remote' };
 
-      $('#approvals-list').html(requests.map(r => {
-        const requesterName = r.requesterName || (FS.db.find('users', r.requesterId)?.name || '—');
-        const myStep = (r.approvals || []).find(a => a.role.toLowerCase() === sessionRole.toLowerCase());
-        const isPending = myStep?.status === 'pending';
-        return `
-          <div class="fs-card mb-2" style="border-radius:var(--fs-radius-md);border-left:3px solid ${isPending ? 'var(--fs-warning)' : myStep?.status === 'approved' ? 'var(--fs-success)' : 'var(--fs-danger')}">
-            <div class="d-flex align-items-start gap-3">
-              ${FS.user.avatar(r.requesterId)}
-              <div style="flex:1;min-width:0">
-                <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                  <span class="fs-badge badge-neutral">${typeLabels[r.type] || r.type}</span>
-                  <span style="font-size:13px;font-weight:600">${FS.str.escape(r.title)}</span>
+        $('#approvals-list').html(requests.map(r => {
+          const requesterName = r.requesterName || (FS.user.get(r.requesterId)?.name || '—');
+          const myStep = (r.approvals || []).find(a => (a.role || '').toLowerCase() === sessionRole);
+          const isPending = myStep?.status === 'pending';
+          return `
+            <div class="fs-card mb-2" style="border-radius:var(--fs-radius-md);border-left:3px solid ${isPending ? 'var(--fs-warning)' : myStep?.status === 'approved' ? 'var(--fs-success)' : 'var(--fs-danger')}">
+              <div class="d-flex align-items-start gap-3">
+                <div>
+                  ${FS.user.avatar(r.requesterId)}
                 </div>
-                <p style="font-size:12px;color:var(--fs-text-secondary);margin-bottom:8px">${FS.str.escape(r.description)}</p>
-                <div class="d-flex align-items-center gap-3">
-                  <span class="fs-small"><i class="bi bi-person me-1"></i>${FS.str.escape(requesterName)}</span>
-                  <span class="fs-small"><i class="bi bi-calendar3 me-1"></i>${FS.date.format(r.createdAt)}</span>
-                </div>
-                ${isPending ? `
-                  <div class="d-flex gap-2 mt-2">
-                    <button class="btn btn-success btn-sm approvals-accept-btn" data-req-id="${r.id}" data-approval-id="${myStep.id}" title="Phê duyệt"><i class="bi bi-check2"></i> Phê duyệt</button>
-                    <button class="btn btn-warning btn-sm approvals-return-btn" data-req-id="${r.id}" data-approval-id="${myStep.id}" title="Trả lại" style="color:#fff"><i class="bi bi-arrow-counterclockwise"></i> Trả lại</button>
-                    <button class="btn btn-danger btn-sm approvals-reject-btn" data-req-id="${r.id}" data-approval-id="${myStep.id}" title="Từ chối"><i class="bi bi-x-lg"></i> Từ chối</button>
+                <div style="flex:1;min-width:0">
+                  <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                    <span style="font-size:13px;font-weight:600">${FS.str.escape(r.title)}</span>
+                    ${FS.badge.reqType(r.type)}
+                    ${FS.badge.status(r.status)}
                   </div>
-                ` : `
-                  <span style="font-size:12px;font-weight:600;color:${myStep?.status === 'approved' ? 'var(--fs-success)' : myStep?.status === 'returned' ? 'var(--fs-warning)' : 'var(--fs-danger)'}">
-                    <i class="bi bi-${myStep?.status === 'approved' ? 'check-circle-fill' : myStep?.status === 'returned' ? 'arrow-counterclockwise' : 'x-circle-fill'}"></i>
-                    ${myStep?.status === 'approved' ? 'Đã phê duyệt' : myStep?.status === 'returned' ? 'Đã trả lại' : 'Đã từ chối'}
-                  </span>
-                `}
+                  <p style="font-size:12px;color:var(--fs-text-secondary);margin-bottom:8px" class="truncate">${FS.str.escape(r.description)}</p>
+                  <div class="d-flex align-items-center gap-2 gap-md-3 flex-wrap">
+                    <span class="fs-small"><i class="bi bi-person me-1"></i>${FS.str.escape(requesterName)}</span>
+                    <span class="fs-small"><i class="bi bi-calendar3 me-1"></i>${FS.date.format(r.createdAt)}</span>
+                    ${myStep ? `<span class="fs-small text-muted"><i class="bi bi-shield-check me-1"></i>${FS.auth.getRoleLabel(myStep.role)}</span>` : ''}
+                  </div>
+                  ${isPending ? `
+                    <div class="mt-3 d-flex gap-2">
+                      <button class="btn btn-sm btn-success app-action-btn approvals-accept-btn" data-req-id="${r.id}" data-approval-id="${myStep.id}" data-action="approved"><i class="bi bi-check-lg"></i> Phê duyệt</button>
+                      <button class="btn btn-sm btn-danger app-action-btn approvals-reject-btn" data-req-id="${r.id}" data-approval-id="${myStep.id}" data-action="rejected"><i class="bi bi-x-lg"></i> Từ chối</button>
+                    </div>
+                  ` : ''}
+                </div>
               </div>
-            </div>
-          </div>`;
-      }).join(''));
+            </div>`;
+        }).join(''));
+      } catch (err) {
+        console.error('Error rendering approvals:', err);
+        $('#approvals-list').html('<div class="fs-empty"><i class="bi bi-inbox-fill"></i><h5>Không có yêu cầu nào cần duyệt</h5></div>');
+      }
     },
 
     async _processApproval(reqId, approvalId, decision) {
