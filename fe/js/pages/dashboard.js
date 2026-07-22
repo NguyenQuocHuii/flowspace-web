@@ -255,18 +255,30 @@
         return;
       }
 
-      container.innerHTML = logs
-        .slice(0, 8)
-        .map((log) => `
-          <div class="dashboard-list-item d-flex align-items-start gap-3 py-2">
-            <span class="fs-avatar fs-avatar-sm av-teal"><i class="bi bi-activity" aria-hidden="true"></i></span>
-            <span class="flex-grow-1">
-              <span class="small text-dark"><strong>${FS.str.escape(log.userName || "Hệ thống")}</strong> ${FS.str.escape(log.detail || log.action || "đã thực hiện thao tác")}</span>
-              <small class="d-block fs-small text-secondary">${FS.date.relative(log.createdAt)} · ${FS.str.escape(log.module || "Hệ thống")}</small>
-            </span>
-          </div>
-        `)
-        .join("");
+      container.innerHTML = `<div class="dashboard-activity-timeline" style="display:flex;flex-direction:column;gap:12px">
+        ${logs.slice(0, 8).map((log) => {
+          const user = (log.userId ? FS.user.get(log.userId) : null) || (log.userName ? { name: log.userName, avatar: log.userName.trim().substring(0, 2).toUpperCase(), color: 'av-indigo' } : null);
+          const avatarHtml = user && user.avatar
+            ? `<div class="fs-avatar fs-avatar-sm ${user.color || 'av-indigo'}" style="flex-shrink:0">${FS.str.escape(user.avatar)}</div>`
+            : `<div class="fs-avatar fs-avatar-sm av-teal" style="flex-shrink:0"><i class="bi bi-activity"></i></div>`;
+
+          return `
+            <div class="dashboard-list-item d-flex align-items-start gap-3 py-1">
+              ${avatarHtml}
+              <div class="flex-grow-1" style="min-width:0">
+                <div style="font-size:13px;line-height:1.4">
+                  <strong style="font-weight:600;color:var(--fs-text)">${FS.str.escape(log.userName || user?.name || "Hệ thống")}</strong>
+                  <span style="color:var(--fs-text-secondary)">${FS.str.escape(log.detail || log.action || "đã thực hiện thao tác")}</span>
+                </div>
+                <div class="d-flex align-items-center gap-2 mt-1" style="font-size:11px;color:var(--fs-text-muted)">
+                  <span>${FS.date.relative(log.createdAt)}</span>
+                  <span>•</span>
+                  <span class="fs-badge badge-neutral" style="font-size:10px;padding:1px 6px">${FS.str.escape(log.module || "System")}</span>
+                </div>
+              </div>
+            </div>`;
+        }).join("")}
+      </div>`;
     },
 
     _renderCharts() {
