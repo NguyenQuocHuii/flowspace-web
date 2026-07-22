@@ -259,8 +259,12 @@
       } else {
         headerHtml += dates.map(d => {
           const isToday = d.toDateString() === now.toDateString();
-          return `<th class="gantt-header-cell${isToday?' text-accent':''}" style="min-width:24px;padding:8px 4px">
-            <div style="font-size:10px">${d.getDate() === 1 ? monthNames[d.getMonth()] : (d.getDate() % 5 === 0 ? d.getDate() : '')}</div>
+          const isFirstOfMonth = d.getDate() === 1;
+          return `<th class="gantt-header-cell${isToday?' text-accent':''}" style="min-width:30px;padding:6px 2px">
+            <div style="font-size:10px;color:${isFirstOfMonth?'var(--fs-accent)':'var(--fs-text-muted)'};font-weight:${isFirstOfMonth?700:500}">
+              ${isFirstOfMonth ? 'T' + (d.getMonth() + 1) : ''}
+            </div>
+            <div style="font-size:12px;font-weight:${isToday?700:400}">${d.getDate()}</div>
           </th>`;
         }).join('');
       }
