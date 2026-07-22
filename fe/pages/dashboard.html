@@ -4,9 +4,14 @@
       <h1 class="fs-page-title" id="dash-greeting">Chào mừng trở lại</h1>
       <p class="fs-page-subtitle" id="dash-date">Đang tải ngày làm việc…</p>
     </div>
-    <button class="btn btn-primary btn-sm" id="dash-new-task-btn" type="button">
-      <i class="bi bi-plus-lg" aria-hidden="true"></i> Tạo công việc
-    </button>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-outline-secondary btn-sm" id="dash-seed-btn" type="button" title="Nạp lại bộ dữ liệu doanh nghiệp mẫu">
+        <i class="bi bi-database-add me-1" aria-hidden="true"></i> Seed dữ liệu
+      </button>
+      <button class="btn btn-primary btn-sm" id="dash-new-task-btn" type="button">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> Tạo công việc
+      </button>
+    </div>
   </div>
 
   <div id="dashboard-status" aria-live="polite"></div>

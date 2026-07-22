@@ -42,16 +42,37 @@
       this._state = "loading";
       this._summaryData = null;
       try {
-        const response = await FS.apiCall({
+        let response = await FS.apiCall({
           url: `${FS.API_BASE}/api/v1/dashboard/summary`,
           type: "GET"
         });
+
+        // Nếu CSDL backend rỗng (chưa được seed tasks), tự động gọi API seed-data để khởi tạo
         if (response && response.success && response.data) {
-          this._summaryData = response.data;
-          this._state = "ready";
-        } else {
-          throw new Error(response?.message || "Invalid dashboard response");
+          if ((Number(response.data.totalTasks) || 0) === 0) {
+            console.log("[Dashboard] Database tasks count is 0. Triggering auto-seed via /api/v1/dashboard/seed-data...");
+            try {
+              await FS.apiCall({
+                url: `${FS.API_BASE}/api/v1/dashboard/seed-data`,
+                type: "GET"
+              });
+              // Fetch lại summary sau khi đã seed dữ liệu
+              response = await FS.apiCall({
+                url: `${FS.API_BASE}/api/v1/dashboard/summary`,
+                type: "GET"
+              });
+            } catch (seedErr) {
+              console.warn("[Dashboard] Auto seed data failed:", seedErr);
+            }
+          }
+
+          if (response && response.success && response.data) {
+            this._summaryData = response.data;
+            this._state = "ready";
+            return;
+          }
         }
+        throw new Error(response?.message || "Invalid dashboard response");
       } catch (error) {
         console.error("Dashboard summary API failed:", error);
         this._state = "error";
@@ -408,6 +429,30 @@
         .off("click.dashboard")
         .on("click.dashboard", () => {
           if (FS.router) FS.router.go("tasks");
+        });
+
+      $("#dash-seed-btn")
+        .off("click.dashboard")
+        .on("click.dashboard", async () => {
+          const btn = $("#dash-seed-btn");
+          btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm me-1"></span> Đang nạp...');
+          try {
+            const res = await FS.apiCall({
+              url: `${FS.API_BASE}/api/v1/dashboard/seed-data`,
+              type: "GET"
+            });
+            if (res && res.success) {
+              if (FS.toast) FS.toast("Đã nạp bộ dữ liệu doanh nghiệp mẫu thành công!", "success");
+              if (FS.router) FS.router.go("dashboard", { force: true, silent: true });
+            } else {
+              if (FS.toast) FS.toast(res?.message || "Không thể nạp dữ liệu mẫu.", "error");
+            }
+          } catch (e) {
+            console.error("Seed data failed:", e);
+            if (FS.toast) FS.toast("Lỗi khi nạp dữ liệu mẫu từ máy chủ.", "error");
+          } finally {
+            btn.prop("disabled", false).html('<i class="bi bi-database-add me-1"></i> Seed dữ liệu');
+          }
         });
     }
   };
