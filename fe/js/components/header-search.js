@@ -11,7 +11,19 @@
 
   const HeaderSearchService = {
     async search(query) {
-      return { state: 'unavailable', query, items: [] };
+      try {
+        const response = await FS.apiCall({
+          url: `${FS.API_BASE}/api/v1/dashboard/search?q=${encodeURIComponent(query)}`,
+          type: 'GET'
+        });
+        if (response && response.success && Array.isArray(response.data)) {
+          return { state: 'ready', query, items: response.data };
+        }
+        return { state: 'empty', query, items: [] };
+      } catch (err) {
+        console.error('[HeaderSearchService] Failed:', err);
+        return { state: 'error', query, items: [] };
+      }
     }
   };
 
@@ -123,7 +135,7 @@
 
     _renderResults(items) {
       const html = items.map(item => `
-        <button class="fs-search-result-item" type="button" data-search-result-id="${FS.str.escape(String(item.id || ''))}">
+        <button class="fs-search-result-item" type="button" data-search-result-id="${FS.str.escape(String(item.id || ''))}" data-search-result-type="${FS.str.escape(item.type || '')}">
           <i class="bi ${FS.str.escape(item.icon || 'bi-search')}" aria-hidden="true"></i>
           <span class="fs-search-result-copy">
             <strong>${FS.str.escape(item.title || '')}</strong>
@@ -151,6 +163,19 @@
 
       $('#fs-search-modal').on('click', event => {
         if (event.target === event.currentTarget) this.close();
+      });
+
+      $(document).off('click.header-search-item').on('click.header-search-item', '.fs-search-result-item', function () {
+        const id = $(this).data('search-result-id');
+        const type = $(this).data('search-result-type');
+        HeaderSearch.close();
+        if (type === 'project' && FS.projectDetail) {
+          FS.projectDetail.open(id);
+        } else if (type === 'task' && FS.taskDetail) {
+          FS.taskDetail.open(id);
+        } else if (type === 'user' && FS.router) {
+          FS.router.go('users');
+        }
       });
 
       $('#fs-search-input-main').on('input', event => this.search(event.target.value));
