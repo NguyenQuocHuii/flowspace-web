@@ -1135,8 +1135,47 @@
     display: block;
   }
 
+  html, body {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  #fs-app-wrapper, #main-content, .fs-main {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
   #page-content {
-    padding: 16px;
+    padding: 12px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
+  .fs-page-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .fs-page-header > div {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .fs-page-header .d-flex {
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  .fs-page-header select.fs-filter-select {
+    flex: 1 1 auto !important;
+    min-width: 120px !important;
+    max-width: 100% !important;
   }
 
   .fs-topbar-search {
@@ -1162,23 +1201,6 @@
   .fs-offcanvas {
     width: 100%;
     max-width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  #fs-topbar { padding: 0 12px; }
-  .fs-topbar-breadcrumb { display: none; }
-  .fs-search-dialog { max-width: calc(100vw - 24px); }
-}
-
-@media (max-width: 576px) {
-  .fs-page-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .fs-page-header .actions {
-    width: 100%;
   }
 }
 

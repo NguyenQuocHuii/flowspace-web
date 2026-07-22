@@ -32,6 +32,15 @@
 <style>
 .gantt-table { min-width: 100%; border-collapse: separate; border-spacing: 0; }
 .gantt-task-col { width: 300px; min-width: 300px; }
+@media (max-width: 767.98px) {
+  .gantt-task-col,
+  .gantt-task-header,
+  .gantt-task-cell {
+    width: 180px !important;
+    min-width: 180px !important;
+    padding: 8px 10px !important;
+  }
+}
 .gantt-header-row { position: sticky; top: 0; z-index: 20; background: var(--fs-bg-secondary); }
 .gantt-header-cell {
   padding: 10px 8px;
