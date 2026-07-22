@@ -184,12 +184,13 @@
       const map = {
         'todo':        { cls: 'badge-neutral',  label: 'Chưa bắt đầu' },
         'in_progress': { cls: 'badge-accent',   label: 'Đang làm' },
+        'inprogress':  { cls: 'badge-accent',   label: 'Đang thực hiện' },
         'review':      { cls: 'badge-warning',  label: 'Chờ duyệt' },
         'done':        { cls: 'badge-success',  label: 'Hoàn thành' },
         'cancelled':   { cls: 'badge-neutral',  label: 'Đã huỷ' },
         'active':      { cls: 'badge-success',  label: 'Đang chạy' },
-        'on_hold':     { cls: 'badge-warning',  label: 'Tạm dừng' },
-        'onhold':      { cls: 'badge-warning',  label: 'Tạm dừng' },
+        'on_hold':     { cls: 'badge-warning',  label: 'Đang chờ' },
+        'onhold':      { cls: 'badge-warning',  label: 'Đang chờ' },
         'approved':    { cls: 'badge-success',  label: 'Đã duyệt' },
         'pending':     { cls: 'badge-warning',  label: 'Chờ duyệt' },
         'rejected':    { cls: 'badge-danger',   label: 'Từ chối' }

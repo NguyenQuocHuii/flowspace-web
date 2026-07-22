@@ -22,9 +22,10 @@
     <select class="fs-filter-select" id="task-filter-status">
       <option value="">Tất cả trạng thái</option>
       <option value="todo">Chưa bắt đầu</option>
-      <option value="in_progress">Đang làm</option>
-      <option value="review">Chờ duyệt</option>
-      <option value="done">Hoàn thành</option>
+      <option value="inprogress">Đang thực hiện</option>
+      <option value="onhold">Đang chờ</option>
+      <option value="done">Đã hoàn thành</option>
+      <option value="cancelled">Đã hủy</option>
     </select>
     <select class="fs-filter-select" id="task-filter-priority">
       <option value="">Tất cả ưu tiên</option>
@@ -110,9 +111,10 @@
           <label class="fs-label-text" for="task-modal-status">Trạng thái</label>
           <select class="fs-select" id="task-modal-status">
             <option value="todo">Chưa bắt đầu</option>
-            <option value="in_progress">Đang làm</option>
-            <option value="review">Chờ duyệt</option>
-            <option value="done">Hoàn thành</option>
+            <option value="inprogress">Đang thực hiện</option>
+            <option value="onhold">Đang chờ</option>
+            <option value="done">Đã hoàn thành</option>
+            <option value="cancelled">Đã hủy</option>
           </select>
         </div>
         <div class="col-6 fs-form-group">
@@ -126,6 +128,19 @@
         <div class="col-6 fs-form-group">
           <label class="fs-label-text" for="task-modal-est">Ước tính (giờ)</label>
           <input type="number" class="fs-input" id="task-modal-est" placeholder="0" min="0">
+        </div>
+        <div class="col-6 fs-form-group">
+          <label class="fs-label-text" for="task-modal-difficulty">Độ khó</label>
+          <select class="fs-select" id="task-modal-difficulty">
+            <option value="">— Chọn độ khó —</option>
+            <option value="Dễ">Dễ</option>
+            <option value="Trung bình">Trung bình</option>
+            <option value="Khó">Khó</option>
+          </select>
+        </div>
+        <div class="col-6 fs-form-group">
+          <label class="fs-label-text" for="task-modal-score">Điểm hoàn thành (0-100)</label>
+          <input type="number" class="fs-input" id="task-modal-score" placeholder="Chưa đánh giá" min="0" max="100">
         </div>
       </div>
     </div>

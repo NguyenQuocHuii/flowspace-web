@@ -49,11 +49,17 @@
             loggedHours: t.loggedHours || 0,
             subtasks: t.subtasks || [],
             comments: t.comments || [],
-            createdAt: t.createdAt
+            createdAt: t.createdAt,
+            difficulty: t.difficulty || '',
+            completionScore: t.completionScore || null
           }));
           $('#tasks-offline-banner').remove();
         } else {
-          this._tasksData = FS.db.get('tasks') || [];
+          this._tasksData = (FS.db.get('tasks') || []).map(t => ({
+            ...t,
+            difficulty: t.difficulty || '',
+            completionScore: t.completionScore || null
+          }));
         }
       } catch (err) {
         console.warn('Tasks API request failed:', err);
@@ -198,6 +204,8 @@
         $('#task-modal-start').val(FS.date.toInput(t.startDate));
         $('#task-modal-due').val(FS.date.toInput(t.dueDate));
         $('#task-modal-est').val(t.estimatedHours || '');
+        $('#task-modal-difficulty').val(t.difficulty || '');
+        $('#task-modal-score').val(t.completionScore || '');
       } else {
         $('#task-modal-title').text('Tạo công việc mới');
         $('#task-modal-id').val('');
@@ -206,6 +214,8 @@
         $('#task-modal-status').val('todo');
         $('#task-modal-start').val(FS.date.toInput(new Date().toISOString()));
         $('#task-modal-due, #task-modal-est').val('');
+        $('#task-modal-difficulty').val('');
+        $('#task-modal-score').val('');
         const session = FS.auth.getSession();
         if (session) $('#task-modal-assignee').val(session.userId);
       }
@@ -231,7 +241,9 @@
         status: $('#task-modal-status').val() || 'todo',
         startDate: $('#task-modal-start').val() ? new Date($('#task-modal-start').val()).toISOString() : null,
         dueDate: $('#task-modal-due').val() ? new Date($('#task-modal-due').val()).toISOString() : null,
-        estimatedHours: $('#task-modal-est').val() ? parseInt($('#task-modal-est').val()) : 0
+        estimatedHours: $('#task-modal-est').val() ? parseInt($('#task-modal-est').val()) : 0,
+        difficulty: $('#task-modal-difficulty').val() || '',
+        completionScore: $('#task-modal-score').val() ? parseInt($('#task-modal-score').val()) : null
       };
 
       if (isNew) {
