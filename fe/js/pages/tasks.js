@@ -101,12 +101,12 @@
       $('#tasks-count-label').text(`${total} công việc`);
 
       if (this._view === 'list') {
-        $('#tasks-list-view').show();
-        $('#tasks-card-view').hide();
+        $('#tasks-list-view').css('display', 'block');
+        $('#tasks-card-view').css('display', 'none');
         this._renderTable(tasks);
       } else {
-        $('#tasks-list-view').hide();
-        $('#tasks-card-view').show();
+        $('#tasks-list-view').css('display', 'none');
+        $('#tasks-card-view').css('display', 'block');
         this._renderCards(tasks);
       }
 
