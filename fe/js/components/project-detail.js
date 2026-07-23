@@ -197,3 +197,4 @@
   };
 
 })(window.FS = window.FS || {}, jQuery);
+// Trigger automatic deploy for GitHub, Vercel, and Render
