@@ -218,7 +218,20 @@
       $(document).off('click.proj-task-open').on('click.proj-task-open', '#proj-task-list .task-row', function (e) {
         e.stopPropagation();
         const taskId = $(this).data('task-id');
-        FS.taskDetail.open(taskId);
+        const currentProjectId = project.id;
+        
+        // Hide project detail offcanvas cleanly
+        $('#project-detail-panel').css('right', '-520px');
+        setTimeout(() => {
+          $('#project-detail-panel, #proj-detail-backdrop').remove();
+          
+          // Open task detail and provide onClose callback to reopen project details
+          FS.taskDetail.open(taskId, {
+            onClose: () => {
+              FS.projectDetail.open(currentProjectId);
+            }
+          });
+        }, 300);
       });
 
       // Focus quick add input

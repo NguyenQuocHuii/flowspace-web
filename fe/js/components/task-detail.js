@@ -9,8 +9,11 @@
     _taskId: null,
     _taskData: null,
 
-    async open(taskId) {
+    _onCloseCallback: null,
+
+    async open(taskId, opts = {}) {
       this._taskId = taskId;
+      this._onCloseCallback = opts.onClose || null;
 
       try {
         await FS.loadUsersCache();
@@ -371,6 +374,11 @@
       $('#task-detail-panel').css('right', '-520px');
       setTimeout(() => {
         $('#task-detail-panel, #task-detail-backdrop').remove();
+        if (typeof this._onCloseCallback === 'function') {
+          const cb = this._onCloseCallback;
+          this._onCloseCallback = null;
+          cb();
+        }
       }, 300);
     }
   };
