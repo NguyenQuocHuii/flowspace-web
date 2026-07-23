@@ -333,6 +333,8 @@
       // Edit Task button
       $(document).off('click.task-detail-edit').on('click.task-detail-edit', '#task-edit-btn', function () {
         const taskId = self._taskId;
+        // Suppress reopening the project detail panel because we are explicitly going to edit task
+        self._onCloseCallback = null;
         self._hide();
         
         const currentPage = (FS.router && typeof FS.router.getCurrentPage === 'function') 
