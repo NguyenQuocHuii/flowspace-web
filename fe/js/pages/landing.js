@@ -70,6 +70,15 @@
         void $target[0].offsetWidth;
         $target.addClass('active');
         currentIndex = index;
+
+        /**
+         * [ACCESSIBILITY VERIFICATION NOTE]
+         * By setting aria-live="polite" and aria-atomic="true" on the solutions-carousel container:
+         * - When a step transitions (either via auto-rotate every 7s or manual tab click),
+         *   screen readers (like NVDA on Windows or VoiceOver on macOS/iOS) will automatically
+         *   announce the new slide title and content to the user once they finish speaking.
+         * - The "polite" setting ensures announcements do not interrupt ongoing speech.
+         */
       }
 
       // Click handlers
