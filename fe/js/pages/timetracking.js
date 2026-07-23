@@ -28,7 +28,7 @@
       this._bindEvents();
 
       // 2. Fetch live data from backend API in background & sync seamlessly
-      await Promise.all([this._loadLogs(), this._loadTasks()]);
+      await Promise.all([this._loadProjects(), this._loadLogs(), this._loadTasks()]);
     },
 
     _getAuthHeaders() {
@@ -97,6 +97,20 @@
       } finally {
         this._renderLogs();
         this._renderChart();
+      }
+    },
+
+    async _loadProjects() {
+      try {
+        const response = await FS.apiCall({
+          url: FS.API_BASE + '/api/v1/projects',
+          type: 'GET'
+        });
+        if (response && response.success && Array.isArray(response.data)) {
+          FS.db.set('projects', response.data);
+        }
+      } catch (err) {
+        console.warn('Projects API request failed in timetracking:', err);
       }
     },
 
