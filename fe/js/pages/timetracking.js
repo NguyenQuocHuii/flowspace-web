@@ -35,7 +35,7 @@
     },
     _isOwner(log) {
       const session = FS.auth.getSession();
-      return FS.auth.isDirector() || (log.userId && session && log.userId === session.userId);
+      return FS.auth.isDirector() || (log.userId && session && String(log.userId).toLowerCase() === String(session.userId).toLowerCase());
     },
 
     _canEditLog(log) {
@@ -79,8 +79,8 @@
 
           const mergedMap = new Map();
           const seedData = FS.db.get('time_logs') || [];
-          for (const s of seedData) mergedMap.set(s.id, s);
-          for (const a of apiLogs) mergedMap.set(a.id, a);
+          for (const s of seedData) mergedMap.set(String(s.id).toLowerCase(), s);
+          for (const a of apiLogs) mergedMap.set(String(a.id).toLowerCase(), a);
 
           this._logsData = Array.from(mergedMap.values());
           $('#timetracking-offline-banner').remove();
@@ -291,7 +291,7 @@
           await this._loadLogs();
           this._renderLogs();
           this._renderChart();
-          return;
+          return true;
         } else {
           FS.toast('Máy chủ phản hồi lỗi khi ghi nhận thời gian.', 'error');
         }
@@ -299,6 +299,7 @@
         console.error('Save time log API failed:', err);
         FS.toast('Không thể lưu nhật ký thời gian lên máy chủ. Vui lòng thử lại!', 'error');
       }
+      return false;
     },
 
     async _updateLog(logId, taskId, hours, note = '', loggedDate = null) {
@@ -320,6 +321,7 @@
           await this._loadLogs();
           this._renderLogs();
           this._renderChart();
+          return true;
         } else {
           FS.toast('Máy chủ trả về lỗi khi cập nhật log.', 'error');
         }
@@ -327,6 +329,7 @@
         console.error('Update time log API failed:', err);
         FS.toast('Không thể cập nhật log thời gian.', 'error');
       }
+      return false;
     },
 
     _openEditModal(log) {
@@ -359,7 +362,7 @@
       const now = new Date();
 
       return this._logsData.filter(l => {
-        if (!FS.auth.isDirector() && l.userId !== session?.userId) return false;
+        if (!FS.auth.isDirector() && String(l.userId).toLowerCase() !== String(session?.userId || '').toLowerCase()) return false;
         if (this._period === 'week') {
           const weekStart = new Date(now);
           weekStart.setDate(now.getDate() - now.getDay());
@@ -564,12 +567,17 @@
           const logId = delBtn.dataset.logId;
           FS.confirm('Xoá bản ghi giờ này?', async () => {
             try {
-              await FS.apiCall({
+              const response = await FS.apiCall({
                 url: FS.API_BASE + '/api/v1/timetracking/logs/' + logId,
                 type: 'DELETE'
               });
-            } catch {
-              FS.db.remove('time_logs', logId);
+              if (!response || response.success !== true) {
+                throw new Error(response?.message || 'Delete time log failed');
+              }
+            } catch (err) {
+              console.error('Delete time log API failed:', err);
+              FS.toast('Không thể xoá bản ghi giờ làm.', 'error');
+              return;
             }
             await self._loadLogs();
             self._renderLogs();
@@ -578,7 +586,7 @@
           }, { danger: true, confirmText: 'Xoá' });
         } else if (editBtn) {
           const logId = editBtn.dataset.logId;
-          const log = self._logsData.find(l => l.id === logId);
+          const log = self._logsData.find(l => String(l.id).toLowerCase() === String(logId).toLowerCase());
           if (log) {
             self._openEditModal(log);
           }
@@ -616,11 +624,10 @@
         const date = document.getElementById('tt-modal-date')?.value;
         if (!taskId) { FS.toast('Chọn công việc!', 'warning'); return; }
         if (!hours || hours <= 0) { FS.toast('Giờ không hợp lệ!', 'warning'); return; }
-        if (self._editingLogId) {
-          await self._updateLog(self._editingLogId, taskId, hours, note, date);
-        } else {
-          await self._saveLog(taskId, hours, note, date);
-        }
+        const saved = self._editingLogId
+          ? await self._updateLog(self._editingLogId, taskId, hours, note, date)
+          : await self._saveLog(taskId, hours, note, date);
+        if (!saved) return;
         self._editingLogId = null;
         const $ov = document.getElementById('tt-modal-overlay');
         if ($ov) $ov.style.display = 'none';

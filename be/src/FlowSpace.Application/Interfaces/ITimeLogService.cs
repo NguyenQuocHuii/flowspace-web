@@ -9,7 +9,7 @@ namespace FlowSpace.Application.Interfaces
     {
         Task<IEnumerable<TimeLogDto>> GetTimeLogsAsync(Guid? userId = null, Guid? taskId = null, DateTime? fromDate = null, DateTime? toDate = null);
         Task<TimeLogDto?> CreateTimeLogAsync(CreateTimeLogRequest request, Guid userId);
-        Task<TimeLogDto?> UpdateTimeLogAsync(Guid id, CreateTimeLogRequest request, Guid userId);
-        Task<bool> DeleteTimeLogAsync(Guid id);
+        Task<TimeLogDto?> UpdateTimeLogAsync(Guid id, CreateTimeLogRequest request, Guid userId, bool canManageAll = false);
+        Task<bool> DeleteTimeLogAsync(Guid id, Guid userId, bool canManageAll = false);
     }
 }

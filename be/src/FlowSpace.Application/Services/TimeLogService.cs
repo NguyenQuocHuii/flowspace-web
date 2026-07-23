@@ -89,10 +89,11 @@ namespace FlowSpace.Application.Services
             return _mapper.Map<TimeLogDto>(createdLog);
         }
 
-        public async Task<bool> DeleteTimeLogAsync(Guid id)
+        public async Task<bool> DeleteTimeLogAsync(Guid id, Guid userId, bool canManageAll = false)
         {
             var log = await _unitOfWork.Repository<TimeLog>().GetByIdAsync(id);
             if (log == null) return false;
+            if (!canManageAll && log.UserId != userId) return false;
 
             var task = await _unitOfWork.Repository<TaskItem>().GetByIdAsync(log.TaskId);
             if (task != null)
@@ -106,20 +107,27 @@ namespace FlowSpace.Application.Services
             return true;
         }
 
-        public async Task<TimeLogDto?> UpdateTimeLogAsync(Guid id, CreateTimeLogRequest request, Guid userId)
+        public async Task<TimeLogDto?> UpdateTimeLogAsync(Guid id, CreateTimeLogRequest request, Guid userId, bool canManageAll = false)
         {
             var log = await _unitOfWork.Repository<TimeLog>().GetByIdAsync(id);
             if (log == null) return null;
-            if (log.UserId != userId) return null; // Chỉ người log mới được sửa
+            if (!canManageAll && log.UserId != userId) return null;
 
-            var task = await _unitOfWork.Repository<TaskItem>().GetByIdAsync(log.TaskId);
-            if (task != null)
+            var oldTask = await _unitOfWork.Repository<TaskItem>().GetByIdAsync(log.TaskId);
+            var newTask = await _unitOfWork.Repository<TaskItem>().GetByIdAsync(request.TaskId);
+            if (newTask == null) return null;
+
+            if (oldTask != null)
             {
-                // Trừ đi số giờ cũ và cộng thêm số giờ mới vào Task tương ứng
-                task.LoggedHours = Math.Max(0, task.LoggedHours - log.Hours + request.Hours);
-                _unitOfWork.Repository<TaskItem>().Update(task);
+                oldTask.LoggedHours = Math.Max(0, oldTask.LoggedHours - log.Hours);
+                _unitOfWork.Repository<TaskItem>().Update(oldTask);
             }
 
+            newTask.LoggedHours += request.Hours;
+            _unitOfWork.Repository<TaskItem>().Update(newTask);
+
+            log.TaskId = request.TaskId;
+            log.ProjectId = newTask.ProjectId;
             log.Hours = request.Hours;
             log.Note = request.Description;
             log.Date = request.LoggedDate ?? DateTime.UtcNow.Date;

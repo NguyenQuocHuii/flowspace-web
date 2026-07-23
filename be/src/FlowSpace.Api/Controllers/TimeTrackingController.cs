@@ -53,10 +53,16 @@ namespace FlowSpace.Api.Controllers
         [HttpDelete("logs/{id:guid}")]
         public async Task<ActionResult<ApiResponse<string>>> DeleteLog(Guid id)
         {
-            var success = await _timeLogService.DeleteTimeLogAsync(id);
+            var userIdStr = _currentUser.UserId;
+            if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
+            {
+                return FailResponse<string>("Invalid user credentials.", StatusCodes.Status401Unauthorized);
+            }
+
+            var success = await _timeLogService.DeleteTimeLogAsync(id, userId, CanManageAllTimeLogs());
             if (!success)
             {
-                return FailResponse<string>("Time log not found.", StatusCodes.Status404NotFound);
+                return FailResponse<string>("Time log not found or not owned by current user.", StatusCodes.Status404NotFound);
             }
             return OkResponse("Time log deleted successfully.");
         }
@@ -70,13 +76,19 @@ namespace FlowSpace.Api.Controllers
                 return FailResponse<TimeLogDto>("Invalid user credentials.", StatusCodes.Status401Unauthorized);
             }
 
-            var updatedLog = await _timeLogService.UpdateTimeLogAsync(id, request, userId);
+            var updatedLog = await _timeLogService.UpdateTimeLogAsync(id, request, userId, CanManageAllTimeLogs());
             if (updatedLog == null)
             {
                 return FailResponse<TimeLogDto>("Time log not found or not owned by current user.", StatusCodes.Status400BadRequest);
             }
 
             return OkResponse(updatedLog, "Time log updated successfully.");
+        }
+
+        private bool CanManageAllTimeLogs()
+        {
+            return string.Equals(_currentUser.Role, "director", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(_currentUser.Role, "admin", StringComparison.OrdinalIgnoreCase);
         }
     }
 }
