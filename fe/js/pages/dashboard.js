@@ -308,31 +308,72 @@
         return;
       }
 
-      const logs = this._summaryData && Array.isArray(this._summaryData.activities) ? this._summaryData.activities : [];
+      const logs = this._summaryData && (Array.isArray(this._summaryData.recentActivities) && this._summaryData.recentActivities.length > 0 ? this._summaryData.recentActivities : Array.isArray(this._summaryData.activities) ? this._summaryData.activities : []);
       if (!logs.length) {
         container.innerHTML = emptyState("bi-clock-history text-muted", "Chưa có hoạt động nào gần đây");
         return;
       }
 
-      container.innerHTML = `<div class="dashboard-activity-timeline" style="display:flex;flex-direction:column;gap:12px">
-        ${logs.slice(0, 8).map((log) => {
-          const user = (log.userId ? FS.user.get(log.userId) : null) || (log.userName ? { name: log.userName, avatar: log.userName.trim().substring(0, 2).toUpperCase(), color: 'av-indigo' } : null);
-          const avatarHtml = user && user.avatar
-            ? `<div class="fs-avatar fs-avatar-sm ${user.color || 'av-indigo'}" style="flex-shrink:0">${FS.str.escape(user.avatar)}</div>`
-            : `<div class="fs-avatar fs-avatar-sm av-teal" style="flex-shrink:0"><i class="bi bi-activity"></i></div>`;
+      function formatActivityText(log) {
+        let detail = log.detail || log.action || '';
+        if (!detail) return 'đã thực hiện thao tác';
+
+        if (detail.includes('User logged in successfully')) {
+          return 'Đã đăng nhập hệ thống thành công';
+        }
+        if (detail.includes('Incorrect password')) {
+          return 'Đăng nhập thất bại (sai mật khẩu)';
+        }
+        if (detail.includes('Created project')) {
+          return detail.replace('Created project', 'Đã tạo dự án mới:');
+        }
+        if (detail.includes('Updated task')) {
+          return detail.replace('Updated task', 'Đã cập nhật công việc:');
+        }
+        if (detail.includes('Logged hours')) {
+          return detail.replace('Logged hours', 'Đã ghi nhận giờ làm việc:');
+        }
+        return detail;
+      }
+
+      function getActivityIcon(action, detail) {
+        const act = (action || '').toUpperCase();
+        const det = (detail || '').toLowerCase();
+        if (act.includes('LOGIN') || det.includes('logged in')) return { icon: 'bi-person-check', color: '#10b981', bg: '#ecfdf5' };
+        if (det.includes('incorrect') || det.includes('failed') || det.includes('thất bại')) return { icon: 'bi-shield-exclamation', color: '#ef4444', bg: '#fef2f2' };
+        if (act.includes('CREATE') || det.includes('tạo')) return { icon: 'bi-plus-circle', color: '#6366f1', bg: '#eef2ff' };
+        if (act.includes('UPDATE') || det.includes('cập nhật')) return { icon: 'bi-pencil-square', color: '#f59e0b', bg: '#fffbeb' };
+        if (act.includes('DELETE') || det.includes('xóa')) return { icon: 'bi-trash', color: '#ef4444', bg: '#fef2f2' };
+        return { icon: 'bi-activity', color: '#3b82f6', bg: '#eff6ff' };
+      }
+
+      container.innerHTML = `<div class="dashboard-activity-timeline" style="display:flex;flex-direction:column;gap:10px">
+        ${logs.slice(0, 6).map((log) => {
+          const name = log.userName || (log.userId ? FS.user.get(log.userId)?.name : '') || "Người dùng";
+          const userId = log.userId || '';
+          
+          const avatarHtml = (FS.user && FS.user.avatar)
+            ? FS.user.avatar(userId, 'sm', name)
+            : `<div class="fs-avatar fs-avatar-sm av-indigo" style="flex-shrink:0">${FS.str.escape(name.substring(0, 2).toUpperCase())}</div>`;
+
+          const text = formatActivityText(log);
+          const iconMeta = getActivityIcon(log.action, log.detail);
+          const timeStr = (log.createdAt || log.timestamp) ? FS.date.relative(log.createdAt || log.timestamp) : 'Hôm nay';
 
           return `
-            <div class="dashboard-list-item d-flex align-items-start gap-3 py-1">
+            <div class="dashboard-list-item d-flex align-items-center gap-3 p-2.5" style="padding:10px 14px;background:var(--fs-card-bg);border:1px solid var(--fs-border);border-radius:var(--fs-radius-md);transition:all 0.15s ease">
               ${avatarHtml}
               <div class="flex-grow-1" style="min-width:0">
-                <div style="font-size:13px;line-height:1.4">
-                  <strong style="font-weight:600;color:var(--fs-text)">${FS.str.escape(log.userName || user?.name || "Hệ thống")}</strong>
-                  <span style="color:var(--fs-text-secondary)">${FS.str.escape(log.detail || log.action || "đã thực hiện thao tác")}</span>
+                <div class="d-flex align-items-center gap-2 flex-wrap" style="line-height:1.4">
+                  <strong style="font-weight:600;color:var(--fs-text);font-size:13px">${FS.str.escape(name)}</strong>
+                  <span style="color:var(--fs-text-secondary);font-size:13px">${FS.str.escape(text)}</span>
                 </div>
                 <div class="d-flex align-items-center gap-2 mt-1" style="font-size:11px;color:var(--fs-text-muted)">
-                  <span>${FS.date.relative(log.createdAt)}</span>
+                  <span><i class="bi bi-clock me-1"></i>${timeStr}</span>
                   <span>•</span>
-                  <span class="fs-badge badge-neutral" style="font-size:10px;padding:1px 6px">${FS.str.escape(log.module || "System")}</span>
+                  <span class="fs-badge" style="font-size:10px;padding:2px 8px;background:${iconMeta.bg};color:${iconMeta.color};font-weight:600;border-radius:12px">
+                    <i class="bi ${iconMeta.icon} me-1"></i>${FS.str.escape(log.module || "Hệ thống")}
+                  </span>
                 </div>
               </div>
             </div>`;
