@@ -44,14 +44,8 @@
         });
 
         if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
-          const apiProjects = response.data.map(p => FS.data.normalizeProject(p));
-
-          const mergedMap = new Map();
-          const seedData = (FS.db.get('projects') || []).map(p => FS.data.normalizeProject(p));
-          for (const s of seedData) mergedMap.set(s.id, s);
-          for (const a of apiProjects) mergedMap.set(a.id, a);
-
-          this._projectsData = Array.from(mergedMap.values());
+          this._projectsData = response.data.map(p => FS.data.normalizeProject(p));
+          FS.db.set('projects', this._projectsData);
           $('#projects-offline-banner').remove();
         } else if (!this._projectsData.length) {
           this._projectsData = (FS.db.get('projects') || []).map(p => FS.data.normalizeProject(p));

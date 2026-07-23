@@ -38,14 +38,8 @@
         });
 
         if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
-          const apiTasks = response.data.map(t => FS.data.normalizeTask(t));
-
-          const mergedMap = new Map();
-          const seedData = (FS.db.get('tasks') || []).map(t => FS.data.normalizeTask(t));
-          for (const s of seedData) mergedMap.set(s.id, s);
-          for (const a of apiTasks) mergedMap.set(a.id, a);
-
-          this._tasksData = Array.from(mergedMap.values());
+          this._tasksData = response.data.map(t => FS.data.normalizeTask(t));
+          FS.db.set('tasks', this._tasksData);
           $('#tasks-offline-banner').remove();
         } else if (!this._tasksData.length) {
           this._tasksData = (FS.db.get('tasks') || []).map(t => FS.data.normalizeTask(t));
