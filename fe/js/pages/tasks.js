@@ -276,6 +276,12 @@
     _openModal(taskId = null) {
       this._populateFilters();
 
+      // Temporarily hide active project detail panel to prevent cluttering
+      const $projPanel = $('#project-detail-panel');
+      if ($projPanel.length) {
+        $projPanel.css('right', '-520px');
+      }
+
       if (taskId) {
         const t = this._tasksData.find(x => x.id === taskId);
         if (!t) return;
@@ -362,6 +368,10 @@
         if (response && response.success) {
           FS.toast(isNew ? 'Tạo công việc thành công!' : 'Cập nhật thành công!', 'success');
           $('#task-modal-overlay').hide();
+          const $projPanel = $('#project-detail-panel');
+          if ($projPanel.length) {
+            $projPanel.css('right', '0');
+          }
           await this._loadData();
           return;
         } else {
@@ -503,9 +513,21 @@
       });
 
       // Modal controls
-      $('#task-modal-close, #task-modal-cancel').off('click').on('click', () => $('#task-modal-overlay').hide());
+      $('#task-modal-close, #task-modal-cancel').off('click').on('click', () => {
+        $('#task-modal-overlay').hide();
+        const $projPanel = $('#project-detail-panel');
+        if ($projPanel.length) {
+          $projPanel.css('right', '0');
+        }
+      });
       $('#task-modal-overlay').off('click').on('click', function (e) {
-        if ($(e.target).is('#task-modal-overlay')) $('#task-modal-overlay').hide();
+        if ($(e.target).is('#task-modal-overlay')) {
+          $('#task-modal-overlay').hide();
+          const $projPanel = $('#project-detail-panel');
+          if ($projPanel.length) {
+            $projPanel.css('right', '0');
+          }
+        }
       });
       $('#task-modal-save').off('click').on('click', () => self._saveModal());
     }
