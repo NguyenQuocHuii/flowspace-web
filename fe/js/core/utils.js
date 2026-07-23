@@ -123,6 +123,16 @@
     /** Viết hoa chữ cái đầu */
     capitalize: (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : '',
 
+    /** Hash string to integer */
+    hashCode(str) {
+      if (!str) return 0;
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      return hash;
+    },
+
     /** Format số bytes → "2.3 MB" */
     fileSize(bytes) {
       if (!bytes) return '0 B';
