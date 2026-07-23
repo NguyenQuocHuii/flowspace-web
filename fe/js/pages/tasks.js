@@ -318,6 +318,9 @@
       const id = $('#task-modal-id').val();
       const isNew = !id;
 
+      const estVal = parseInt($('#task-modal-est').val(), 10);
+      const scoreVal = parseInt($('#task-modal-score').val(), 10);
+
       const payload = {
         title: title,
         description: $('#task-modal-desc').val() || '',
@@ -327,9 +330,9 @@
         status: $('#task-modal-status').val() || 'todo',
         startDate: $('#task-modal-start').val() ? new Date($('#task-modal-start').val()).toISOString() : null,
         dueDate: $('#task-modal-due').val() ? new Date($('#task-modal-due').val()).toISOString() : null,
-        estimatedHours: $('#task-modal-est').val() ? parseInt($('#task-modal-est').val()) : 0,
-        difficulty: $('#task-modal-difficulty').val() || '',
-        completionScore: $('#task-modal-score').val() ? parseInt($('#task-modal-score').val()) : null
+        estimatedHours: isNaN(estVal) ? 0 : estVal,
+        difficulty: $('#task-modal-difficulty').val() || null,
+        completionScore: isNaN(scoreVal) ? null : scoreVal
       };
 
       if (isNew) {
