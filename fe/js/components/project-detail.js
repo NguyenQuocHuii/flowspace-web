@@ -6,6 +6,20 @@
 
   FS.projectDetail = {
     async open(projectId) {
+      let project = null;
+      let tasks = [];
+
+      // 1. Instant local database lookup (0ms fallback)
+      const localProjects = FS.db.get('projects') || [];
+      const localProject = localProjects.find(p => p.id === projectId) || (FS.pages.projects && FS.pages.projects._projectsData ? FS.pages.projects._projectsData.find(p => p.id === projectId) : null);
+
+      if (localProject) {
+        project = localProject;
+        tasks = (FS.db.get('tasks') || []).filter(t => t.projectId === projectId);
+        this._render(project, tasks);
+      }
+
+      // 2. Fetch fresh data from API in background if available
       try {
         const projResponse = await FS.apiCall({
           url: FS.API_BASE + '/api/v1/projects/' + projectId,
@@ -13,22 +27,22 @@
         });
 
         if (projResponse && projResponse.success && projResponse.data) {
-          const project = projResponse.data;
-
+          project = projResponse.data;
           const tasksResponse = await FS.apiCall({
             url: FS.API_BASE + '/api/v1/tasks?projectId=' + projectId,
             type: 'GET'
           });
 
-          const tasks = tasksResponse && tasksResponse.success && Array.isArray(tasksResponse.data)
-            ? tasksResponse.data
-            : [];
-
+          if (tasksResponse && tasksResponse.success && Array.isArray(tasksResponse.data)) {
+            tasks = tasksResponse.data;
+          }
           this._render(project, tasks);
         }
       } catch (err) {
-        console.error('[ProjectDetail] Failed to load project:', err);
-        if (FS.toast) FS.toast('Không thể tải thông tin dự án', 'error');
+        console.warn('[ProjectDetail] Backend API lookup failed, using local project fallback:', err);
+        if (!project && FS.toast) {
+          FS.toast('Không tìm thấy dữ liệu chi tiết dự án', 'warning');
+        }
       }
     },
 
