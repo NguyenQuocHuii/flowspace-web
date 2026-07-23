@@ -111,6 +111,7 @@
       $(document).on('click', '[data-page]', function (e) {
         e.preventDefault();
         const page = $(this).data('page');
+        if (!isNaN(page)) return; // Skip if it's a pagination page number
         FS.router.go(page);
 
         // Đóng sidebar mobile nếu đang mở

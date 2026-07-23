@@ -198,7 +198,7 @@
               ${overdue ? '<i class="bi bi-exclamation-triangle-fill me-1"></i>' : ''}${FS.date.format(t.dueDate)}
             </td>
             <td>
-              <button class="btn btn-ghost btn-icon btn-sm task-edit-btn" data-task-id="${t.id}" title="Chỉnh sửa" onclick="event.stopPropagation()">
+              <button class="btn btn-ghost btn-icon btn-sm task-edit-btn" data-task-id="${t.id}" title="Chỉnh sửa">
                 <i class="bi bi-pencil"></i>
               </button>
             </td>
