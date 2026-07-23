@@ -9,6 +9,12 @@
       let project = null;
       let tasks = [];
 
+      try {
+        await FS.loadUsersCache();
+      } catch (e) {
+        console.warn('Failed to load users cache:', e);
+      }
+
       // 1. Instant local database lookup (0ms fallback)
       const localProjects = FS.db.get('projects') || [];
       const localProject = localProjects.find(p => p.id === projectId) || (FS.pages.projects && FS.pages.projects._projectsData ? FS.pages.projects._projectsData.find(p => p.id === projectId) : null);
@@ -56,14 +62,16 @@
 
       const taskRows = tasks.slice(0, 6).map(t => {
         const isDone = t.status === 'done';
-        const initials = t.assigneeName ? t.assigneeName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '??';
-        const color = t.assigneeColor || '#6366f1';
+        const assignee = FS.user.get(t.assigneeId) || {};
+        const assigneeName = t.assigneeName || assignee.name || 'Unknown';
+        const initials = assigneeName !== 'Unknown' ? assigneeName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '??';
+        const color = t.assigneeColor || assignee.color || '#6366f1';
         return `
           <div class="d-flex align-items-center gap-2 py-2 hover-row cursor-pointer task-row" data-task-id="${t.id}" style="border-bottom:1px solid var(--fs-border);border-radius:var(--fs-radius)">
             <i class="bi bi-${isDone ? 'check-circle-fill text-success' : 'circle text-muted'}" style="font-size:14px;flex-shrink:0"></i>
             <span style="flex:1;font-size:13px" class="text-truncate">${FS.str.escape(t.title)}</span>
             ${FS.badge.priority(t.priority)}
-            <div class="fs-avatar fs-avatar-xs" style="background-color:${color};color:#ffffff;font-size:9px" title="${FS.str.escape(t.assigneeName || 'Unknown')}">${initials}</div>
+            <div class="fs-avatar fs-avatar-xs" style="background-color:${color};color:#ffffff;font-size:9px" title="${FS.str.escape(assigneeName)}">${initials}</div>
           </div>
         `;
       }).join('') || '<p class="fs-small text-muted">Chưa có task nào</p>';
