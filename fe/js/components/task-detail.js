@@ -329,9 +329,27 @@
 
       // Edit Task button
       $(document).off('click.task-detail-edit').on('click.task-detail-edit', '#task-edit-btn', function () {
+        const taskId = self._taskId;
         self._hide();
-        if (FS.pages.tasks && FS.pages.tasks._openModal) {
-          FS.pages.tasks._openModal(self._taskId);
+        
+        const currentPage = (FS.router && typeof FS.router.getCurrentPage === 'function') 
+          ? FS.router.getCurrentPage() 
+          : '';
+
+        if (currentPage === 'tasks') {
+          if (FS.pages.tasks && FS.pages.tasks._openModal) {
+            FS.pages.tasks._openModal(taskId);
+          }
+        } else if (FS.router && typeof FS.router.go === 'function') {
+          // Seamlessly navigate to tasks manager page and launch edit modal
+          FS.router.go('tasks');
+          const checkInterval = setInterval(() => {
+            if (FS.pages.tasks && FS.pages.tasks._openModal && $('#task-modal-overlay').length) {
+              clearInterval(checkInterval);
+              FS.pages.tasks._openModal(taskId);
+            }
+          }, 50);
+          setTimeout(() => clearInterval(checkInterval), 2000);
         }
       });
     },
