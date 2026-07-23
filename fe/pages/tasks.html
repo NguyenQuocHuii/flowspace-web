@@ -2,6 +2,21 @@
      FlowSpace — Tasks Page
      ============================================================ -->
 <div class="page-enter" id="tasks-page">
+  <style>
+    @media (min-width: 1024px) {
+      #tasks-page .table-responsive, #tasks-page div[style*="overflow-x:auto"] {
+        overflow-x: visible !important;
+      }
+      #tasks-table {
+        table-layout: fixed;
+        width: 100% !important;
+      }
+      #tasks-table td {
+        white-space: normal !important;
+        word-break: break-word;
+      }
+    }
+  </style>
 
   <!-- Page Header -->
   <div class="fs-page-header">
