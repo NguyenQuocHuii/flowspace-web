@@ -12,12 +12,15 @@
   <meta name="keywords"
     content="quản lý công việc, quản lý dự án, notion style, kanban, gantt chart, time tracking, chat nội bộ, flowspace">
   <meta name="author" content="FlowSpace Team">
+  <link rel="canonical" href="https://flowspace-web-phi.vercel.app/">
 
   <!-- Open Graph -->
   <meta property="og:title" content="FlowSpace — Không gian làm việc tối giản cho đội ngũ hiệu suất cao">
   <meta property="og:description"
     content="Kết hợp quản lý dự án, Kanban, Gantt, Lịch, Chat nội bộ và Tài liệu trong một giao diện duy nhất.">
   <meta property="og:type" content="website">
+  <meta property="og:url" content="https://flowspace-web-phi.vercel.app/">
+  <meta property="og:locale" content="vi_VN">
   <meta property="og:image" content="assets/dashboard_mockup.png">
 
   <!-- Twitter Card -->
@@ -28,7 +31,26 @@
   <meta name="twitter:image" content="assets/dashboard_mockup.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="assets/dashboard_mockup.png">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="apple-touch-icon" href="favicon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <!-- Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "FlowSpace",
+    "description": "Kết hợp quản lý dự án, Kanban, Gantt, Lịch, Chat nội bộ và Tài liệu trong một giao diện tối giản kiểu Notion.",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "All",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "VND"
+    }
+  }
+  </script>
 
   <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -123,7 +145,34 @@
         </div>
       </div>
       <div class="mockup-body">
-        <img src="assets/dashboard_mockup.png" alt="Giao diện Dashboard tối giản của FlowSpace" class="mockup-image">
+        <img src="assets/dashboard_mockup.png" alt="Giao diện Dashboard tối giản của FlowSpace" class="mockup-image" fetchpriority="high" loading="eager">
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════
+       TRUST SIGNALS SECTION
+  ════════════════════════════════════════ -->
+  <section class="trust-section">
+    <div class="trust-container">
+      <span class="trust-title">Nền tảng đồng bộ chuẩn doanh nghiệp</span>
+      <div class="trust-grid">
+        <div class="trust-item">
+          <span class="trust-number">4+</span>
+          <span class="trust-label">Vai trò phân quyền RBAC cấu hình sẵn</span>
+        </div>
+        <div class="trust-item">
+          <span class="trust-number">30+</span>
+          <span class="trust-label">Endpoints RESTful API đồng bộ</span>
+        </div>
+        <div class="trust-item">
+          <span class="trust-number">10+</span>
+          <span class="trust-label">Bảng cơ sở dữ liệu quan hệ tối ưu</span>
+        </div>
+        <div class="trust-item">
+          <span class="trust-number">100%</span>
+          <span class="trust-label">Dữ liệu truyền tải thời gian thực</span>
+        </div>
       </div>
     </div>
   </section>
@@ -212,7 +261,7 @@
           <a href="login.html" class="step-link">Đi tới trang Đăng nhập <i class="bi bi-arrow-right-short"></i></a>
         </div>
         <div class="step-media">
-          <img src="assets/step1_login.png" alt="Màn hình đăng nhập FlowSpace">
+          <img src="assets/step1_login.png" alt="Màn hình đăng nhập ứng dụng FlowSpace hiển thị các tài khoản Demo và nút đăng nhập nhanh" loading="lazy">
         </div>
       </div>
 
@@ -226,7 +275,7 @@
           <a href="login.html" class="step-link">Trải nghiệm Kanban <i class="bi bi-arrow-right-short"></i></a>
         </div>
         <div class="step-media">
-          <img src="assets/step2_kanban.png" alt="Bảng Kanban công việc FlowSpace">
+          <img src="assets/step2_kanban.png" alt="Giao diện bảng công việc Kanban FlowSpace hiển thị các thẻ công việc và các cột phân loại trạng thái" loading="lazy">
         </div>
       </div>
 
@@ -240,7 +289,7 @@
           <a href="login.html" class="step-link">Xem Dashboard Demo <i class="bi bi-arrow-right-short"></i></a>
         </div>
         <div class="step-media">
-          <img src="assets/step3_dashboard.png" alt="Giao diện Dashboard FlowSpace">
+          <img src="assets/step3_dashboard.png" alt="Báo cáo Dashboard tổng hợp năng suất, phân tích KPI và phân bổ thời gian thực hiện dự án FlowSpace" loading="lazy">
         </div>
       </div>
 
@@ -294,6 +343,8 @@
         <a href="#features" class="footer-link">Tính năng</a>
         <a href="#solutions" class="footer-link">Quy trình</a>
         <a href="#quote" class="footer-link">Triết lý</a>
+        <a href="privacy-policy.html" class="footer-link">Chính sách bảo mật</a>
+        <a href="terms.html" class="footer-link">Điều khoản dịch vụ</a>
         <a href="https://github.com/NguyenQuocHuii/flowspace-web" target="_blank" rel="noopener noreferrer"
           class="footer-link"><i class="bi bi-github"></i> GitHub</a>
       </div>
@@ -304,9 +355,9 @@
   </footer>
 
   <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-  <script src="js/core/auth.js"></script>
-  <script src="js/pages/landing.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" defer></script>
+  <script src="js/core/auth.js" defer></script>
+  <script src="js/pages/landing.js" defer></script>
 
 </body>
 

@@ -61,6 +61,15 @@ builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<FlowSpace.Application.Interfaces.ICurrentUserService, FlowSpace.Api.Services.CurrentUserService>();
 
+// Add Health Checks
+builder.Services.AddHealthChecks();
+
+// Add Response Compression
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+});
+
 // Add SignalR
 builder.Services.AddSignalR();
 
@@ -224,6 +233,18 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "FlowSpace API v1"));
 }
 
+app.UseResponseCompression();
+
+// Add Custom Security Headers Middleware
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Frame-Options", "DENY");
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+    context.Response.Headers.Append("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+    await next();
+});
+
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseRateLimiter();
@@ -234,6 +255,9 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Map Health Checks Endpoint
+app.MapHealthChecks("/health");
 
 app.MapControllers();
 

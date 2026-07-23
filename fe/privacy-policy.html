@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chính sách Bảo mật — FlowSpace</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="css/design-system.css">
+  <link rel="stylesheet" href="css/landing.css">
+  <style>
+    .policy-content {
+      max-width: var(--fs-container-narrow);
+      margin: 120px auto 80px;
+      padding: 0 var(--fs-gutter);
+    }
+    .policy-text h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--fs-text);
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+    .policy-text p, .policy-text li {
+      font-size: 14.5px;
+      color: var(--fs-text-secondary);
+      line-height: 1.7;
+      margin-bottom: 14px;
+    }
+    .policy-text ul {
+      margin-bottom: 16px;
+      padding-left: 20px;
+    }
+    .warning-note {
+      background: var(--fs-bg-secondary);
+      border: 1px solid var(--fs-border);
+      padding: 16px;
+      border-radius: var(--fs-radius-md);
+      margin-top: 48px;
+      font-style: italic;
+      color: var(--fs-text-secondary);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="landing-header" id="landing-header">
+    <div class="header-container">
+      <a href="index.html" class="brand" title="FlowSpace Trang chủ">
+        <div class="brand-logo">F</div>
+        <span>FlowSpace</span>
+      </a>
+      <a href="index.html" class="cta-secondary" style="padding: 8px 16px; font-size: 13px;">Quay lại trang chủ</a>
+    </div>
+  </header>
+
+  <!-- CONTENT -->
+  <main class="policy-content">
+    <h1 class="section-title" style="text-align: left; margin-bottom: 8px;">Chính sách Bảo mật</h1>
+    <p class="fs-small text-muted" style="margin-bottom: 32px;">Cập nhật lần cuối: 23 tháng 7, 2026</p>
+    
+    <div class="policy-text">
+      <p>Chào mừng bạn đến với FlowSpace. Chúng tôi cam kết bảo vệ thông tin cá nhân và dữ liệu công việc của bạn. Chính sách Bảo mật này mô tả cách thức chúng tôi thu thập, sử dụng và bảo mật thông tin khi bạn sử dụng nền tảng của chúng tôi.</p>
+      
+      <h2>1. Thông tin chúng tôi thu thập</h2>
+      <p>Chúng tôi chỉ thu thập các thông tin thực tế cần thiết cho hoạt động quản lý dự án và công tác cộng tác nội bộ:</p>
+      <ul>
+        <li><strong>Thông tin tài khoản:</strong> Họ tên, địa chỉ email, mật khẩu (được mã hóa một chiều qua thuật toán BCrypt).</li>
+        <li><strong>Dữ liệu công việc & dự án:</strong> Thông tin dự án (tên, mã, ngân sách, khách hàng), danh sách công việc (tiêu đề, mô tả, độ ưu tiên, trạng thái, thời gian ước lượng, nhật ký thời gian làm việc).</li>
+        <li><strong>Dữ liệu cộng tác:</strong> Nội dung trao đổi, tin nhắn trao đổi trong các kênh chat chung và nhắn tin riêng trực tiếp giữa các thành viên.</li>
+      </ul>
+
+      <h2>2. Mục đích sử dụng thông tin</h2>
+      <p>Mọi thông tin được thu thập chỉ phục vụ trực tiếp cho các tính năng của phần mềm bao gồm:</p>
+      <ul>
+        <li>Xác thực danh tính người dùng và duy trì phiên đăng nhập bảo mật (JWT & Refresh Token).</li>
+        <li>Hiển thị, gán việc, và đồng bộ hóa trạng thái tiến độ dự án theo thời gian thực.</li>
+        <li>Gửi thông báo phê duyệt yêu cầu (Requests & Approvals) và thông tin trao đổi nội bộ.</li>
+      </ul>
+
+      <h2>3. Chia sẻ thông tin và bảo mật</h2>
+      <p>Chúng tôi cam kết <strong>không chia sẻ dữ liệu với bên thứ ba</strong> vì mục đích thương mại. Mọi thông tin truyền tải giữa thiết bị của bạn và hệ thống máy chủ của chúng tôi đều được mã hóa bằng giao thức HTTPS an toàn.</p>
+
+      <div class="warning-note">
+        <strong>LƯU Ý QUAN TRỌNG:</strong> Tài liệu này chỉ mang tính chất tham khảo mô tả đúng thực tế kỹ thuật của phần mềm và cần được luật sư rà soát, phê duyệt trước khi sử dụng thực tế trên môi trường sản xuất.
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="landing-footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="brand">
+          <div class="brand-logo">F</div>
+          <span>FlowSpace</span>
+        </div>
+        <p class="footer-slogan">Không gian làm việc tối giản cho đội ngũ hiệu suất cao.</p>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 FlowSpace. Bản quyền thuộc về đội ngũ phát triển.</p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

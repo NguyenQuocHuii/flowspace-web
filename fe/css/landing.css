@@ -913,7 +913,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   padding-top: 24px;
   margin-top: 12px;
   font-size: 13px;
-  color: var(--fs-text-muted);
+  color: var(--fs-text-secondary);
 }
 
 .footer-bottom p { margin: 0; }
@@ -926,5 +926,76 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .footer-links {
     width: 100%;
     gap: 16px 24px;
+  }
+}
+
+/* ============================================================
+   TRUST SIGNALS SECTION
+   ============================================================ */
+.trust-section {
+  padding: 48px var(--fs-gutter);
+  background: var(--fs-bg);
+  border-top: 1px solid var(--fs-border);
+  border-bottom: 1px solid var(--fs-border);
+  text-align: center;
+  position: relative;
+  z-index: 10;
+}
+
+.trust-container {
+  max-width: var(--fs-container);
+  margin: 0 auto;
+}
+
+.trust-title {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--fs-text-secondary);
+  letter-spacing: 0.15em;
+  margin-bottom: 28px;
+  text-transform: uppercase;
+}
+
+.trust-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.trust-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.trust-number {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--fs-accent);
+  margin-bottom: 6px;
+  line-height: 1.1;
+}
+
+.trust-label {
+  font-size: 13.5px;
+  font-weight: 550;
+  color: var(--fs-text-secondary);
+  line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+  .trust-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+  .trust-section { padding: 40px var(--fs-gutter); }
+}
+
+@media (max-width: 480px) {
+  .trust-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
 }
