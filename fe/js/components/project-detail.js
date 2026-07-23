@@ -67,13 +67,16 @@
         `;
       }).join('') || '<p class="fs-small text-muted">Chưa có task nào</p>';
 
-      const membersHtml = members.map(u => {
-        const initials = u.name ? u.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '??';
-        const color = u.color || '#6366f1';
+      const membersHtml = members.map(m => {
+        const userId = typeof m === 'object' ? (m.id || m.userId) : m;
+        const u = FS.user.get(userId) || (typeof m === 'object' ? m : null);
+        const name = u?.name || 'Thành viên';
+        const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+        const color = u?.color || '#6366f1';
         return `
-          <div class="d-flex align-items-center gap-2" title="${FS.str.escape(u.name)}">
+          <div class="d-flex align-items-center gap-2" title="${FS.str.escape(name)}">
             <div class="fs-avatar fs-avatar-sm" style="background-color:${color};color:#ffffff;">${initials}</div>
-            <span style="font-size:12px">${FS.str.escape(u.name.split(' ').pop())}</span>
+            <span style="font-size:12px">${FS.str.escape(name.split(' ').pop())}</span>
           </div>
         `;
       }).join('');

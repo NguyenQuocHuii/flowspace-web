@@ -178,8 +178,8 @@
             <td style="font-size:12px;${overdue ? 'color:var(--fs-danger, #ef4444);font-weight:600' : 'color:var(--fs-text-muted, #64748b)'}">
               ${FS.date.format(p.endDate)}
             </td>
-            <td>
-              <div class="d-flex gap-1">
+            <td style="text-align:center">
+              <div class="d-flex gap-2 justify-content-center">
                 <button class="btn btn-ghost btn-icon btn-sm proj-view-btn" data-proj-id="${p.id}" title="Xem chi tiết"><i class="bi bi-eye"></i></button>
                 ${FS.auth.hasLevel(2) ? `<button class="btn btn-ghost btn-icon btn-sm proj-edit-btn" data-proj-id="${p.id}" title="Chỉnh sửa"><i class="bi bi-pencil"></i></button>` : ''}
               </div>
