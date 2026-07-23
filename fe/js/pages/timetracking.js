@@ -18,16 +18,14 @@
     _editingLogId: null, // null when creating, id when editing
 
     async init() {
-      // 1. Instant 0ms SWR render with local seed data (NO SPINNER!)
+      // 1. Initialize selectors and controls instantly
       this._logsData = FS.db.get('time_logs') || [];
       this._tasksList = FS.db.get('tasks') || [];
       this._populateTaskSelect();
-      this._renderLogs();
-      this._renderChart();
       this._renderControls();
       this._bindEvents();
 
-      // 2. Fetch live data from backend API in background & sync seamlessly
+      // 2. Fetch live data from backend API in background and render once complete to prevent double-loading visual shifts
       await Promise.all([this._loadProjects(), this._loadLogs(), this._loadTasks()]);
     },
 
