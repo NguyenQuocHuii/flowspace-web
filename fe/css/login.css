@@ -31,7 +31,7 @@ body.fs-auth-body {
 .fs-auth-left {
   flex: 1;
   width: 50%;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4c1d95 100%);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -54,14 +54,14 @@ body.fs-auth-body {
 .fs-auth-left::before {
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, #a78bfa, transparent 70%);
+  background: radial-gradient(circle, #818cf8, transparent 70%);
   top: -100px;
   right: -50px;
 }
 .fs-auth-left::after {
   width: 350px;
   height: 350px;
-  background: radial-gradient(circle, #f472b6, transparent 70%);
+  background: radial-gradient(circle, #db2777, transparent 70%);
   bottom: -50px;
   left: -50px;
 }
@@ -106,18 +106,18 @@ body.fs-auth-body {
   gap: 32px;
 }
 .fs-left-intro h1 {
-  font-size: 38px;
+  font-size: 40px;
   font-weight: 800;
   line-height: 1.25;
-  margin: 0 0 16px;
-  letter-spacing: -1px;
+  margin: 0 0 18px;
+  letter-spacing: -1.5px;
 }
 .fs-left-intro p {
-  font-size: 16px;
+  font-size: 16.5px;
   color: rgba(255, 255, 255, 0.85);
   margin: 0;
-  line-height: 1.5;
-  max-width: 440px;
+  line-height: 1.6;
+  max-width: 450px;
 }
 
 /* Floating Cards container */
@@ -130,40 +130,48 @@ body.fs-auth-body {
 
 .fs-float-card {
   position: absolute;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
   padding: 16px 20px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.25);
   display: flex;
   align-items: center;
   gap: 14px;
-  animation: floatAnim 6s infinite ease-in-out;
   pointer-events: none;
+  transition: transform 0.3s ease;
 }
 
 /* Individual card position & delay */
 .card-task {
   top: 10px;
   left: 20px;
-  animation-delay: 0s;
+  animation: floatTask 7s infinite ease-in-out;
 }
 .card-team {
-  top: 90px;
-  left: 140px;
-  animation-delay: -2s;
+  top: 85px;
+  left: 150px;
+  animation: floatTeam 8s infinite ease-in-out;
 }
 .card-progress {
-  top: 150px;
-  left: 40px;
-  animation-delay: -4s;
+  top: 155px;
+  left: 30px;
+  animation: floatProgress 9s infinite ease-in-out;
 }
 
-@keyframes floatAnim {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+@keyframes floatTask {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(1.2deg); }
+}
+@keyframes floatTeam {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(-1.5deg); }
+}
+@keyframes floatProgress {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-14px) rotate(0.8deg); }
 }
 
 .fs-card-icon {
@@ -235,33 +243,33 @@ body.fs-auth-body {
 
 .fs-auth-card {
   width: 100%;
-  max-width: 480px;
+  max-width: 500px;
   background: #ffffff;
-  border-radius: 24px;
+  border-radius: 28px;
   border: 1px solid var(--fs-auth-border);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
-  padding: 48px;
+  box-shadow: 0 24px 64px -16px rgba(0, 0, 0, 0.04);
+  padding: 56px;
 }
 
 .fs-auth-card h2 {
-  font-size: 32px;
+  font-size: 34px;
   font-weight: 800;
   margin: 0 0 8px;
   color: var(--fs-auth-text);
-  letter-spacing: -0.8px;
+  letter-spacing: -1px;
 }
 
 .fs-auth-card .subtitle {
-  font-size: 15px;
+  font-size: 15.5px;
   color: var(--fs-auth-text-muted);
-  margin: 0 0 32px;
+  margin: 0 0 36px;
 }
 
 /* ─────────────────────────────────────────────────────────────
    FORM INPUTS, LABELS & BUTTONS
    ───────────────────────────────────────────────────────────── */
 .fs-form-group {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   position: relative;
 }
 
@@ -269,7 +277,7 @@ body.fs-auth-body {
   font-size: 14px;
   font-weight: 600;
   color: var(--fs-auth-text);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   display: block;
 }
 
@@ -281,40 +289,45 @@ body.fs-auth-body {
 
 .fs-input-icon {
   position: absolute;
-  left: 18px;
+  left: 20px;
   color: var(--fs-auth-text-muted);
-  font-size: 18px;
+  font-size: 19px;
   pointer-events: none;
   display: flex;
   align-items: center;
+  transition: color 0.3s ease;
 }
 
 .fs-input-group .fs-input {
   width: 100%;
-  height: 54px;
-  padding: 0 16px 0 48px;
+  height: 56px;
+  padding: 0 20px 0 52px;
   border: 1.5px solid var(--fs-auth-border);
-  border-radius: 14px;
+  border-radius: 16px;
   font-family: inherit;
   font-size: 15px;
   color: var(--fs-auth-text);
   background: #ffffff;
   outline: none;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .fs-input-group .fs-input:focus {
   border-color: #6366f1;
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+}
+
+.fs-input-group .fs-input:focus ~ .fs-input-icon {
+  color: #6366f1;
 }
 
 .fs-input-group .fs-input::placeholder {
-  color: #9ca3af;
+  color: #a1a1aa;
 }
 
 .fs-input-toggle {
   position: absolute;
-  right: 18px;
+  right: 20px;
   color: var(--fs-auth-text-muted);
   cursor: pointer;
   border: none;
@@ -322,6 +335,7 @@ body.fs-auth-body {
   padding: 4px;
   display: flex;
   align-items: center;
+  transition: color 0.3s ease;
 }
 .fs-input-toggle:hover {
   color: var(--fs-auth-text);
@@ -378,11 +392,11 @@ body.fs-auth-body {
 /* Action button submit */
 .fs-login-btn {
   width: 100%;
-  height: 54px;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  height: 56px;
+  background: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
   color: #ffffff;
   border: none;
-  border-radius: 14px;
+  border-radius: 16px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
@@ -390,18 +404,18 @@ body.fs-auth-body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 32px;
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
-  transition: all 0.2s ease;
+  margin-top: 36px;
+  box-shadow: 0 4px 18px rgba(99, 102, 241, 0.25);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .fs-login-btn:hover:not(:disabled) {
-  transform: scale(1.015);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35);
 }
 
 .fs-login-btn:active:not(:disabled) {
-  transform: scale(0.99);
+  transform: translateY(0) scale(0.99);
 }
 
 .fs-login-btn:disabled {
