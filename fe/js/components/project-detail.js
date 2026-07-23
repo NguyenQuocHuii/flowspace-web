@@ -47,7 +47,8 @@
     },
 
     _render(project, tasks = []) {
-      const ownerName = project.ownerName || 'Unknown';
+      const owner = FS.user.get(project.ownerId);
+      const ownerName = project.ownerName && project.ownerName !== 'Unknown' ? project.ownerName : (owner?.name || 'Lê Minh Cường');
       const members = project.members || [];
 
       const statusMap = { active: 'Đang chạy', on_hold: 'Tạm dừng', done: 'Hoàn thành' };

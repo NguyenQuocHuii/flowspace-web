@@ -5,7 +5,7 @@
 (function (FS) {
   'use strict';
 
-  const SEED_KEY = 'fs_seeded_v2'; // Đổi key seed để kích hoạt re-seed cho dữ liệu mới
+  const SEED_KEY = 'fs_seeded_v3'; // Đổi key seed để kích hoạt re-seed cho dữ liệu mới
 
   /* ── Helpers ───────────────────────────────────────────── */
   const now = new Date();
@@ -120,9 +120,11 @@
       description: 'Nâng cấp toàn diện nền tảng FlowSpace lên phiên bản 2.0 với giao diện mới Notion-style, Kanban, Gantt chart, và Chat real-time.',
       status: 'active', priority: 'high',
       startDate: daysAgo(90), endDate: daysFromNow(90),
-      progress: 45, ownerId: 'u3',
+      progress: 45, ownerId: 'u3', ownerName: 'Lê Minh Cường',
       members: ['u1', 'u2', 'u3', 'u7', 'u8'],
       tags: ['product', 'fullstack', 'realtime'],
+      client: 'Tập đoàn công nghệ VinTech',
+      budget: 500000000,
       createdAt: daysAgo(90)
     },
     {
@@ -130,9 +132,11 @@
       description: 'Mở rộng tiếp cận khách hàng tiềm năng qua kênh tìm kiếm tự nhiên và sản xuất nội dung blog chất lượng cao.',
       status: 'active', priority: 'medium',
       startDate: daysAgo(30), endDate: daysFromNow(60),
-      progress: 30, ownerId: 'u11',
+      progress: 30, ownerId: 'u11', ownerName: 'Nguyễn Hữu Nam',
       members: ['u11', 'u12'],
       tags: ['marketing', 'campaign', 'content'],
+      client: 'Công ty TNHH Haravan',
+      budget: 80000000,
       createdAt: daysAgo(30)
     },
     {
@@ -140,9 +144,11 @@
       description: 'Tiếp cận các doanh nghiệp sản xuất và Logistics tại Bình Dương và Đồng Nai để cung cấp giải pháp FlowSpace SaaS.',
       status: 'active', priority: 'high',
       startDate: daysAgo(60), endDate: daysFromNow(120),
-      progress: 50, ownerId: 'u5',
+      progress: 50, ownerId: 'u5', ownerName: 'Vũ Hoàng Giang',
       members: ['u5', 'u6'],
       tags: ['sales', 'b2b', 'leads'],
+      client: 'Nhà máy Kingfa Bình Dương',
+      budget: 150000000,
       createdAt: daysAgo(60)
     },
     {
@@ -150,9 +156,11 @@
       description: 'Xây dựng cổng thông tin tài liệu và video đào tạo nhập môn trực tuyến dành cho nhân sự mới.',
       status: 'done', priority: 'low',
       startDate: daysAgo(120), endDate: daysAgo(30),
-      progress: 100, ownerId: 'u9',
+      progress: 100, ownerId: 'u9', ownerName: 'Lâm Mỹ Lệ',
       members: ['u9', 'u10'],
       tags: ['hr', 'onboarding', 'wiki'],
+      client: 'FlowSpace Internal',
+      budget: 30000000,
       createdAt: daysAgo(120)
     },
     {
@@ -160,9 +168,11 @@
       description: 'Thiết kế kiến trúc HA (High Availability) trên AWS, tích hợp CI/CD tự động và bảo mật đa lớp.',
       status: 'on_hold', priority: 'high',
       startDate: daysAgo(30), endDate: daysFromNow(150),
-      progress: 10, ownerId: 'u3',
+      progress: 10, ownerId: 'u3', ownerName: 'Lê Minh Cường',
       members: ['u2', 'u3', 'u15'],
       tags: ['devops', 'aws', 'infra'],
+      client: 'Ngân hàng Techcombank',
+      budget: 1200000000,
       createdAt: daysAgo(45)
     }
   ];
