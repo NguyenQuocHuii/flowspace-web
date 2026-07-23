@@ -437,18 +437,18 @@
             const canEdit = canPersist && this._canEditLog(l);
             const disabledReason = canPersist ? 'Bạn không có quyền thao tác bản ghi này' : 'Bản ghi chưa đồng bộ với máy chủ';
             const editBtn = canEdit
-              ? `<button class="btn btn-ghost btn-icon btn-sm tt-edit-log" data-log-id="${l.id}" title="Sửa ghi chú/giờ">
-                  <i class="bi bi-pencil" style="font-size:13px;color:var(--fs-primary)"></i>
+              ? `<button class="btn btn-ghost btn-icon btn-sm tt-edit-log text-accent" data-log-id="${l.id}" title="Sửa ghi chú/giờ">
+                  <i class="bi bi-pencil"></i>
                 </button>`
               : `<button class="btn btn-ghost btn-icon btn-sm" type="button" disabled title="${FS.str.escape(disabledReason)}">
-                  <i class="bi bi-pencil" style="font-size:13px;color:var(--fs-text-muted)"></i>
+                  <i class="bi bi-pencil"></i>
                 </button>`;
             const deleteBtn = canEdit
-              ? `<button class="btn btn-ghost btn-icon btn-sm tt-delete-log" data-log-id="${l.id}" title="Xóa bản ghi">
-                  <i class="bi bi-trash3" style="font-size:13px;color:var(--fs-danger)"></i>
+              ? `<button class="btn btn-ghost btn-icon btn-sm tt-delete-log text-danger" data-log-id="${l.id}" title="Xóa bản ghi">
+                  <i class="bi bi-trash3"></i>
                 </button>`
               : `<button class="btn btn-ghost btn-icon btn-sm" type="button" disabled title="${FS.str.escape(disabledReason)}">
-                  <i class="bi bi-trash3" style="font-size:13px;color:var(--fs-text-muted)"></i>
+                  <i class="bi bi-trash3"></i>
                 </button>`;
             return `
               <tr>
@@ -604,11 +604,18 @@
       });
 
       // Delete / Edit log
-      document.addEventListener('click', async function (e) {
-        const delBtn = e.target.closest('.tt-delete-log');
-        const editBtn = e.target.closest('.tt-edit-log');
-        if (delBtn) {
-          const logId = delBtn.dataset.logId;
+      $(document).off('click.tt-actions').on('click.tt-actions', '.tt-delete-log, .tt-edit-log', async function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const $btn = $(this);
+        if ($btn.prop('disabled')) return;
+        
+        const isDeleteBtn = $btn.hasClass('tt-delete-log');
+        const isEditBtn = $btn.hasClass('tt-edit-log');
+        const logId = $btn.data('logId');
+        
+        if (isDeleteBtn) {
           const confirmed = await FS.confirm({
             title: 'Xóa bản ghi giờ',
             message: 'Bạn có chắc muốn xóa bản ghi giờ làm này?',
@@ -634,8 +641,7 @@
           self._renderLogs();
           self._renderChart();
           FS.toast('Đã xóa bản ghi giờ làm', 'success');
-        } else if (editBtn) {
-          const logId = editBtn.dataset.logId;
+        } else if (isEditBtn) {
           const log = self._logsData.find(l => String(l.id).toLowerCase() === String(logId).toLowerCase());
           if (log) {
             self._openEditModal(log);
