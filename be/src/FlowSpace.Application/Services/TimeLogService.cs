@@ -82,6 +82,7 @@ namespace FlowSpace.Application.Services
             var createdLog = await _unitOfWork.Repository<TimeLog>().GetQueryable()
                 .Include(tl => tl.Task)
                 .Include(tl => tl.User)
+                .Include(tl => tl.Project)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(tl => tl.Id == timeLog.Id);
 
@@ -129,6 +130,7 @@ namespace FlowSpace.Application.Services
             var updatedLog = await _unitOfWork.Repository<TimeLog>().GetQueryable()
                 .Include(tl => tl.Task)
                 .Include(tl => tl.User)
+                .Include(tl => tl.Project)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(tl => tl.Id == log.Id);
 
