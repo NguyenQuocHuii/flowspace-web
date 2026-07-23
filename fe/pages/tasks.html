@@ -3,17 +3,87 @@
      ============================================================ -->
 <div class="page-enter" id="tasks-page">
   <style>
-    @media (min-width: 1024px) {
-      #tasks-page .table-responsive, #tasks-page div[style*="overflow-x:auto"] {
-        overflow-x: visible !important;
-      }
+    #tasks-page .tasks-table-scroll {
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #tasks-table {
+      table-layout: fixed;
+      width: 100%;
+      min-width: 1180px;
+    }
+
+    #tasks-table th,
+    #tasks-table td {
+      overflow: hidden;
+    }
+
+    #tasks-table th {
+      line-height: 1.25;
+      vertical-align: middle;
+    }
+
+    #tasks-table .task-col-check { width: 48px; }
+    #tasks-table .task-col-title { width: 28%; }
+    #tasks-table .task-col-project { width: 17%; }
+    #tasks-table .task-col-assignee { width: 14%; }
+    #tasks-table .task-col-priority { width: 126px; }
+    #tasks-table .task-col-status { width: 150px; }
+    #tasks-table .task-col-due { width: 132px; }
+    #tasks-table .task-col-actions { width: 96px; }
+
+    #tasks-table .task-title-main,
+    #tasks-table .task-project-text,
+    #tasks-table .task-assignee-name {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #tasks-table .task-title-main {
+      white-space: nowrap;
+    }
+
+    #tasks-table .task-project-text {
+      white-space: normal;
+      word-break: normal;
+      overflow-wrap: anywhere;
+      line-height: 1.45;
+      max-height: 2.9em;
+    }
+
+    #tasks-table .task-assignee-wrap {
+      min-width: 0;
+    }
+
+    #tasks-table .task-assignee-name {
+      white-space: nowrap;
+    }
+
+    #tasks-table .task-due-cell,
+    #tasks-table .task-actions-cell {
+      white-space: nowrap;
+    }
+
+    #tasks-table .task-actions {
+      justify-content: center;
+      flex-wrap: nowrap;
+    }
+
+    #tasks-table .fs-badge {
+      max-width: 100%;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 767.98px) {
       #tasks-table {
-        table-layout: fixed;
-        width: 100% !important;
+        min-width: 1040px;
       }
-      #tasks-table td {
-        white-space: normal !important;
-        word-break: break-word;
+
+      #tasks-page .fs-card {
+        border-radius: var(--fs-radius-md);
       }
     }
   </style>
@@ -74,18 +144,28 @@
   <!-- List View -->
   <div id="tasks-list-view">
     <div class="fs-card" style="padding:0;overflow:hidden">
-      <div style="overflow-x:auto">
-        <table class="fs-table" id="tasks-table" style="width:100%; min-width:100%">
+      <div class="tasks-table-scroll">
+        <table class="fs-table" id="tasks-table">
+          <colgroup>
+            <col class="task-col-check">
+            <col class="task-col-title">
+            <col class="task-col-project">
+            <col class="task-col-assignee">
+            <col class="task-col-priority">
+            <col class="task-col-status">
+            <col class="task-col-due">
+            <col class="task-col-actions">
+          </colgroup>
           <thead>
             <tr>
-              <th style="width:40px; text-align:center"></th>
-              <th style="width:30%">Tiêu đề</th>
-              <th style="width:18%">Dự án</th>
-              <th style="width:14%">Người thực hiện</th>
-              <th style="width:10%">Độ ưu tiên</th>
-              <th style="width:12%">Trạng thái</th>
-              <th style="width:10%">Hạn hoàn thành</th>
-              <th style="width:6%; text-align:center">Thao tác</th>
+              <th class="task-col-check" style="text-align:center"></th>
+              <th class="task-col-title">Tiêu đề</th>
+              <th class="task-col-project">Dự án</th>
+              <th class="task-col-assignee">Người thực hiện</th>
+              <th class="task-col-priority">Độ ưu tiên</th>
+              <th class="task-col-status">Trạng thái</th>
+              <th class="task-col-due">Hạn hoàn thành</th>
+              <th class="task-col-actions" style="text-align:center">Thao tác</th>
             </tr>
           </thead>
           <tbody id="tasks-table-body">

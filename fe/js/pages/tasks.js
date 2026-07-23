@@ -176,29 +176,31 @@
 
         return `
           <tr class="hover-row task-row" data-task-id="${t.id}">
-            <td>
+            <td class="task-check-cell">
               <button class="btn btn-ghost btn-icon btn-sm task-done-toggle" data-task-id="${t.id}" title="${isDone ? 'Đánh dấu chưa xong' : 'Đánh dấu hoàn thành'}" style="color:${isDone ? 'var(--fs-success)' : 'var(--fs-border)'}">
                 <i class="bi bi-${isDone ? 'check-circle-fill' : 'circle'}" style="font-size:16px"></i>
               </button>
             </td>
-            <td>
-              <div style="font-size:13px;font-weight:500;${isDone ? 'text-decoration:line-through;color:var(--fs-text-muted)' : ''}">${FS.str.escape(t.title)}</div>
+            <td class="task-title-cell">
+              <div class="task-title-main" title="${FS.str.escape(t.title)}" style="font-size:13px;font-weight:500;${isDone ? 'text-decoration:line-through;color:var(--fs-text-muted)' : ''}">${FS.str.escape(t.title)}</div>
               <div class="fs-small">${t.code}</div>
             </td>
-            <td style="font-size:12px;color:var(--fs-text-secondary)">${FS.str.escape(t.projectName || '—')}</td>
+            <td style="font-size:12px;color:var(--fs-text-secondary)">
+              <span class="task-project-text" title="${FS.str.escape(t.projectName || '—')}">${FS.str.escape(t.projectName || '—')}</span>
+            </td>
             <td>
-              <div class="d-flex align-items-center gap-2">
+              <div class="task-assignee-wrap d-flex align-items-center gap-2">
                 ${avatarHtml}
-                <span style="font-size:12px">${FS.str.escape(lastName)}</span>
+                <span class="task-assignee-name" title="${FS.str.escape(assigneeName || lastName)}" style="font-size:12px">${FS.str.escape(lastName)}</span>
               </div>
             </td>
             <td>${FS.badge.priority(t.priority)}</td>
             <td>${FS.badge.status(t.status)}</td>
-            <td style="font-size:12px;${overdue ? 'color:var(--fs-danger);font-weight:600' : 'color:var(--fs-text-muted)'}">
+            <td class="task-due-cell" style="font-size:12px;${overdue ? 'color:var(--fs-danger);font-weight:600' : 'color:var(--fs-text-muted)'}">
               ${overdue ? '<i class="bi bi-exclamation-triangle-fill me-1"></i>' : ''}${FS.date.format(t.dueDate)}
             </td>
-            <td>
-              <div class="d-flex gap-2">
+            <td class="task-actions-cell">
+              <div class="task-actions d-flex gap-1">
                 ${FS.auth.hasLevel(2) ? `<button class="btn btn-ghost btn-icon btn-sm task-delete-btn text-danger" data-task-id="${t.id}" title="Xóa công việc"><i class="bi bi-trash"></i></button>` : ''}
                 <button class="btn btn-ghost btn-icon btn-sm task-edit-btn" data-task-id="${t.id}" title="Chỉnh sửa">
                   <i class="bi bi-pencil"></i>
