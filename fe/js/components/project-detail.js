@@ -133,7 +133,7 @@
               </div>
               <div>
                 <div class="fs-label mb-1" style="font-size:11px;text-transform:uppercase;color:var(--fs-text-muted)">Ngân sách</div>
-                <div style="font-size:13px; font-weight: 600; color: var(--fs-success)">
+                <div style="font-size:13px; font-weight: 600;" class="${project.budget ? 'text-success' : 'text-muted'}">
                   ${project.budget ? Number(project.budget).toLocaleString('vi-VN') + ' đ' : '—'}
                 </div>
               </div>
