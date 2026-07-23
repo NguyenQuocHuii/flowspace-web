@@ -174,7 +174,7 @@
             </td>
             <td style="text-align:center">
               <div class="d-flex gap-2 justify-content-center">
-                <button class="btn btn-ghost btn-icon btn-sm proj-view-btn" data-proj-id="${p.id}" title="Xem chi tiết"><i class="bi bi-eye"></i></button>
+                ${FS.auth.hasLevel(2) ? `<button class="btn btn-ghost btn-icon btn-sm proj-delete-btn text-danger" data-proj-id="${p.id}" title="Xóa dự án"><i class="bi bi-trash"></i></button>` : ''}
                 ${FS.auth.hasLevel(2) ? `<button class="btn btn-ghost btn-icon btn-sm proj-edit-btn" data-proj-id="${p.id}" title="Chỉnh sửa"><i class="bi bi-pencil"></i></button>` : ''}
               </div>
             </td>
@@ -375,6 +375,30 @@
       $(document).off('click.proj-edit').on('click.proj-edit', '.proj-edit-btn', function (e) {
         e.stopPropagation();
         self._openModal($(this).data('proj-id'));
+      });
+
+      // Delete button
+      $(document).off('click.proj-delete').on('click.proj-delete', '.proj-delete-btn', async function (e) {
+        e.stopPropagation();
+        const id = $(this).data('proj-id');
+        if (confirm('Bạn có chắc chắn muốn xóa dự án này? Tất cả các công việc liên quan cũng sẽ bị xóa.')) {
+          try {
+            const response = await FS.apiCall({
+              url: FS.API_BASE + '/api/v1/projects/' + id,
+              type: 'DELETE'
+            });
+            if (response && response.success) {
+              FS.toast('Xóa dự án thành công!', 'success');
+              await self._loadData();
+              if (FS.syncSidebarProjects) FS.syncSidebarProjects();
+            } else {
+              FS.toast('Không thể xóa dự án. Máy chủ phản hồi lỗi.', 'error');
+            }
+          } catch (err) {
+            console.error('Delete project failed:', err);
+            FS.toast('Lỗi khi xóa dự án. Vui lòng thử lại!', 'error');
+          }
+        }
       });
 
       // New project
