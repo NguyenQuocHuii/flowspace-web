@@ -69,12 +69,13 @@
             id: l.id,
             taskId: l.taskId,
             taskCode: l.taskCode || '',
-            taskTitle: l.taskTitle || '',
+            taskTitle: l.taskTitle || l.title || '',
             userId: l.userId,
             userName: l.userName || '',
             hours: l.hours,
-            note: l.note || '',
-            date: l.date,
+            note: l.note || l.description || '',
+            date: l.loggedDate || l.date || '',
+            projectName: l.projectName || '',
             createdAt: l.createdAt
           }));
 
@@ -110,7 +111,8 @@
             id: t.id,
             code: t.code,
             title: t.title,
-            projectId: t.projectId
+            projectId: t.projectId,
+            assigneeId: t.assigneeId
           }));
           $('#timetracking-offline-banner').remove();
         } else {
@@ -122,6 +124,8 @@
         if (!$('#timetracking-offline-banner').length) {
           $('#page-content').prepend('<div id="timetracking-offline-banner" class="fs-login-alert show" style="display:flex; margin-bottom:16px"><i class="bi bi-exclamation-triangle-fill"></i><span>Không thể kết nối máy chủ. Hiện đang hiển thị dữ liệu công việc tạm thời ngoại tuyến.</span></div>');
         }
+      } finally {
+        this._populateTaskSelect();
       }
     },
 
