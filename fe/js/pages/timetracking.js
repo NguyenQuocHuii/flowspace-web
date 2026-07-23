@@ -33,9 +33,39 @@
       const session = FS.auth.getSession();
       return session && session.token ? { 'Authorization': 'Bearer ' + session.token } : {};
     },
+
+    _isGuid(value) {
+      return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
+    },
+
+    _sameId(a, b) {
+      return String(a || '').toLowerCase() === String(b || '').toLowerCase();
+    },
+
+    _normalizeApiLog(l) {
+      return {
+        id: l.id,
+        taskId: l.taskId,
+        taskCode: l.taskCode || '',
+        taskTitle: l.taskTitle || l.title || '',
+        userId: l.userId,
+        userName: l.userName || '',
+        hours: Number(l.hours) || 0,
+        note: l.note || l.description || '',
+        date: l.loggedDate || l.date || '',
+        projectName: l.projectName || '',
+        createdAt: l.createdAt,
+        source: 'api'
+      };
+    },
+
+    _getApiErrorMessage(err, fallback) {
+      return err?.xhr?.responseJSON?.message || err?.xhr?.responseJSON?.error || err?.message || fallback;
+    },
+
     _isOwner(log) {
       const session = FS.auth.getSession();
-      return FS.auth.isDirector() || (log.userId && session && String(log.userId).toLowerCase() === String(session.userId).toLowerCase());
+      return FS.auth.isDirector() || (log.userId && session && this._sameId(log.userId, session.userId));
     },
 
     _canEditLog(log) {
@@ -62,35 +92,16 @@
           type: 'GET'
         });
 
-        if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
-          const apiLogs = response.data.map(l => ({
-            id: l.id,
-            taskId: l.taskId,
-            taskCode: l.taskCode || '',
-            taskTitle: l.taskTitle || l.title || '',
-            userId: l.userId,
-            userName: l.userName || '',
-            hours: l.hours,
-            note: l.note || l.description || '',
-            date: l.loggedDate || l.date || '',
-            projectName: l.projectName || '',
-            createdAt: l.createdAt
-          }));
-
-          const mergedMap = new Map();
-          const seedData = FS.db.get('time_logs') || [];
-          for (const s of seedData) mergedMap.set(String(s.id).toLowerCase(), s);
-          for (const a of apiLogs) mergedMap.set(String(a.id).toLowerCase(), a);
-
-          this._logsData = Array.from(mergedMap.values());
+        if (response && response.success && Array.isArray(response.data)) {
+          this._logsData = response.data.map(l => this._normalizeApiLog(l));
           $('#timetracking-offline-banner').remove();
         } else if (!this._logsData.length) {
-          this._logsData = FS.db.get('time_logs') || [];
+          this._logsData = (FS.db.get('time_logs') || []).map(l => ({ ...l, source: 'local' }));
         }
       } catch (err) {
         console.warn('TimeTracking API request failed:', err);
         if (!this._logsData.length) {
-          this._logsData = FS.db.get('time_logs') || [];
+          this._logsData = (FS.db.get('time_logs') || []).map(l => ({ ...l, source: 'local' }));
         }
       } finally {
         this._renderLogs();
@@ -303,7 +314,10 @@
     },
 
     async _updateLog(logId, taskId, hours, note = '', loggedDate = null) {
-      if (!logId || !taskId || !hours) return;
+      if (!this._isGuid(logId) || !this._isGuid(taskId) || !hours) {
+        FS.toast('Bản ghi giờ làm chưa đồng bộ hoặc dữ liệu không hợp lệ.', 'warning');
+        return false;
+      }
       const payload = {
         taskId: taskId,
         hours: hours,
@@ -323,22 +337,35 @@
           this._renderChart();
           return true;
         } else {
-          FS.toast('Máy chủ trả về lỗi khi cập nhật log.', 'error');
+          FS.toast(response?.message || 'Máy chủ trả về lỗi khi cập nhật log.', 'error');
         }
       } catch (err) {
         console.error('Update time log API failed:', err);
-        FS.toast('Không thể cập nhật log thời gian.', 'error');
+        FS.toast(this._getApiErrorMessage(err, 'Không thể cập nhật log thời gian.'), 'error');
       }
       return false;
     },
 
     _openEditModal(log) {
+      if (!this._isGuid(log.id) || !this._isGuid(log.taskId)) {
+        FS.toast('Bản ghi này chưa đồng bộ với máy chủ nên không thể chỉnh sửa.', 'warning');
+        return;
+      }
+
       // Populate modal fields with existing log data
       const $task = document.getElementById('tt-modal-task');
       const $hours = document.getElementById('tt-modal-hours');
       const $note = document.getElementById('tt-modal-note');
       const $date = document.getElementById('tt-modal-date');
-      if ($task) $task.value = log.taskId || '';
+      if ($task) {
+        const taskId = String(log.taskId || '');
+        const hasOption = Array.from($task.options).some(opt => this._sameId(opt.value, taskId));
+        if (!hasOption && taskId) {
+          const option = new Option(log.taskTitle || 'Công việc đã ghi log', taskId, true, true);
+          $task.add(option, $task.options[1] || null);
+        }
+        $task.value = taskId;
+      }
       if ($hours) $hours.value = log.hours;
       if ($note) $note.value = log.note || '';
       if ($date) $date.value = log.date ? log.date.slice(0,10) : '';
@@ -362,7 +389,7 @@
       const now = new Date();
 
       return this._logsData.filter(l => {
-        if (!FS.auth.isDirector() && String(l.userId).toLowerCase() !== String(session?.userId || '').toLowerCase()) return false;
+        if (!FS.auth.isDirector() && !this._sameId(l.userId, session?.userId)) return false;
         if (this._period === 'week') {
           const weekStart = new Date(now);
           weekStart.setDate(now.getDate() - now.getDay());
@@ -399,7 +426,7 @@
           $body.innerHTML = pagedLogs.map(l => {
             const taskTitle = l.taskTitle || '—';
             const projName = l.projectName || '—';
-            const canEdit = this._canEditLog(l);
+            const canEdit = this._canEditLog(l) && this._isGuid(l.id) && this._isGuid(l.taskId);
             const editBtn = canEdit ? `<button class="btn btn-ghost btn-icon btn-sm tt-edit-log" data-log-id="${l.id}" title="Sửa">
               <i class="bi bi-pencil" style="font-size:12px;color:var(--fs-primary)"></i>
             </button>` : '';
@@ -565,25 +592,31 @@
         const editBtn = e.target.closest('.tt-edit-log');
         if (delBtn) {
           const logId = delBtn.dataset.logId;
-          FS.confirm('Xoá bản ghi giờ này?', async () => {
-            try {
-              const response = await FS.apiCall({
-                url: FS.API_BASE + '/api/v1/timetracking/logs/' + logId,
-                type: 'DELETE'
-              });
-              if (!response || response.success !== true) {
-                throw new Error(response?.message || 'Delete time log failed');
-              }
-            } catch (err) {
-              console.error('Delete time log API failed:', err);
-              FS.toast('Không thể xoá bản ghi giờ làm.', 'error');
-              return;
+          const confirmed = await FS.confirm({
+            title: 'Xóa bản ghi giờ',
+            message: 'Bạn có chắc muốn xóa bản ghi giờ làm này?',
+            confirmText: 'Xóa',
+            cancelText: 'Hủy',
+            type: 'danger'
+          });
+          if (!confirmed) return;
+          try {
+            const response = await FS.apiCall({
+              url: FS.API_BASE + '/api/v1/timetracking/logs/' + logId,
+              type: 'DELETE'
+            });
+            if (!response || response.success !== true) {
+              throw new Error(response?.message || 'Delete time log failed');
             }
-            await self._loadLogs();
-            self._renderLogs();
-            self._renderChart();
-            FS.toast('Đã xoá bản ghi giờ làm', 'success');
-          }, { danger: true, confirmText: 'Xoá' });
+          } catch (err) {
+            console.error('Delete time log API failed:', err);
+            FS.toast(self._getApiErrorMessage(err, 'Không thể xóa bản ghi giờ làm.'), 'error');
+            return;
+          }
+          await self._loadLogs();
+          self._renderLogs();
+          self._renderChart();
+          FS.toast('Đã xóa bản ghi giờ làm', 'success');
         } else if (editBtn) {
           const logId = editBtn.dataset.logId;
           const log = self._logsData.find(l => String(l.id).toLowerCase() === String(logId).toLowerCase());
@@ -618,19 +651,30 @@
         if ($ov) $ov.style.display = 'none';
       });
       document.getElementById('tt-modal-save')?.addEventListener('click', async function () {
+        const saveBtn = this;
+        if (saveBtn.disabled) return;
+
         const taskId = document.getElementById('tt-modal-task')?.value;
         const hours = parseFloat(document.getElementById('tt-modal-hours')?.value);
         const note = document.getElementById('tt-modal-note')?.value || '';
         const date = document.getElementById('tt-modal-date')?.value;
         if (!taskId) { FS.toast('Chọn công việc!', 'warning'); return; }
         if (!hours || hours <= 0) { FS.toast('Giờ không hợp lệ!', 'warning'); return; }
-        const saved = self._editingLogId
-          ? await self._updateLog(self._editingLogId, taskId, hours, note, date)
-          : await self._saveLog(taskId, hours, note, date);
-        if (!saved) return;
-        self._editingLogId = null;
-        const $ov = document.getElementById('tt-modal-overlay');
-        if ($ov) $ov.style.display = 'none';
+        const originalText = saveBtn.textContent;
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Đang lưu';
+        try {
+          const saved = self._editingLogId
+            ? await self._updateLog(self._editingLogId, taskId, hours, note, date)
+            : await self._saveLog(taskId, hours, note, date);
+          if (!saved) return;
+          self._editingLogId = null;
+          const $ov = document.getElementById('tt-modal-overlay');
+          if ($ov) $ov.style.display = 'none';
+        } finally {
+          saveBtn.disabled = false;
+          saveBtn.textContent = originalText;
+        }
       });
       document.getElementById('tt-modal-overlay')?.addEventListener('click', function (e) {
         if (e.target === this) this.style.display = 'none';
