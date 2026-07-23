@@ -378,10 +378,10 @@
       });
 
       // Delete button
-      $(document).off('click.proj-delete').on('click.proj-delete', '.proj-delete-btn', async function (e) {
+      $(document).off('click.proj-delete').on('click.proj-delete', '.proj-delete-btn', function (e) {
         e.stopPropagation();
         const id = $(this).data('proj-id');
-        if (confirm('Bạn có chắc chắn muốn xóa dự án này? Tất cả các công việc liên quan cũng sẽ bị xóa.')) {
+        const executeDelete = async () => {
           try {
             const response = await FS.apiCall({
               url: FS.API_BASE + '/api/v1/projects/' + id,
@@ -398,6 +398,19 @@
             console.error('Delete project failed:', err);
             FS.toast('Lỗi khi xóa dự án. Vui lòng thử lại!', 'error');
           }
+        };
+
+        if (FS.confirm) {
+          FS.confirm({
+            title: "Xóa dự án",
+            message: "Bạn có chắc chắn muốn xóa dự án này? Tất cả các công việc liên quan cũng sẽ bị xóa vĩnh viễn.",
+            confirmText: "Xóa dự án",
+            cancelText: "Hủy bỏ",
+            type: "danger",
+            onConfirm: executeDelete
+          });
+        } else if (confirm('Bạn có chắc chắn muốn xóa dự án này? Tất cả các công việc liên quan cũng sẽ bị xóa.')) {
+          executeDelete();
         }
       });
 
