@@ -106,13 +106,13 @@ namespace FlowSpace.Application.Services
             if (project == null) return false;
 
             // Delete associated tasks first to prevent foreign key constraint violation
-            var tasks = await _unitOfWork.Repository<FlowSpace.Domain.Entities.Task>().GetQueryable()
+            var tasks = await _unitOfWork.Repository<TaskItem>().GetQueryable()
                 .Where(t => t.ProjectId == id)
                 .ToListAsync();
 
             foreach (var task in tasks)
             {
-                _unitOfWork.Repository<FlowSpace.Domain.Entities.Task>().Delete(task);
+                _unitOfWork.Repository<TaskItem>().Delete(task);
             }
 
             _unitOfWork.Repository<Project>().Delete(project);
