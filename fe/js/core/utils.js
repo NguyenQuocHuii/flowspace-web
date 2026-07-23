@@ -308,7 +308,8 @@
         'medium': { cls: 'badge-priority-medium', label: 'TB',  icon: 'bi-dash' },
         'low':    { cls: 'badge-priority-low',    label: 'Thấp',icon: 'bi-arrow-down' }
       };
-      const b = map[priority] || { cls: 'badge-priority-none', label: '—', icon: '' };
+      const key = String(priority || '').toLowerCase();
+      const b = map[key] || { cls: 'badge-priority-none', label: '—', icon: '' };
       return `<span class="fs-badge ${b.cls}"><i class="bi ${b.icon}"></i>${b.label}</span>`;
     },
 
@@ -327,7 +328,8 @@
         'overtime':         { cls: 'badge-warning', label: '⏰ Tăng ca' },
         'remote':           { cls: 'badge-neutral', label: '🏠 Làm remote' }
       };
-      const b = map[type] || { cls: 'badge-neutral', label: type };
+      const st = String(type || '').toLowerCase();
+      const b = map[st] || { cls: 'badge-neutral', label: type };
       return `<span class="fs-badge ${b.cls}">${b.label}</span>`;
     }
   };
