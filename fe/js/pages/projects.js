@@ -92,12 +92,12 @@
       const pagedProjects = allFiltered.slice((this._page - 1) * this.PAGE_SIZE, this._page * this.PAGE_SIZE);
 
       if (this._view === 'list') {
-        $('#proj-list-view').css('display', 'block');
-        $('#proj-card-view').css('display', 'none');
+        $('#proj-list-view').removeClass('d-none');
+        $('#proj-card-view').addClass('d-none');
         this._renderTable(pagedProjects, total);
       } else {
-        $('#proj-list-view').css('display', 'none');
-        $('#proj-card-view').css('display', 'block');
+        $('#proj-list-view').addClass('d-none');
+        $('#proj-card-view').removeClass('d-none');
         this._renderCards(pagedProjects, total);
       }
       this._renderPagination(total, totalPages);
