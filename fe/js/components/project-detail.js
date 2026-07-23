@@ -188,11 +188,19 @@
         <div class="fs-offcanvas-backdrop show" id="proj-detail-backdrop"></div>
       `;
 
-      $('#project-detail-panel, #proj-detail-backdrop').remove();
-      $('body').append(html);
+      const $existingPanel = $('#project-detail-panel');
+      if ($existingPanel.length > 0) {
+        $existingPanel.find('.fs-offcanvas-header h5').text(project.name);
+        $existingPanel.find('.fs-offcanvas-header span').text(project.code);
+        $existingPanel.find('.fs-offcanvas-body').html($(html).find('.fs-offcanvas-body').html());
+      } else {
+        $('#project-detail-panel, #proj-detail-backdrop').remove();
+        $('body').append(html);
+      }
+      
       $('#project-detail-panel .fs-offcanvas-body').scrollTop(0);
 
-      $('#proj-detail-close, #proj-detail-close2, #proj-detail-backdrop').on('click', function () {
+      $('#proj-detail-close, #proj-detail-close2, #proj-detail-backdrop').off('click').on('click', function () {
         $('#project-detail-panel').css('right', '-520px');
         setTimeout(() => $('#project-detail-panel, #proj-detail-backdrop').remove(), 300);
       });

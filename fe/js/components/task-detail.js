@@ -213,8 +213,16 @@
         <div class="fs-offcanvas-backdrop show" id="task-detail-backdrop"></div>
       `;
 
-      $('#task-detail-panel, #task-detail-backdrop').remove();
-      $('body').append(html);
+      const $existingPanel = $('#task-detail-panel');
+      if ($existingPanel.length > 0) {
+        $existingPanel.find('.fs-offcanvas-header h5').text(task.title);
+        $existingPanel.find('.fs-offcanvas-header span').text(task.code);
+        $existingPanel.find('.fs-offcanvas-body').html($(html).find('.fs-offcanvas-body').html());
+      } else {
+        $('#task-detail-panel, #task-detail-backdrop').remove();
+        $('body').append(html);
+      }
+      
       $('#task-detail-panel .fs-offcanvas-body').scrollTop(0);
 
       const self = this;
