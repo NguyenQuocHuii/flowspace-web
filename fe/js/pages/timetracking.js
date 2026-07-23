@@ -18,15 +18,18 @@
     _editingLogId: null, // null when creating, id when editing
 
     async init() {
-      // 1. Initialize selectors and controls instantly
-      this._logsData = FS.db.get('time_logs') || [];
+      // 1. Render the shell immediately, then let API data become the source of truth.
+      this._logsData = [];
       this._tasksList = FS.db.get('tasks') || [];
       this._populateTaskSelect();
       this._renderControls();
+      this._renderLogs();
+      this._renderChart();
       this._bindEvents();
 
-      // 2. Fetch live data from backend API in background and render once complete to prevent double-loading visual shifts
-      await Promise.all([this._loadProjects(), this._loadLogs(), this._loadTasks()]);
+      // 2. Load reference data first so edit modal/task labels stay in sync with backend logs.
+      await Promise.all([this._loadProjects(), this._loadTasks()]);
+      await this._loadLogs();
     },
 
     _getAuthHeaders() {
@@ -69,11 +72,8 @@
     },
 
     _canEditLog(log) {
-      // Must be owner or director
       if (!this._isOwner(log)) return false;
-      // Disallow if log is approved (assuming a flag)
       if (log.approved) return false;
-      // Disallow if associated project is closed
       const task = FS.db.find('tasks', log.taskId);
       if (task) {
         const project = FS.db.find('projects', task.projectId);
@@ -84,6 +84,10 @@
         return false;
       }
       return true;
+    },
+
+    _canPersistLog(log) {
+      return log && log.source === 'api' && this._isGuid(log.id) && this._isGuid(log.taskId);
     },
     async _loadLogs() {
       try {
@@ -134,9 +138,11 @@
             id: t.id,
             code: t.code,
             title: t.title,
+            projectName: t.projectName || '',
             projectId: t.projectId,
             assigneeId: t.assigneeId
           }));
+          FS.db.set('tasks', this._tasksList);
           $('#timetracking-offline-banner').remove();
         } else {
           this._tasksList = [];
@@ -157,7 +163,7 @@
       const session = FS.auth.getSession();
       const myTasks = FS.auth.isDirector()
         ? tasks
-        : tasks.filter(t => t.assigneeId === session?.userId || !t.assigneeId);
+        : tasks.filter(t => this._sameId(t.assigneeId, session?.userId) || !t.assigneeId);
       const opts = myTasks.map(t => {
         const p = FS.db.find('projects', t.projectId);
         return `<option value="${t.id}">[${t.code}] ${FS.str.escape(t.title)} ${p ? '· ' + FS.str.escape(p.name) : ''}</option>`;
@@ -426,21 +432,32 @@
           $body.innerHTML = pagedLogs.map(l => {
             const taskTitle = l.taskTitle || '—';
             const projName = l.projectName || '—';
-            const canEdit = this._canEditLog(l) && this._isGuid(l.id) && this._isGuid(l.taskId);
-            const editBtn = canEdit ? `<button class="btn btn-ghost btn-icon btn-sm tt-edit-log" data-log-id="${l.id}" title="Sửa">
-              <i class="bi bi-pencil" style="font-size:12px;color:var(--fs-primary)"></i>
-            </button>` : '';
-            const deleteBtn = canEdit ? `<button class="btn btn-ghost btn-icon btn-sm tt-delete-log" data-log-id="${l.id}" title="Xoá">
-              <i class="bi bi-trash3" style="font-size:12px;color:var(--fs-danger)"></i>
-            </button>` : '';
+            const note = l.note || '';
+            const canPersist = this._canPersistLog(l);
+            const canEdit = canPersist && this._canEditLog(l);
+            const disabledReason = canPersist ? 'Bạn không có quyền thao tác bản ghi này' : 'Bản ghi chưa đồng bộ với máy chủ';
+            const editBtn = canEdit
+              ? `<button class="btn btn-ghost btn-icon btn-sm tt-edit-log" data-log-id="${l.id}" title="Sửa ghi chú/giờ">
+                  <i class="bi bi-pencil" style="font-size:13px;color:var(--fs-primary)"></i>
+                </button>`
+              : `<button class="btn btn-ghost btn-icon btn-sm" type="button" disabled title="${FS.str.escape(disabledReason)}">
+                  <i class="bi bi-pencil" style="font-size:13px;color:var(--fs-text-muted)"></i>
+                </button>`;
+            const deleteBtn = canEdit
+              ? `<button class="btn btn-ghost btn-icon btn-sm tt-delete-log" data-log-id="${l.id}" title="Xóa bản ghi">
+                  <i class="bi bi-trash3" style="font-size:13px;color:var(--fs-danger)"></i>
+                </button>`
+              : `<button class="btn btn-ghost btn-icon btn-sm" type="button" disabled title="${FS.str.escape(disabledReason)}">
+                  <i class="bi bi-trash3" style="font-size:13px;color:var(--fs-text-muted)"></i>
+                </button>`;
             return `
               <tr>
-                <td style="font-size:13px">${FS.str.escape(taskTitle)}</td>
-                <td style="font-size:12px;color:var(--fs-text-secondary)">${FS.str.escape(projName)}</td>
-                <td style="font-size:12px;color:var(--fs-text-muted)">${FS.date.format(l.date)}</td>
-                <td><span class="fs-badge badge-accent">${l.hours}h</span></td>
-                <td style="font-size:12px;color:var(--fs-text-secondary)">${FS.str.escape(l.note || '—')}</td>
-                <td style="text-align:center">${editBtn}${deleteBtn}</td>
+                <td style="font-size:13px"><span class="tt-task-title" title="${FS.str.escape(taskTitle)}">${FS.str.escape(taskTitle)}</span></td>
+                <td style="font-size:12px;color:var(--fs-text-secondary)"><span class="tt-project-name" title="${FS.str.escape(projName)}">${FS.str.escape(projName)}</span></td>
+                <td class="tt-date-cell" style="font-size:12px;color:var(--fs-text-muted)">${FS.date.format(l.date)}</td>
+                <td class="tt-hours-cell"><span class="fs-badge badge-accent">${l.hours}h</span></td>
+                <td style="font-size:12px;color:var(--fs-text-secondary)"><span class="tt-note-text" title="${FS.str.escape(note || 'Không có ghi chú')}">${FS.str.escape(note || '—')}</span></td>
+                <td class="tt-actions-cell"><div class="tt-row-actions d-flex">${editBtn}${deleteBtn}</div></td>
               </tr>`;
           }).join('');
         }
@@ -630,12 +647,18 @@
       const openManualModal = function () {
         self._editingLogId = null;
         const $title = document.getElementById('tt-modal-title');
-        if ($title) $title.textContent = 'Thêm bản ghi giờ';
+        if ($title) $title.textContent = 'Ghi giờ thủ công';
         const $saveBtn = document.getElementById('tt-modal-save');
-        if ($saveBtn) $saveBtn.textContent = 'Thêm';
+        if ($saveBtn) $saveBtn.textContent = 'Lưu giờ';
         const today = new Date().toISOString().slice(0, 10);
         const $d = document.getElementById('tt-modal-date');
         if ($d) $d.value = today;
+        const $task = document.getElementById('tt-modal-task');
+        const $hours = document.getElementById('tt-modal-hours');
+        const $note = document.getElementById('tt-modal-note');
+        if ($task) $task.value = '';
+        if ($hours) $hours.value = '1';
+        if ($note) $note.value = '';
         const $ov = document.getElementById('tt-modal-overlay');
         if ($ov) $ov.style.display = 'flex';
       };

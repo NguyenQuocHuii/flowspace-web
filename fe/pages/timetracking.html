@@ -2,6 +2,84 @@
      FlowSpace — Time Tracking Page
      ============================================================ -->
 <div class="page-enter" id="timetracking-page">
+  <style>
+    #timetracking-page .tt-log-scroll {
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #tt-log-table {
+      table-layout: fixed;
+      width: 100%;
+      min-width: 1060px;
+    }
+
+    #tt-log-table th,
+    #tt-log-table td {
+      overflow: hidden;
+      vertical-align: middle;
+    }
+
+    #tt-log-table th {
+      line-height: 1.25;
+      white-space: nowrap;
+    }
+
+    #tt-log-table .tt-col-task { width: 33%; }
+    #tt-log-table .tt-col-project { width: 22%; }
+    #tt-log-table .tt-col-date { width: 120px; }
+    #tt-log-table .tt-col-hours { width: 86px; }
+    #tt-log-table .tt-col-note { width: 22%; }
+    #tt-log-table .tt-col-actions { width: 112px; }
+
+    #tt-log-table .tt-task-title,
+    #tt-log-table .tt-project-name,
+    #tt-log-table .tt-note-text {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #tt-log-table .tt-task-title {
+      white-space: normal;
+      overflow-wrap: anywhere;
+      line-height: 1.45;
+      max-height: 2.9em;
+    }
+
+    #tt-log-table .tt-project-name,
+    #tt-log-table .tt-note-text {
+      white-space: nowrap;
+    }
+
+    #tt-log-table .tt-date-cell,
+    #tt-log-table .tt-hours-cell,
+    #tt-log-table .tt-actions-cell {
+      white-space: nowrap;
+    }
+
+    #tt-log-table .tt-row-actions {
+      justify-content: center;
+      gap: 6px;
+    }
+
+    #tt-log-table .tt-row-actions .btn-icon {
+      width: 30px;
+      height: 30px;
+    }
+
+    @media (max-width: 767.98px) {
+      #tt-log-table {
+        min-width: 960px;
+      }
+
+      #timetracking-page .fs-card-header {
+        align-items: flex-start;
+        gap: 12px;
+      }
+    }
+  </style>
 
   <div class="fs-page-header">
     <div>
@@ -80,16 +158,24 @@
         </button>
       </div>
     </div>
-    <div class="table-responsive" style="overflow-x:auto;-webkit-overflow-scrolling:touch">
-      <table class="fs-table">
+    <div class="tt-log-scroll">
+      <table class="fs-table" id="tt-log-table">
+        <colgroup>
+          <col class="tt-col-task">
+          <col class="tt-col-project">
+          <col class="tt-col-date">
+          <col class="tt-col-hours">
+          <col class="tt-col-note">
+          <col class="tt-col-actions">
+        </colgroup>
         <thead>
           <tr>
-            <th>Công việc</th>
-            <th>Dự án</th>
-            <th>Ngày</th>
-            <th>Giờ</th>
-            <th>Ghi chú</th>
-            <th style="width:100px;text-align:center">Thao tác</th>
+            <th class="tt-col-task">Công việc</th>
+            <th class="tt-col-project">Dự án</th>
+            <th class="tt-col-date">Ngày</th>
+            <th class="tt-col-hours">Giờ</th>
+            <th class="tt-col-note">Ghi chú</th>
+            <th class="tt-col-actions" style="text-align:center">Thao tác</th>
           </tr>
         </thead>
         <tbody id="tt-log-body">
@@ -115,7 +201,7 @@
 <div class="fs-modal-overlay" id="tt-modal-overlay" style="display:none">
   <div class="fs-modal" style="max-width:440px">
     <div class="fs-modal-header">
-      <h5 class="fs-h5 m-0">Ghi giờ thủ công</h5>
+      <h5 class="fs-h5 m-0" id="tt-modal-title">Ghi giờ thủ công</h5>
       <button class="btn btn-ghost btn-icon btn-sm" id="tt-modal-close"><i class="bi bi-x-lg"></i></button>
     </div>
     <div class="fs-modal-body">
