@@ -198,9 +198,12 @@
               ${overdue ? '<i class="bi bi-exclamation-triangle-fill me-1"></i>' : ''}${FS.date.format(t.dueDate)}
             </td>
             <td>
-              <button class="btn btn-ghost btn-icon btn-sm task-edit-btn" data-task-id="${t.id}" title="Chỉnh sửa">
-                <i class="bi bi-pencil"></i>
-              </button>
+              <div class="d-flex gap-2">
+                ${FS.auth.hasLevel(2) ? `<button class="btn btn-ghost btn-icon btn-sm task-delete-btn text-danger" data-task-id="${t.id}" title="Xóa công việc"><i class="bi bi-trash"></i></button>` : ''}
+                <button class="btn btn-ghost btn-icon btn-sm task-edit-btn" data-task-id="${t.id}" title="Chỉnh sửa">
+                  <i class="bi bi-pencil"></i>
+                </button>
+              </div>
             </td>
           </tr>`;
       }).join(''));
@@ -452,6 +455,42 @@
       $(document).off('click.task-edit').on('click.task-edit', '.task-edit-btn', function (e) {
         e.stopPropagation();
         self._openModal($(this).data('task-id'));
+      });
+
+      // Delete button
+      $(document).off('click.task-delete').on('click.task-delete', '.task-delete-btn', function (e) {
+        e.stopPropagation();
+        const taskId = $(this).data('task-id');
+        const executeDelete = async () => {
+          try {
+            const response = await FS.apiCall({
+              url: FS.API_BASE + '/api/v1/tasks/' + taskId,
+              type: 'DELETE'
+            });
+            if (response && response.success) {
+              FS.toast('Xóa công việc thành công!', 'success');
+              await self._loadData();
+            } else {
+              FS.toast('Không thể xóa công việc. Máy chủ phản hồi lỗi.', 'error');
+            }
+          } catch (err) {
+            console.error('Delete task failed:', err);
+            FS.toast('Lỗi khi xóa công việc. Vui lòng thử lại!', 'error');
+          }
+        };
+
+        if (FS.confirm) {
+          FS.confirm({
+            title: "Xóa công việc",
+            message: "Bạn có chắc chắn muốn xóa công việc này vĩnh viễn không?",
+            confirmText: "Xóa",
+            cancelText: "Hủy bỏ",
+            type: "danger",
+            onConfirm: executeDelete
+          });
+        } else if (confirm('Bạn có chắc chắn muốn xóa công việc này?')) {
+          executeDelete();
+        }
       });
 
       // New task
