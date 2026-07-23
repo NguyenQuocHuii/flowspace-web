@@ -190,7 +190,7 @@
 
     <div class="features-grid">
       <!-- 1. Quản lý Dự án -->
-      <div class="feature-card" data-feature="projects">
+      <div class="feature-card reveal" data-feature="projects" style="transition-delay: 0ms;">
         <div class="feature-icon"><i class="bi bi-folder2-open"></i></div>
         <h3 class="feature-title">Quản lý Dự án & Tiến độ</h3>
         <p class="feature-desc">Theo dõi toàn diện các dự án đang chạy với thanh phần trăm tiến độ cập nhật tự động
@@ -198,7 +198,7 @@
       </div>
 
       <!-- 2. Kanban Board -->
-      <div class="feature-card" data-feature="kanban">
+      <div class="feature-card reveal" data-feature="kanban" style="transition-delay: 60ms;">
         <div class="feature-icon"><i class="bi bi-kanban"></i></div>
         <h3 class="feature-title">Kanban kéo thả</h3>
         <p class="feature-desc">Quản lý trực quan với SortableJS. Kéo thả các thẻ công việc qua 4 cột trạng thái:
@@ -206,7 +206,7 @@
       </div>
 
       <!-- 3. Gantt Chart -->
-      <div class="feature-card" data-feature="gantt">
+      <div class="feature-card reveal" data-feature="gantt" style="transition-delay: 120ms;">
         <div class="feature-icon"><i class="bi bi-bar-chart-steps"></i></div>
         <h3 class="feature-title">Gantt Chart Timeline</h3>
         <p class="feature-desc">Xem tổng quan lịch trình, mối liên quan thời gian giữa các dự án và đầu việc cụ thể
@@ -214,7 +214,7 @@
       </div>
 
       <!-- 4. Lịch biểu -->
-      <div class="feature-card" data-feature="calendar">
+      <div class="feature-card reveal" data-feature="calendar" style="transition-delay: 180ms;">
         <div class="feature-icon"><i class="bi bi-calendar3"></i></div>
         <h3 class="feature-title">Lịch tích hợp</h3>
         <p class="feature-desc">Tích hợp FullCalendar hiển thị tất cả hạn công việc và các cuộc họp nội bộ quan trọng
@@ -222,7 +222,7 @@
       </div>
 
       <!-- 5. Chat nội bộ -->
-      <div class="feature-card" data-feature="chat">
+      <div class="feature-card reveal" data-feature="chat" style="transition-delay: 240ms;">
         <div class="feature-icon"><i class="bi bi-chat-dots"></i></div>
         <h3 class="feature-title">Kênh Chat & DM</h3>
         <p class="feature-desc">Trao đổi trực tiếp ngay trong ứng dụng với các kênh thảo luận chung (#general,
@@ -230,7 +230,7 @@
       </div>
 
       <!-- 6. Tài liệu lưu trữ -->
-      <div class="feature-card" data-feature="documents">
+      <div class="feature-card reveal" data-feature="documents" style="transition-delay: 300ms;">
         <div class="feature-icon"><i class="bi bi-file-earmark-richtext"></i></div>
         <h3 class="feature-title">Tài liệu nhóm</h3>
         <p class="feature-desc">Lưu trữ các ghi chú cuộc họp, quy trình làm việc chung (SOP) với cấu trúc cây thư mục
@@ -318,7 +318,7 @@
        PHILOSOPHY QUOTE
   ════════════════════════════════════════ -->
   <section class="quote-section" id="quote">
-    <div class="quote-container">
+    <div class="quote-container reveal">
       <blockquote class="philosophical-quote">
         "Sự phức tạp làm tiêu hao năng lượng. Sự tối giản tạo ra sự tập trung và dòng chảy (Flow) công việc tối
         thượng."
@@ -358,6 +358,7 @@
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" defer></script>
   <script src="js/core/auth.js" defer></script>
   <script src="js/pages/landing.js" defer></script>
+  <script src="js/core/scroll-reveal.js" defer></script>
 
 </body>
 

@@ -44,6 +44,11 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     animation-duration: 0.001ms !important;
     transition-duration: 0.001ms !important;
   }
+  .reveal {
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
 }
 
 /* ── Visibility helpers (JS-driven auth state) ───────────── */
@@ -998,4 +1003,18 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     grid-template-columns: 1fr;
     gap: 20px;
   }
+}
+
+/* ============================================================
+   SCROLL REVEAL ANIMATIONS
+   ============================================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
 }
