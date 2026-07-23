@@ -178,10 +178,16 @@
                 <button class="btn btn-ghost btn-xs" onclick="FS.router.go('tasks')" style="font-size:11.5px">Xem tất cả <i class="bi bi-arrow-right"></i></button>
               </div>
               <div id="proj-task-list" class="d-flex flex-column gap-2">${taskRows}</div>
+              ${FS.auth.hasLevel(2) ? `
+              <div class="d-flex gap-2 mt-3 pt-2" style="border-top: 1px dashed var(--fs-border)">
+                <input type="text" class="fs-input form-control-sm" id="proj-quick-task-input" placeholder="Thêm nhanh task mới cho dự án này..." style="font-size:12px;height:34px">
+                <button class="btn btn-primary btn-sm" id="proj-quick-task-btn" style="white-space:nowrap;font-size:12px;height:34px;padding:0 12px">Thêm</button>
+              </div>
+              ` : ''}
             </div>
           </div>
           <div class="fs-offcanvas-footer" style="padding: 16px 28px;">
-            ${FS.auth.hasLevel(2) ? `<button class="btn btn-outline btn-sm" onclick="FS.router.go('tasks')"><i class="bi bi-plus"></i> Thêm task</button>` : ''}
+            ${FS.auth.hasLevel(2) ? `<button class="btn btn-outline btn-sm" id="proj-detail-add-task-btn"><i class="bi bi-plus"></i> Thêm nhanh task</button>` : ''}
             <button class="btn btn-ghost btn-sm ms-auto" id="proj-detail-close2">Đóng</button>
           </div>
         </div>
@@ -193,6 +199,7 @@
         $existingPanel.find('.fs-offcanvas-header h5').text(project.name);
         $existingPanel.find('.fs-offcanvas-header span').text(project.code);
         $existingPanel.find('.fs-offcanvas-body').html($(html).find('.fs-offcanvas-body').html());
+        $existingPanel.find('.fs-offcanvas-footer').html($(html).find('.fs-offcanvas-footer').html());
       } else {
         $('#project-detail-panel, #proj-detail-backdrop').remove();
         $('body').append(html);
@@ -200,15 +207,64 @@
       
       $('#project-detail-panel .fs-offcanvas-body').scrollTop(0);
 
+      const self = this;
+
       $('#proj-detail-close, #proj-detail-close2, #proj-detail-backdrop').off('click').on('click', function () {
         $('#project-detail-panel').css('right', '-520px');
         setTimeout(() => $('#project-detail-panel, #proj-detail-backdrop').remove(), 300);
       });
 
       // Open task from project panel
-      $(document).on('click', '#proj-task-list .task-row', function () {
+      $(document).off('click.proj-task-open').on('click.proj-task-open', '#proj-task-list .task-row', function (e) {
+        e.stopPropagation();
         const taskId = $(this).data('task-id');
         FS.taskDetail.open(taskId);
+      });
+
+      // Focus quick add input
+      $(document).off('click.proj-add-focus').on('click.proj-add-focus', '#proj-detail-add-task-btn', function () {
+        $('#proj-quick-task-input').focus();
+      });
+
+      // Quick add task action
+      $(document).off('click.proj-quick-task').on('click.proj-quick-task', '#proj-quick-task-btn', async function () {
+        const title = $('#proj-quick-task-input').val().trim();
+        if (!title) return;
+        const currentUserId = FS.auth.getSession()?.userId;
+
+        try {
+          const response = await FS.apiCall({
+            url: FS.API_BASE + '/api/v1/tasks',
+            type: 'POST',
+            data: {
+              title: title,
+              projectId: project.id,
+              assigneeId: currentUserId,
+              status: 'todo',
+              priority: 'medium',
+              code: 'T-' + Math.floor(100 + Math.random() * 900)
+            }
+          });
+
+          if (response && response.success) {
+            FS.toast('Đã thêm công việc thành công!', 'success');
+            // Reload project detail
+            self.open(project.id);
+            
+            // Reload parent page list to reflect task count changes if applicable
+            const activeItem = document.querySelector('.fs-nav-item.active');
+            const page = activeItem ? activeItem.dataset.page : '';
+            if (page && FS.pages[page] && typeof FS.pages[page]._loadData === 'function') {
+              await FS.pages[page]._loadData();
+              if (typeof FS.pages[page]._render === 'function') FS.pages[page]._render();
+            }
+          } else {
+            FS.toast('Không thể thêm công việc. Lỗi máy chủ.', 'error');
+          }
+        } catch (err) {
+          console.error('Quick add task failed:', err);
+          FS.toast('Lỗi khi thêm công việc!', 'error');
+        }
       });
     }
   };
