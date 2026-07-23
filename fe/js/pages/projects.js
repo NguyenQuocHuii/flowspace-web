@@ -195,31 +195,12 @@
       }
 
       $('#proj-card-grid').html(projects.map(p => {
-        const membersHtml = (p.members || []).slice(0, 5).map(m => {
-          let userId = typeof m === 'object' ? (m.id || m.userId) : m;
-          let name = typeof m === 'object' ? m.name : '';
+        const membersHtml = (FS.user && FS.user.avatarStack)
+          ? FS.user.avatarStack(p.members || [], 4)
+          : '<span class="text-muted" style="font-size:12px">—</span>';
 
-          if (userId && FS.user && FS.user.get) {
-            const u = FS.user.get(userId);
-            if (u) {
-              if (!name) name = u.name;
-            }
-          }
-
-          if (FS.user && FS.user.avatar) {
-            return FS.user.avatar(userId, 'sm', name || 'Thành viên');
-          }
-
-          let initials = 'TV';
-          if (name) {
-            const parts = name.trim().split(/\s+/);
-            initials = parts.length > 1 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : name.substring(0, 2).toUpperCase();
-          }
-
-          return `<div class="fs-avatar fs-avatar-sm" title="${FS.str.escape(name || 'Thành viên')}" style="margin-left:-6px;border:2px solid var(--fs-bg);background-color:#6366f1;color:#ffffff;font-size:11px;font-weight:600">${initials}</div>`;
-        }).join('');
-
-        const overdue = FS.date.isOverdue(p.endDate) && p.status !== 'done';
+        const overdue = p.endDate ? (FS.date.isOverdue(p.endDate) && p.status !== 'done') : false;
+        const endDateStr = p.endDate ? FS.date.format(p.endDate) : '—';
         const done = p.completedTaskCount || 0;
         const totalTasks = p.taskCount || 0;
 
@@ -233,8 +214,8 @@
               <div style="height:4px;background:${accentColor};margin:-16px -16px 14px;border-radius:var(--fs-radius-md) var(--fs-radius-md) 0 0"></div>
               <div class="d-flex align-items-start justify-content-between mb-2">
                 <div>
-                  <div class="fs-small" style="color:var(--fs-accent);margin-bottom:3px;font-weight:600">${p.code}</div>
-                  <h6 style="font-weight:600;font-size:14px;margin:0;line-height:1.3">${FS.str.escape(p.name)}</h6>
+                  <div class="fs-small" style="color:var(--fs-accent);margin-bottom:3px;font-weight:600">${FS.str.escape(p.code || 'FS-000')}</div>
+                  <h6 style="font-weight:600;font-size:14px;margin:0;line-height:1.3">${FS.str.escape(p.name || 'Dự án')}</h6>
                 </div>
                 ${FS.badge.status(p.status)}
               </div>
@@ -242,15 +223,15 @@
 
               <!-- Progress -->
               <div class="d-flex align-items-center gap-2 mb-3">
-                <div class="fs-progress" style="flex:1"><div class="fs-progress-bar" style="width:${p.progress}%;background:${accentColor}"></div></div>
-                <span style="font-size:11px;font-weight:700;color:${accentColor}">${p.progress}%</span>
+                <div class="fs-progress" style="flex:1"><div class="fs-progress-bar" style="width:${p.progress || 0}%;background:${accentColor}"></div></div>
+                <span style="font-size:11px;font-weight:700;color:${accentColor}">${p.progress || 0}%</span>
               </div>
 
               <div class="d-flex align-items-center justify-content-between">
-                <div class="d-flex" style="padding-left:6px">${membersHtml}</div>
+                <div>${membersHtml}</div>
                 <div class="text-end">
                   <div class="fs-small" style="font-weight:600">${done}/${totalTasks} tasks</div>
-                  <div style="font-size:11px;${overdue?'color:var(--fs-danger);font-weight:600':'color:var(--fs-text-muted)'}">${FS.date.format(p.endDate)}</div>
+                  <div style="font-size:11px;${overdue?'color:var(--fs-danger);font-weight:600':'color:var(--fs-text-muted)'}">${endDateStr}</div>
                 </div>
               </div>
             </div>
