@@ -7,13 +7,21 @@
   max-width: 1440px;
   margin: 0 auto;
   padding-bottom: 36px;
+  /* Unified spacing scale — every gap below references one of these,
+     so section/card/item spacing always stays in sync. */
+  --fs-gap-section: 24px;
+  /* hero banner → stat row → content row */
+  --fs-gap-card: 16px;
+  /* gap between cards when stacked vertically (mobile) */
+  --fs-gap-item: 10px;
+  /* gap between list items inside a card */
 }
 
 #dashboard-page .dashboard-summary-row,
 #dashboard-page .dashboard-content-row {
   margin-right: -12px;
   margin-left: -12px;
-  margin-bottom: 24px !important;
+  margin-bottom: var(--fs-gap-section) !important;
 }
 
 #dashboard-page .dashboard-summary-row>[class*="col-"],
@@ -30,7 +38,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 18px 24px;
-  margin-bottom: 24px !important;
+  margin-bottom: var(--fs-gap-section) !important;
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.07) 0%, rgba(139, 92, 246, 0.03) 50%, rgba(248, 250, 252, 0) 100%);
   border: 1px solid rgba(99, 102, 241, 0.14);
   border-radius: 18px;
@@ -287,9 +295,13 @@
   background: var(--fs-bg) !important;
   width: 100%;
   text-decoration: none;
-  margin-bottom: 10px;
+  margin-bottom: var(--fs-gap-item);
   position: relative;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.01);
+}
+
+.dashboard-list-item:last-child {
+  margin-bottom: 0;
 }
 
 .dashboard-list-item:hover {
@@ -616,13 +628,13 @@
   #dashboard-page .dashboard-summary-row {
     margin-right: -6px;
     margin-left: -6px;
-    margin-bottom: 24px !important;
+    margin-bottom: var(--fs-gap-section) !important;
   }
 
   #dashboard-page .dashboard-summary-row>[class*="col-"] {
     padding-right: 6px;
     padding-left: 6px;
-    margin-bottom: 12px;
+    margin-bottom: var(--fs-gap-card);
   }
 
   #dashboard-page .dashboard-content-row {
@@ -633,11 +645,11 @@
   #dashboard-page .dashboard-content-row>[class*="col-"] {
     padding-right: 6px;
     padding-left: 6px;
-    margin-bottom: 20px;
+    margin-bottom: var(--fs-gap-card);
   }
 
   .dashboard-hero-banner {
-    margin-bottom: 24px;
+    margin-bottom: var(--fs-gap-section);
   }
 
   .dashboard-stat-card {
@@ -675,14 +687,12 @@
     min-height: 320px;
     padding: 18px 16px;
     border-radius: 18px;
-    margin-bottom: 20px;
     box-shadow: 0 3px 12px rgba(0, 0, 0, 0.02);
   }
 
   .dashboard-section-card {
     padding: 18px 16px;
     border-radius: 18px;
-    margin-bottom: 20px;
     box-shadow: 0 3px 12px rgba(0, 0, 0, 0.02);
   }
 
@@ -723,7 +733,7 @@
     padding: 12px 14px;
     min-height: 54px;
     border-radius: 14px;
-    margin-bottom: 10px;
+    margin-bottom: var(--fs-gap-item);
   }
 
   .dashboard-task-title,
