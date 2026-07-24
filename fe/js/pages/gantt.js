@@ -1,6 +1,6 @@
 /**
  * FlowSpace — Gantt Chart Module (SaaS Enterprise Edition 2026)
- * Complete Implementation with CPM, Handles, Reschedule API & Rollback
+ * Full-stack implementation with CPM Server Source, Milestone Modal CRUD, & Progress Handle Dragging
  */
 (function (FS, $) {
   'use strict';
@@ -22,7 +22,6 @@
     _resourcesData: [],
     _criticalPath: new Set(),
     _searchTimeout: null,
-    _rescheduleDebounce: null,
 
     async init() {
       // 1. Initial local render
@@ -66,7 +65,7 @@
           this._linksData = res.data.links || [];
           this._resourcesData = res.data.resources || [];
           
-          // Real CPM from Server
+          // PART A: Pure Server Source for Critical Path
           this._criticalPath = new Set(res.data.criticalPath || []);
         }
       } catch (err) {
@@ -133,7 +132,6 @@
         path.setAttribute("fill", "transparent");
         path.setAttribute("stroke", color);
         path.setAttribute("stroke-width", strokeWidth);
-        if (isCritical) path.setAttribute("stroke-dasharray", "none");
         
         const arrow = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
         let points = `${targetX-5},${targetY-4} ${targetX},${targetY} ${targetX-5},${targetY+4}`;
@@ -267,7 +265,7 @@
         });
         timelineHtml += `<div class="g-t-row g-t-row-project">${projTimelineHtml}</div>`;
 
-        // Render Milestones
+        // Render Milestones (PART B)
         projMilestones.forEach(milestone => {
           sidebarHtml += `<div class="g-row" style="background:#fffcf2;">
             <div class="g-col-name" style="padding-left:16px;">
@@ -290,7 +288,7 @@
             mDate.setHours(0,0,0,0);
             
             if (d.getTime() === mDate.getTime()) {
-              diamondHtml = `<div class="g-milestone-diamond" data-milestone-id="${milestone.id}" title="${FS.str.escape(milestone.name)} (${mDate.toLocaleDateString()})"></div>`;
+              diamondHtml = `<div class="g-milestone-diamond" data-milestone-id="${milestone.id}" title="${FS.str.escape(milestone.name)} (${mDate.toLocaleDateString()}) - Click để sửa/xóa"></div>`;
             }
             
             mTimelineHtml += `<div class="g-t-cell${isToday?' today':''}${isWeekend?' weekend':''}" style="width:${cellWidth}px">
@@ -360,13 +358,15 @@
                 else if (isLast) borderRadius = '0 6px 6px 0';
                 else borderRadius = '0';
 
+                // PART C: Progress Fill & Handle Overlay
                 barHtml = `
                   <div class="g-task-bar-wrapper" style="left:${isFirst?'4px':'0'}; right:${isLast?'4px':'0'}">
                     ${isFirst ? `<div class="g-bar-handle g-bar-handle-left" data-task-id="${task.id}"></div>` : ''}
                     <div class="g-task-bar${isCritical?' g-critical':''}" data-task-id="${task.id}" style="background:${barColor}; border-radius:${borderRadius};" title="${FS.str.escape(task.title)}">
-                      <div class="g-task-progress" style="width:${progress}%"></div>
-                      ${isFirst ? `<div class="g-task-title-inner">
-                        <span style="opacity:0.9">${progress}%</span>
+                      <div class="g-bar-progress-fill" style="width:${progress}%"></div>
+                      <div class="g-bar-progress-handle" data-task-id="${task.id}" style="left:${progress}%" title="Tiến độ: ${progress}% (Kéo để đổi)"></div>
+                      ${isFirst ? `<div class="g-task-title-inner" style="z-index:6; position:relative;">
+                        <span style="opacity:0.9; font-weight:600;">${progress}%</span>
                       </div>` : ''}
                     </div>
                     ${isLast ? `<div class="g-bar-handle g-bar-handle-right" data-task-id="${task.id}"></div>` : ''}
@@ -397,6 +397,34 @@
       setTimeout(() => this._drawDependencyLines(), 60);
     },
 
+    _openMilestoneModal(milestone = null) {
+      $('#gantt-milestone-id').val(milestone ? milestone.id : '');
+      $('#gantt-milestone-name').val(milestone ? milestone.name : '');
+      $('#gantt-milestone-date').val(milestone ? milestone.date.substring(0,10) : new Date().toISOString().substring(0,10));
+      
+      // Populate Users
+      const users = FS.users || [];
+      let userHtml = '<option value="">Chọn người phụ trách...</option>';
+      users.forEach(u => {
+        userHtml += `<option value="${u.id}" ${milestone && milestone.ownerId === u.id ? 'selected' : ''}>${FS.str.escape(u.name)}</option>`;
+      });
+      $('#gantt-milestone-owner').html(userHtml);
+
+      if (milestone) {
+        $('#gantt-milestone-modal-title').text('Chỉnh Sửa Cột Mốc (Milestone)');
+        $('#gantt-milestone-btn-delete').removeClass('d-none');
+      } else {
+        $('#gantt-milestone-modal-title').text('Thêm Cột Mốc (Milestone)');
+        $('#gantt-milestone-btn-delete').addClass('d-none');
+      }
+
+      const modalEl = document.getElementById('gantt-milestone-modal');
+      if (modalEl) {
+        const bsModal = new bootstrap.Modal(modalEl);
+        bsModal.show();
+      }
+    },
+
     _bindEvents() {
       const self = this;
 
@@ -420,6 +448,97 @@
         self._render();
       });
 
+      // PART B: Milestone Modal Events
+      $('#gantt-btn-add-milestone').off('click').on('click', () => {
+        if (!self._projectFilter) {
+          FS.toast('Vui lòng chọn một dự án trước khi thêm cột mốc!', 'warning');
+          return;
+        }
+        self._openMilestoneModal();
+      });
+
+      $(document).off('click.gantt-milestone-click').on('click.gantt-milestone-click', '.g-milestone-diamond', function(e) {
+        e.stopPropagation();
+        const mId = $(this).data('milestone-id');
+        const milestone = self._milestonesData.find(m => m.id === mId);
+        if (milestone) {
+          self._openMilestoneModal(milestone);
+        }
+      });
+
+      $('#gantt-milestone-btn-save').off('click').on('click', async () => {
+        const id = $('#gantt-milestone-id').val();
+        const name = $('#gantt-milestone-name').val().trim();
+        const date = $('#gantt-milestone-date').val();
+        const ownerId = $('#gantt-milestone-owner').val() || null;
+
+        if (!name || !date) {
+          FS.toast('Vui lòng nhập đầy đủ tên và ngày cột mốc!', 'warning');
+          return;
+        }
+
+        try {
+          if (id) {
+            // Update
+            const res = await FS.apiCall({
+              url: FS.API_BASE + `/api/v1/gantt/milestones/${id}`,
+              type: 'PUT',
+              data: JSON.stringify(date),
+              contentType: 'application/json'
+            });
+            if (res?.success && res.data) {
+              const m = self._milestonesData.find(x => x.id === id);
+              if (m) { m.name = name; m.date = date; m.ownerId = ownerId; }
+              FS.toast('Cập nhật cột mốc thành công!', 'success');
+            }
+          } else {
+            // Create
+            const res = await FS.apiCall({
+              url: FS.API_BASE + '/api/v1/gantt/milestones',
+              type: 'POST',
+              data: JSON.stringify({
+                name,
+                date: new Date(date).toISOString(),
+                ownerId,
+                projectId: self._projectFilter
+              }),
+              contentType: 'application/json'
+            });
+            if (res?.success && res.data) {
+              self._milestonesData.push(res.data);
+              FS.toast('Tạo cột mốc mới thành công!', 'success');
+            }
+          }
+          const modalEl = document.getElementById('gantt-milestone-modal');
+          if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
+          self._render();
+        } catch (err) {
+          FS.toast(err.responseJSON?.message || 'Lỗi khi lưu cột mốc!', 'error');
+        }
+      });
+
+      $('#gantt-milestone-btn-delete').off('click').on('click', async () => {
+        const id = $('#gantt-milestone-id').val();
+        if (!id) return;
+        if (!confirm('Bạn có chắc chắn muốn xóa cột mốc này?')) return;
+
+        try {
+          const res = await FS.apiCall({
+            url: FS.API_BASE + `/api/v1/gantt/milestones/${id}`,
+            type: 'DELETE'
+          });
+          if (res?.success) {
+            self._milestonesData = self._milestonesData.filter(m => m.id !== id);
+            FS.toast('Xóa cột mốc thành công!', 'success');
+            const modalEl = document.getElementById('gantt-milestone-modal');
+            if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
+            self._render();
+          }
+        } catch (err) {
+          FS.toast('Lỗi khi xóa cột mốc!', 'error');
+        }
+      });
+
       $(document).off('click.gantt-task').on('click.gantt-task', '.g-row[data-task-id]', function (e) {
         if (isDragging) return;
         const taskId = $(this).data('task-id');
@@ -437,20 +556,21 @@
       $(window).off('resize.gantt').on('resize.gantt', () => self._drawDependencyLines());
 
       // =========================================================
-      // Advanced Drag & Drop: Move, Resize Left, Resize Right
+      // Advanced Drag & Drop: Move, Resize Left, Resize Right, Progress
       // =========================================================
       let isDragging = false;
-      let dragMode = 'move'; // 'move' | 'resize-left' | 'resize-right' | 'milestone'
+      let dragMode = 'move'; // 'move' | 'resize-left' | 'resize-right' | 'milestone' | 'progress'
       let startX = 0;
       let currentTask = null;
       let currentMilestone = null;
       let originalStart = null;
       let originalEnd = null;
       let originalMilestoneDate = null;
+      let originalProgress = 0;
+      let currentProgress = 0;
       
-      // Mousedown on Bar Handles vs Bar Body vs Milestone
       $(document).off('mousedown.gantt-drag')
-        .on('mousedown.gantt-drag', '.g-bar-handle-left, .g-bar-handle-right, .g-task-bar, .g-milestone-diamond', function(e) {
+        .on('mousedown.gantt-drag', '.g-bar-handle-left, .g-bar-handle-right, .g-bar-progress-handle, .g-task-bar, .g-milestone-diamond', function(e) {
           e.stopPropagation();
           isDragging = true;
           startX = e.clientX;
@@ -464,6 +584,14 @@
             dragMode = 'resize-right';
             const taskId = $el.data('task-id');
             currentTask = self._tasksData.find(t => t.id === taskId);
+          } else if ($el.hasClass('g-bar-progress-handle')) {
+            dragMode = 'progress';
+            const taskId = $el.data('task-id');
+            currentTask = self._tasksData.find(t => t.id === taskId);
+            if (currentTask) {
+              originalProgress = currentTask.progress || 0;
+              currentProgress = originalProgress;
+            }
           } else if ($el.hasClass('g-milestone-diamond')) {
             dragMode = 'milestone';
             const mId = $el.data('milestone-id');
@@ -492,8 +620,23 @@
         if (self._zoom === 'quarter') cellWidth = 16;
         
         const deltaX = e.clientX - startX;
+
+        // PART C: Progress handle dragging
+        if (dragMode === 'progress' && currentTask) {
+          const taskBarEl = document.querySelector(`.g-task-bar[data-task-id="${currentTask.id}"]`);
+          if (taskBarEl) {
+            const barWidth = taskBarEl.getBoundingClientRect().width || 100;
+            const deltaPct = (deltaX / barWidth) * 100;
+            let rawProgress = originalProgress + deltaPct;
+            // Snap to 5% steps
+            currentProgress = Math.min(100, Math.max(0, Math.round(rawProgress / 5) * 5));
+            currentTask.progress = currentProgress;
+            self._render();
+          }
+          return;
+        }
+
         const shiftDays = Math.round(deltaX / cellWidth);
-        
         if (shiftDays === 0) return;
 
         if (dragMode === 'milestone' && currentMilestone && originalMilestoneDate) {
@@ -517,7 +660,6 @@
         } else if (dragMode === 'resize-left') {
           const newStart = new Date(originalStart);
           newStart.setDate(originalStart.getDate() + shiftDays);
-          // Min 1 day duration: NewStart <= DueDate - 1 day
           const maxAllowedStart = new Date(originalEnd);
           maxAllowedStart.setDate(originalEnd.getDate() - 1);
 
@@ -527,7 +669,6 @@
         } else if (dragMode === 'resize-right') {
           const newEnd = new Date(originalEnd);
           newEnd.setDate(originalEnd.getDate() + shiftDays);
-          // Min 1 day duration: NewDue >= StartDate + 1 day
           const minAllowedEnd = new Date(originalStart);
           minAllowedEnd.setDate(originalStart.getDate() + 1);
 
@@ -543,7 +684,26 @@
         if (!isDragging) return;
         isDragging = false;
         
-        if (dragMode === 'milestone' && currentMilestone) {
+        if (dragMode === 'progress' && currentTask) {
+          const backupProgress = originalProgress;
+          FS.apiCall({
+            url: FS.API_BASE + '/api/v1/gantt/tasks/' + currentTask.id + '/reschedule',
+            type: 'PATCH',
+            data: {
+              startDate: currentTask.startDate,
+              dueDate: currentTask.dueDate,
+              progress: currentTask.progress
+            }
+          }).then(res => {
+            if (!res?.success) throw new Error(res?.message || 'Progress update rejected');
+            FS.toast(`Đã cập nhật tiến độ ${currentTask.progress}%!`, 'success');
+          }).catch(err => {
+            console.error('Progress update failed:', err);
+            currentTask.progress = backupProgress;
+            self._render();
+            FS.toast('Không thể cập nhật tiến độ công việc!', 'error');
+          });
+        } else if (dragMode === 'milestone' && currentMilestone) {
           FS.apiCall({
             url: FS.API_BASE + '/api/v1/gantt/milestones/' + currentMilestone.id,
             type: 'PUT',
@@ -573,17 +733,14 @@
             if (!res?.success) {
               throw new Error(res?.message || 'Reschedule rejected');
             }
-            // If cascading tasks were affected, reload gantt timeline
             if (res.data?.affectedTaskIds && res.data.affectedTaskIds.length > 1) {
               self._loadGanttData();
             }
           }).catch(err => {
             console.error('Reschedule rejected by server:', err);
-            // Rollback UI to original snapshot
             currentTask.startDate = backupStart;
             currentTask.dueDate = backupEnd;
             self._render();
-            
             const msg = err.responseJSON?.message || err.message || 'Không thể dời lịch: Vi phạm quy tắc phụ thuộc (Dependency constraint)!';
             FS.toast(msg, 'error');
           });
