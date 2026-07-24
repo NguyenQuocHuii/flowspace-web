@@ -1,6 +1,6 @@
 /**
  * FlowSpace — Gantt Chart Module (SaaS Enterprise Edition 2026)
- * Full-stack implementation with CPM Server Source, Milestone Modal CRUD, & Progress Handle Dragging
+ * Full-stack implementation with CPM Server Source, Milestone Modal CRUD, Progress Handle Dragging, & SignalR Realtime
  */
 (function (FS, $) {
   'use strict';
@@ -22,6 +22,7 @@
     _resourcesData: [],
     _criticalPath: new Set(),
     _searchTimeout: null,
+    _connection: null,
 
     async init() {
       // 1. Initial local render
@@ -34,6 +35,143 @@
 
       // 2. Load live data from API
       await this._loadProjects();
+
+      // 3. Init SignalR Realtime connection
+      await this._initSignalR();
+    },
+
+    async _initSignalR() {
+      try {
+        const session = FS.auth?.getSession ? FS.auth.getSession() : null;
+        const token = session?.token || localStorage.getItem('fs_auth_token') || '';
+        if (!token || typeof signalR === 'undefined') return;
+
+        const connectionUrl = FS.API_BASE + '/hubs/gantt?access_token=' + encodeURIComponent(token);
+
+        this._connection = new signalR.HubConnectionBuilder()
+          .withUrl(connectionUrl)
+          .withAutomaticReconnect()
+          .build();
+
+        this._connection.on('TaskScheduleUpdated', (payload) => {
+          this._handleTaskScheduleUpdated(payload);
+        });
+
+        this._connection.on('DependencyChanged', (payload) => {
+          this._handleDependencyChanged(payload);
+        });
+
+        this._connection.on('MilestoneChanged', (payload) => {
+          this._handleMilestoneChanged(payload);
+        });
+
+        this._connection.onreconnected(async () => {
+          if (this._projectFilter && this._connection.state === 'Connected') {
+            await this._connection.invoke('JoinProject', this._projectFilter);
+          }
+        });
+
+        await this._connection.start();
+
+        if (this._projectFilter) {
+          await this._connection.invoke('JoinProject', this._projectFilter);
+        }
+      } catch (err) {
+        console.warn('Gantt SignalR init failed (Fallback to non-realtime mode):', err);
+      }
+    },
+
+    async _switchSignalRProject(oldProjectId, newProjectId) {
+      if (!this._connection || this._connection.state !== 'Connected') return;
+      try {
+        if (oldProjectId) {
+          await this._connection.invoke('LeaveProject', oldProjectId);
+        }
+        if (newProjectId) {
+          await this._connection.invoke('JoinProject', newProjectId);
+        }
+      } catch (err) {
+        console.warn('SignalR project switch error:', err);
+      }
+    },
+
+    _handleTaskScheduleUpdated(payload) {
+      const session = FS.auth?.getSession ? FS.auth.getSession() : null;
+      const currentUserId = session?.user?.id || '';
+
+      if (payload.changedBy && currentUserId && payload.changedBy.toLowerCase() === currentUserId.toLowerCase()) {
+        return;
+      }
+
+      const task = this._tasksData.find(t => t.id === payload.taskId);
+      if (task) {
+        if (payload.newStartDate) task.startDate = payload.newStartDate;
+        if (payload.newDueDate) task.dueDate = payload.newDueDate;
+      }
+
+      if (payload.affectedTaskIds && payload.affectedTaskIds.length > 1) {
+        this._loadGanttData();
+      } else {
+        this._render();
+      }
+
+      const taskTitle = task ? task.title : 'Công việc';
+      if (typeof FS.toast === 'function') {
+        FS.toast(`Lịch trình '${taskTitle}' vừa được cập nhật realtime!`, 'info');
+      }
+    },
+
+    _handleDependencyChanged(payload) {
+      const session = FS.auth?.getSession ? FS.auth.getSession() : null;
+      const currentUserId = session?.user?.id || '';
+
+      if (payload.changedBy && currentUserId && payload.changedBy.toLowerCase() === currentUserId.toLowerCase()) {
+        return;
+      }
+
+      this._loadGanttData();
+      if (typeof FS.toast === 'function') {
+        FS.toast('Liên kết phụ thuộc vừa được thay đổi realtime!', 'info');
+      }
+    },
+
+    _handleMilestoneChanged(payload) {
+      const session = FS.auth?.getSession ? FS.auth.getSession() : null;
+      const currentUserId = session?.user?.id || '';
+
+      if (payload.changedBy && currentUserId && payload.changedBy.toLowerCase() === currentUserId.toLowerCase()) {
+        return;
+      }
+
+      if (payload.action === 'create' && payload.milestone) {
+        this._milestonesData.push(payload.milestone);
+      } else if (payload.action === 'update' && payload.milestone) {
+        const idx = this._milestonesData.findIndex(m => m.id === payload.milestone.id);
+        if (idx !== -1) this._milestonesData[idx] = payload.milestone;
+      } else if (payload.action === 'delete' && payload.milestoneId) {
+        this._milestonesData = this._milestonesData.filter(m => m.id !== payload.milestoneId);
+      } else {
+        this._loadGanttData();
+      }
+
+      this._render();
+      if (typeof FS.toast === 'function') {
+        FS.toast('Cột mốc (Milestone) vừa được cập nhật realtime!', 'info');
+      }
+    },
+
+    async destroy() {
+      if (this._connection) {
+        try {
+          if (this._projectFilter && this._connection.state === 'Connected') {
+            await this._connection.invoke('LeaveProject', this._projectFilter);
+          }
+          await this._connection.stop();
+        } catch (e) {
+          console.warn('SignalR stop error:', e);
+        }
+        this._connection = null;
+      }
     },
 
     async _loadProjects() {
@@ -265,7 +403,7 @@
         });
         timelineHtml += `<div class="g-t-row g-t-row-project">${projTimelineHtml}</div>`;
 
-        // Render Milestones (PART B)
+        // Render Milestones
         projMilestones.forEach(milestone => {
           sidebarHtml += `<div class="g-row" style="background:#fffcf2;">
             <div class="g-col-name" style="padding-left:16px;">
@@ -348,8 +486,8 @@
                 const isOverdue = FS.date.isOverdue(task.dueDate) && task.status !== 'done';
                 let barColor = STATUS_COLORS[task.status] || color;
                 if (isOverdue) barColor = STATUS_COLORS.overdue;
-                if (isCritical) barColor = '#ef4444'; // critical red
-                
+                if (isCritical) barColor = '#ef4444';
+
                 const progress = task.progress || (task.status === 'done' ? 100 : 0);
                   
                 let borderRadius = '';
@@ -358,7 +496,6 @@
                 else if (isLast) borderRadius = '0 6px 6px 0';
                 else borderRadius = '0';
 
-                // PART C: Progress Fill & Handle Overlay
                 barHtml = `
                   <div class="g-task-bar-wrapper" style="left:${isFirst?'4px':'0'}; right:${isLast?'4px':'0'}">
                     ${isFirst ? `<div class="g-bar-handle g-bar-handle-left" data-task-id="${task.id}"></div>` : ''}
@@ -402,7 +539,6 @@
       $('#gantt-milestone-name').val(milestone ? milestone.name : '');
       $('#gantt-milestone-date').val(milestone ? milestone.date.substring(0,10) : new Date().toISOString().substring(0,10));
       
-      // Populate Users
       const users = FS.users || [];
       let userHtml = '<option value="">Chọn người phụ trách...</option>';
       users.forEach(u => {
@@ -428,10 +564,15 @@
     _bindEvents() {
       const self = this;
 
-      $('#gantt-filter-project').off('change').on('change', function () {
+      $('#gantt-filter-project').off('change').on('change', async function () {
+        const oldProjectId = self._projectFilter;
         self._projectFilter = this.value; 
-        self._loadGanttData();
+        
+        // SignalR Group Switch (Leave old, Join new)
+        await self._switchSignalRProject(oldProjectId, self._projectFilter);
+        await self._loadGanttData();
       });
+
       $('#gantt-filter-status').off('change').on('change', function () {
         self._statusFilter = this.value; self._render();
       });
@@ -448,10 +589,9 @@
         self._render();
       });
 
-      // PART B: Milestone Modal Events
       $('#gantt-btn-add-milestone').off('click').on('click', () => {
         if (!self._projectFilter) {
-          FS.toast('Vui lòng chọn một dự án trước khi thêm cột mốc!', 'warning');
+          if (typeof FS.toast === 'function') FS.toast('Vui lòng chọn một dự án trước khi thêm cột mốc!', 'warning');
           return;
         }
         self._openMilestoneModal();
@@ -473,13 +613,12 @@
         const ownerId = $('#gantt-milestone-owner').val() || null;
 
         if (!name || !date) {
-          FS.toast('Vui lòng nhập đầy đủ tên và ngày cột mốc!', 'warning');
+          if (typeof FS.toast === 'function') FS.toast('Vui lòng nhập đầy đủ tên và ngày cột mốc!', 'warning');
           return;
         }
 
         try {
           if (id) {
-            // Update
             const res = await FS.apiCall({
               url: FS.API_BASE + `/api/v1/gantt/milestones/${id}`,
               type: 'PUT',
@@ -489,10 +628,9 @@
             if (res?.success && res.data) {
               const m = self._milestonesData.find(x => x.id === id);
               if (m) { m.name = name; m.date = date; m.ownerId = ownerId; }
-              FS.toast('Cập nhật cột mốc thành công!', 'success');
+              if (typeof FS.toast === 'function') FS.toast('Cập nhật cột mốc thành công!', 'success');
             }
           } else {
-            // Create
             const res = await FS.apiCall({
               url: FS.API_BASE + '/api/v1/gantt/milestones',
               type: 'POST',
@@ -506,14 +644,14 @@
             });
             if (res?.success && res.data) {
               self._milestonesData.push(res.data);
-              FS.toast('Tạo cột mốc mới thành công!', 'success');
+              if (typeof FS.toast === 'function') FS.toast('Tạo cột mốc mới thành công!', 'success');
             }
           }
           const modalEl = document.getElementById('gantt-milestone-modal');
           if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
           self._render();
         } catch (err) {
-          FS.toast(err.responseJSON?.message || 'Lỗi khi lưu cột mốc!', 'error');
+          if (typeof FS.toast === 'function') FS.toast(err.responseJSON?.message || 'Lỗi khi lưu cột mốc!', 'error');
         }
       });
 
@@ -529,13 +667,13 @@
           });
           if (res?.success) {
             self._milestonesData = self._milestonesData.filter(m => m.id !== id);
-            FS.toast('Xóa cột mốc thành công!', 'success');
+            if (typeof FS.toast === 'function') FS.toast('Xóa cột mốc thành công!', 'success');
             const modalEl = document.getElementById('gantt-milestone-modal');
             if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
             self._render();
           }
         } catch (err) {
-          FS.toast('Lỗi khi xóa cột mốc!', 'error');
+          if (typeof FS.toast === 'function') FS.toast('Lỗi khi xóa cột mốc!', 'error');
         }
       });
 
@@ -559,7 +697,7 @@
       // Advanced Drag & Drop: Move, Resize Left, Resize Right, Progress
       // =========================================================
       let isDragging = false;
-      let dragMode = 'move'; // 'move' | 'resize-left' | 'resize-right' | 'milestone' | 'progress'
+      let dragMode = 'move';
       let startX = 0;
       let currentTask = null;
       let currentMilestone = null;
@@ -621,14 +759,12 @@
         
         const deltaX = e.clientX - startX;
 
-        // PART C: Progress handle dragging
         if (dragMode === 'progress' && currentTask) {
           const taskBarEl = document.querySelector(`.g-task-bar[data-task-id="${currentTask.id}"]`);
           if (taskBarEl) {
             const barWidth = taskBarEl.getBoundingClientRect().width || 100;
             const deltaPct = (deltaX / barWidth) * 100;
             let rawProgress = originalProgress + deltaPct;
-            // Snap to 5% steps
             currentProgress = Math.min(100, Math.max(0, Math.round(rawProgress / 5) * 5));
             currentTask.progress = currentProgress;
             self._render();
@@ -696,12 +832,12 @@
             }
           }).then(res => {
             if (!res?.success) throw new Error(res?.message || 'Progress update rejected');
-            FS.toast(`Đã cập nhật tiến độ ${currentTask.progress}%!`, 'success');
+            if (typeof FS.toast === 'function') FS.toast(`Đã cập nhật tiến độ ${currentTask.progress}%!`, 'success');
           }).catch(err => {
             console.error('Progress update failed:', err);
             currentTask.progress = backupProgress;
             self._render();
-            FS.toast('Không thể cập nhật tiến độ công việc!', 'error');
+            if (typeof FS.toast === 'function') FS.toast('Không thể cập nhật tiến độ công việc!', 'error');
           });
         } else if (dragMode === 'milestone' && currentMilestone) {
           FS.apiCall({
@@ -713,7 +849,7 @@
             console.error('Milestone update failed, rolling back:', err);
             if (originalMilestoneDate) currentMilestone.date = originalMilestoneDate.toISOString();
             self._render();
-            FS.toast('Không thể cập nhật cột mốc (Milestone)!', 'error');
+            if (typeof FS.toast === 'function') FS.toast('Không thể cập nhật cột mốc (Milestone)!', 'error');
           });
         } else if (currentTask && originalStart && originalEnd) {
           const backupStart = originalStart.toISOString();
@@ -742,7 +878,7 @@
             currentTask.dueDate = backupEnd;
             self._render();
             const msg = err.responseJSON?.message || err.message || 'Không thể dời lịch: Vi phạm quy tắc phụ thuộc (Dependency constraint)!';
-            FS.toast(msg, 'error');
+            if (typeof FS.toast === 'function') FS.toast(msg, 'error');
           });
         }
 
