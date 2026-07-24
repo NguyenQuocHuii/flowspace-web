@@ -248,14 +248,36 @@
   padding-bottom: 4px;
 }
 
-/* Task List Alignment & Professional Breathing Room */
+/* Task List Alignment & Professional Clean White Styling */
+.dashboard-list-item {
+  display: flex;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--fs-border);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  background: var(--fs-bg) !important;
+  width: 100%;
+  text-decoration: none;
+  margin-bottom: 10px;
+  position: relative;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.01);
+}
+
+.dashboard-list-item:hover {
+  background: var(--fs-bg-secondary) !important;
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.06);
+  transform: translateX(4px);
+}
+
+.dashboard-list-item:active {
+  transform: translateX(4px) scale(0.99);
+}
+
 .dashboard-task-item {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 16px 18px;
-  margin-bottom: 10px;
-  border-radius: 14px;
 }
 
 .dashboard-task-status-icon {
@@ -309,14 +331,11 @@
   font-weight: 650;
 }
 
-/* Project Progress Card Professional Breathing Room */
+/* Project Progress Card Clean White Styling */
 .dashboard-proj-item {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 16px 18px;
-  margin-bottom: 10px;
-  border-radius: 14px;
 }
 
 .dashboard-proj-header {
