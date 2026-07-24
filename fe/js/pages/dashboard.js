@@ -503,22 +503,26 @@
                 datasets: [
                   {
                     data: statusData,
-                    backgroundColor: ["#cbd5e1", "#6366f1", "#f59e0b", "#10b981"],
-                    borderWidth: 2,
+                    backgroundColor: ["#94a3b8", "#6366f1", "#f59e0b", "#10b981"],
+                    hoverBackgroundColor: ["#64748b", "#4f46e5", "#d97706", "#059669"],
+                    borderWidth: 3,
                     borderColor: "#ffffff",
-                    hoverOffset: 4
+                    hoverOffset: 6
                   }
                 ]
               },
               options: {
                 responsive: true,
                 maintainAspectRatio: true,
-                cutout: "70%",
+                cutout: "78%",
                 plugins: {
                   legend: { display: false },
                   tooltip: {
+                    backgroundColor: "#0f172a",
+                    padding: 10,
+                    cornerRadius: 10,
                     callbacks: {
-                      label: (context) => `${context.label}: ${context.parsed} công việc`
+                      label: (context) => ` ${context.label}: ${context.parsed} công việc`
                     }
                   }
                 }
@@ -526,10 +530,10 @@
             })
           );
 
-          // Render legend dynamically
+          // Render legend dynamically with high aesthetics
           if (legendContainer) {
             const legendItems = [
-              { label: "Chưa bắt đầu", count: counts.todo || 0, color: "#cbd5e1" },
+              { label: "Chưa bắt đầu", count: counts.todo || 0, color: "#94a3b8" },
               { label: "Đang làm", count: counts.inProgress || 0, color: "#6366f1" },
               { label: "Chờ duyệt", count: counts.review || 0, color: "#f59e0b" },
               { label: "Hoàn thành", count: counts.done || 0, color: "#10b981" }
@@ -539,7 +543,7 @@
                 <div class="dashboard-legend-item">
                   <span class="dashboard-legend-label">
                     <span class="dashboard-legend-color" style="background-color: ${item.color};"></span>
-                    <span>${item.label}</span>
+                    <span class="dashboard-legend-text">${item.label}</span>
                   </span>
                   <span class="dashboard-legend-count">${item.count}</span>
                 </div>
