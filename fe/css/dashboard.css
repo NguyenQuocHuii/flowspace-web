@@ -1,53 +1,127 @@
-/* Dashboard only: full-width, API-driven workspace */
+/* ============================================================
+   FlowSpace — Enterprise Dashboard Styles (Senior UI/UX Spec)
+   ============================================================ */
 #dashboard-page {
   width: 100%;
   min-width: 0;
-  max-width: none;
-  margin: 0;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-bottom: 32px;
 }
 
 #dashboard-page .dashboard-summary-row,
 #dashboard-page .dashboard-content-row {
-  margin-right: 0;
-  margin-left: 0;
+  margin-right: -10px;
+  margin-left: -10px;
 }
 
 #dashboard-page .dashboard-summary-row > [class*="col-"],
 #dashboard-page .dashboard-content-row > [class*="col-"] {
+  padding-right: 10px;
+  padding-left: 10px;
   min-width: 0;
 }
 
+/* Stat Cards (Chỉ số tổng quan phân tầng thị giác rõ ràng) */
 .dashboard-stat-card {
   height: 100%;
-  min-height: 168px;
-  padding: 18px 16px;
+  min-height: 154px;
+  padding: 22px 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  background: var(--fs-bg);
+  border: 1px solid var(--fs-border);
+  border-radius: var(--fs-radius-lg);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
 }
 
-.dashboard-icon-accent { background: var(--fs-accent-light); color: var(--fs-accent); }
-.dashboard-icon-info { background: #dbeafe; color: var(--fs-info); }
-.dashboard-icon-danger { background: var(--fs-danger-light); color: var(--fs-danger); }
-.dashboard-icon-success { background: var(--fs-success-light); color: var(--fs-success); }
-.dashboard-icon-warning { background: var(--fs-warning-light); color: var(--fs-warning); }
+.dashboard-stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.3);
+}
 
+.dashboard-stat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.fs-stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  transition: transform 0.25s ease;
+}
+
+.dashboard-stat-card:hover .fs-stat-icon {
+  transform: scale(1.1);
+}
+
+.dashboard-icon-accent { background: rgba(99, 102, 241, 0.1); color: var(--fs-accent); }
+.dashboard-icon-info { background: rgba(59, 130, 246, 0.1); color: var(--fs-info); }
+.dashboard-icon-danger { background: rgba(239, 68, 68, 0.1); color: var(--fs-danger); }
+.dashboard-icon-success { background: rgba(34, 197, 94, 0.1); color: var(--fs-success); }
+.dashboard-icon-warning { background: rgba(245, 158, 11, 0.1); color: var(--fs-warning); }
+
+.fs-stat-value {
+  font-size: 32px;
+  font-weight: 750;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  color: var(--fs-text);
+  margin-bottom: 4px;
+}
+
+.fs-stat-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fs-text-muted);
+}
+
+.fs-stat-change {
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--fs-border);
+}
+
+/* Biểu đồ & Card chung */
 .dashboard-chart-card {
-  height: 300px;
+  height: 340px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
 }
 
 .dashboard-chart-body {
   position: relative;
-  height: 220px;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  margin-top: 12px;
 }
 
 .dashboard-status-chart-container {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 220px;
-  gap: 16px;
-  padding: 8px 4px;
+  flex: 1;
+  gap: 20px;
+  padding: 12px 8px;
 }
 
 .dashboard-status-chart-wrap {
@@ -55,18 +129,18 @@
   flex: 1;
   display: grid;
   place-items: center;
-  max-width: 140px;
+  max-width: 160px;
 }
 
 .dashboard-status-chart-wrap canvas {
-  max-width: 130px !important;
-  max-height: 130px !important;
+  max-width: 150px !important;
+  max-height: 150px !important;
 }
 
 .dashboard-status-legend {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   flex: 1.2;
 }
 
@@ -74,7 +148,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: var(--fs-text-xs);
+  font-size: 13px;
   color: var(--fs-text-secondary);
 }
 
@@ -82,46 +156,49 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  font-weight: 500;
 }
 
 .dashboard-legend-color {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 .dashboard-legend-count {
-  font-weight: 600;
+  font-weight: 650;
   color: var(--fs-text);
   background: var(--fs-bg-secondary);
-  padding: 2px 8px;
-  border-radius: var(--fs-radius-sm);
-  font-size: 10px;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  border: 1px solid var(--fs-border);
 }
 
+/* Danh sách Item (Task, Dự án, Activity) - Tương tác siêu mượt */
 .dashboard-list-item {
   display: flex;
-  flex-direction: column;
   padding: 12px 16px;
-  border-radius: var(--fs-radius-lg);
-  border: 1px solid transparent;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  background: transparent;
+  border-radius: 12px;
+  border: 1px solid var(--fs-border);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  background: var(--fs-bg);
   width: 100%;
   text-decoration: none;
-  margin-bottom: 2px;
-}
-
-.dashboard-list-item:last-child {
-  margin-bottom: 0;
+  margin-bottom: 8px;
+  position: relative;
 }
 
 .dashboard-list-item:hover {
   background: var(--fs-bg-secondary) !important;
-  border-color: var(--fs-border);
-  box-shadow: var(--fs-shadow-xs);
-  transform: translateY(-1px);
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  transform: translateX(3px);
+}
+
+.dashboard-list-item:active {
+  transform: translateX(3px) scale(0.99);
 }
 
 .dashboard-task-item {
@@ -131,32 +208,44 @@
 }
 
 .dashboard-proj-item {
-  gap: 2px;
+  flex-direction: column;
+  gap: 6px;
 }
 
+/* Quick Actions Button */
 .dashboard-quick-action {
   width: 100%;
-  border: 1.5px solid var(--fs-border);
-  border-radius: var(--fs-radius);
+  padding: 12px 16px;
+  border: 1px solid var(--fs-border);
+  border-radius: 14px;
   background: var(--fs-bg);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dashboard-quick-action:hover,
 .dashboard-quick-action:focus-visible {
   border-color: var(--fs-accent);
-  background: var(--fs-accent-light);
+  background: rgba(99, 102, 241, 0.06);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.08);
+}
+
+.dashboard-quick-action:active {
+  transform: translateY(0) scale(0.98);
 }
 
 .dashboard-alert {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  padding: 12px 14px;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 14px 18px;
   border: 1px solid #fcd34d;
-  border-radius: var(--fs-radius);
+  border-radius: 14px;
   background: #fffbeb;
   color: #92400e;
+  font-size: 13.5px;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.08);
 }
 
 .dashboard-empty-chart {
@@ -164,27 +253,28 @@
   place-items: center;
   height: 100%;
   color: var(--fs-text-muted);
-  font-size: var(--fs-text-sm);
-}
-
-@media (max-width: 991.98px) {
-  #page-content { padding: 24px; }
-  .dashboard-chart-card { height: 280px; }
-}
-
-@media (max-width: 575.98px) {
-  #page-content { padding: 18px 14px; }
-  .dashboard-stat-card { min-height: 158px; padding: 16px; }
-  .dashboard-chart-card { height: 260px; padding: 16px; }
-  .dashboard-chart-body,
-  .dashboard-status-chart { height: 185px; }
-  .dashboard-status-chart canvas { max-width: 140px; max-height: 140px; }
+  font-size: 13px;
+  font-weight: 500;
 }
 
 #dash-my-tasks,
 #dash-active-projects {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 8px 4px;
+  gap: 2px;
+  padding: 4px 0;
+}
+
+/* Responsive UI Spec */
+@media (max-width: 991.98px) {
+  #page-content { padding: 20px 16px; }
+  .dashboard-chart-card { height: 310px; }
+  .fs-stat-value { font-size: 26px; }
+}
+
+@media (max-width: 575.98px) {
+  #page-content { padding: 16px 12px; }
+  .dashboard-stat-card { min-height: 140px; padding: 16px; }
+  .dashboard-chart-card { height: 290px; padding: 16px; }
+  .dashboard-status-chart-container { flex-direction: column; justify-content: center; gap: 12px; }
 }
