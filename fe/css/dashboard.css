@@ -538,23 +538,31 @@
     .dashboard-hero-banner {
       flex-direction: column;
       align-items: flex-start;
-      padding: 18px 16px;
+      padding: 16px 14px;
       border-radius: 16px;
-      gap: 16px;
+      gap: 14px;
     }
 
     .dashboard-hero-content {
       width: 100%;
     }
 
+    .dashboard-hero-header-line {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
     .dashboard-hero-title {
-      font-size: 20px;
+      font-size: 19px;
       line-height: 1.3;
       word-break: break-word;
     }
 
     .dashboard-hero-subtitle {
-      font-size: 12px;
+      font-size: 11.5px;
+      white-space: nowrap;
     }
 
     .dashboard-hero-actions {
