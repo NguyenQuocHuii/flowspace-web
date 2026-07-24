@@ -1186,20 +1186,41 @@
     max-width: 100% !important;
   }
 
+  /* ─── Topbar Mobile Optimization ─── */
+  #fs-topbar {
+    padding: 0 12px !important;
+    gap: 8px !important;
+  }
+
+  .fs-topbar-left {
+    gap: 8px !important;
+  }
+
   .fs-topbar-breadcrumb {
     display: none !important;
   }
 
   .fs-topbar-search {
-    min-width: 0;
-    width: 38px;
-    padding: 8px;
-    justify-content: center;
+    min-width: 0 !important;
+    width: 36px !important;
+    height: 36px !important;
+    padding: 0 !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    flex-shrink: 0 !important;
   }
 
   .fs-search-placeholder,
-  .fs-search-shortcut { display: none; }
+  .fs-search-shortcut { display: none !important; }
   
+  .fs-topbar-user {
+    padding: 3px !important;
+    border-radius: 50% !important;
+    background: transparent !important;
+    border: none !important;
+  }
+
+  .fs-topbar-user .bi-chevron-down,
   .fs-user-info {
     display: none !important;
   }

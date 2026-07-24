@@ -49,6 +49,13 @@
   pointer-events: none;
 }
 
+.dashboard-hero-header-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
 .dashboard-hero-badge {
   display: inline-flex;
   align-items: center;
@@ -60,20 +67,20 @@
   letter-spacing: 0.6px;
   background: rgba(99, 102, 241, 0.12);
   color: var(--fs-accent-dark);
-  margin-bottom: 8px;
+  margin-bottom: 0;
 }
 
 .dashboard-hero-title {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 750;
   color: var(--fs-text);
   letter-spacing: -0.3px;
-  margin: 0 0 4px 0;
-  line-height: 1.25;
+  margin: 0;
+  line-height: 1.2;
 }
 
 .dashboard-hero-subtitle {
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--fs-text-muted);
   margin: 0;
 }

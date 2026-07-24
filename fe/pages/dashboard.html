@@ -1,13 +1,15 @@
 <div class="page-enter dashboard-page" id="dashboard-page">
-  <!-- Hero Welcome Banner -->
-  <div class="dashboard-hero-banner mb-4">
+  <!-- Hero Welcome Banner (Compact SaaS Design - Notion/Linear Spec) -->
+  <div class="dashboard-hero-banner mb-3.5">
     <div class="dashboard-hero-content">
-      <div class="dashboard-hero-badge"><i class="bi bi-stars me-1"></i> Workspace Overview</div>
+      <div class="dashboard-hero-header-line">
+        <span class="dashboard-hero-badge"><i class="bi bi-stars me-1"></i> Workspace Overview</span>
+        <span class="dashboard-hero-subtitle" id="dash-date">Đang tải ngày...</span>
+      </div>
       <h1 class="dashboard-hero-title" id="dash-greeting">Chào mừng trở lại</h1>
-      <p class="dashboard-hero-subtitle" id="dash-date">Đang tải ngày làm việc…</p>
     </div>
     <div class="dashboard-hero-actions">
-      <button class="btn btn-glass btn-sm" id="dash-seed-btn" type="button" title="Nạp lại bộ dữ liệu doanh nghiệp mẫu">
+      <button class="btn btn-glass btn-sm" id="dash-seed-btn" type="button" title="Nạp lại dữ liệu mẫu">
         <i class="bi bi-database-add me-1.5" aria-hidden="true"></i> Seed dữ liệu
       </button>
       <button class="btn btn-primary btn-sm shadow-accent" id="dash-new-task-btn" type="button">
