@@ -302,11 +302,29 @@ namespace FlowSpace.Application.Services
             var task = await repo.GetQueryable().FirstOrDefaultAsync(t => t.Id == taskId);
             if (task == null) return null;
 
+            var oldStart = task.StartDate;
+            var oldDue = task.DueDate;
+
             if (request.StartDate.HasValue) task.StartDate = request.StartDate.Value;
             if (request.DueDate.HasValue) task.DueDate = request.DueDate.Value;
             if (request.Progress.HasValue) task.CompletionScore = Math.Clamp(request.Progress.Value, 0, 100);
 
             repo.Update(task);
+
+            // Audit Log in TaskScheduleHistory
+            var history = new TaskScheduleHistory
+            {
+                Id = Guid.NewGuid(),
+                TaskId = task.Id,
+                OldStartDate = oldStart,
+                OldDueDate = oldDue,
+                NewStartDate = task.StartDate,
+                NewDueDate = task.DueDate,
+                ChangedAt = DateTime.UtcNow,
+                Source = "gantt_drag"
+            };
+            await _unitOfWork.Repository<TaskScheduleHistory>().AddAsync(history);
+
             await _unitOfWork.SaveChangesAsync();
 
             return new GanttTaskDto

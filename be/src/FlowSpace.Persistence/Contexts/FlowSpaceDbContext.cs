@@ -36,6 +36,7 @@ namespace FlowSpace.Persistence.Contexts
         public DbSet<TaskDependency> TaskDependencies => Set<TaskDependency>();
         public DbSet<Milestone> Milestones => Set<Milestone>();
         public DbSet<TaskResource> TaskResources => Set<TaskResource>();
+        public DbSet<TaskScheduleHistory> TaskScheduleHistories => Set<TaskScheduleHistory>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -329,6 +330,23 @@ namespace FlowSpace.Persistence.Contexts
                       .WithMany()
                       .HasForeignKey(tr => tr.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // TaskScheduleHistory configuration
+            modelBuilder.Entity<TaskScheduleHistory>(entity =>
+            {
+                entity.ToTable("TaskScheduleHistories");
+                entity.HasIndex(h => new { h.TaskId, h.ChangedAt });
+
+                entity.HasOne(h => h.Task)
+                      .WithMany()
+                      .HasForeignKey(h => h.TaskId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(h => h.ChangedByUser)
+                      .WithMany()
+                      .HasForeignKey(h => h.ChangedBy)
+                      .OnDelete(DeleteBehavior.SetNull);
             });
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(FlowSpaceDbContext).Assembly);

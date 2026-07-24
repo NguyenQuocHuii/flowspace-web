@@ -65,6 +65,10 @@ namespace FlowSpace.Domain.Entities
         [Range(0, 100)]
         public int? CompletionScore { get; set; }
 
+        public int? DurationDays { get; set; }
+
+        public bool IsMilestoneTask { get; set; } = false;
+
         public ICollection<Subtask> Subtasks { get; set; } = new List<Subtask>();
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
         
