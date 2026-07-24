@@ -80,4 +80,11 @@ namespace FlowSpace.Application.Common.Dtos
         public GanttTaskDto? UpdatedTask { get; set; }
         public IReadOnlyCollection<Guid> AffectedTaskIds { get; set; } = new List<Guid>();
     }
+
+    public class GanttDependencyCreateResult
+    {
+        public bool Success { get; set; }
+        public string? ErrorMessage { get; set; }
+        public GanttDependencyDto? Dependency { get; set; }
+    }
 }

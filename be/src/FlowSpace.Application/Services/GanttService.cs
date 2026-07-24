@@ -183,12 +183,48 @@ namespace FlowSpace.Application.Services
             return critical;
         }
 
-        public async Task<GanttDependencyDto?> CreateDependencyAsync(GanttDependencyDto request)
+        public async Task<GanttDependencyCreateResult> CreateDependencyAsync(GanttDependencyDto request)
         {
-            // Cycle detection check
-            if (await HasCycleAsync(request.Source, request.Target))
+            if (request.Source == request.Target)
             {
-                return null; // Reject dependency creation to prevent cycle
+                return new GanttDependencyCreateResult
+                {
+                    Success = false,
+                    ErrorMessage = "Không thể tạo liên kết: Công việc không thể phụ thuộc vào chính nó."
+                };
+            }
+
+            var taskRepo = _unitOfWork.Repository<TaskItem>();
+            var sourceTask = await taskRepo.GetByIdAsync(request.Source);
+            var targetTask = await taskRepo.GetByIdAsync(request.Target);
+
+            if (sourceTask == null || targetTask == null)
+            {
+                return new GanttDependencyCreateResult
+                {
+                    Success = false,
+                    ErrorMessage = "Không tìm thấy công việc để tạo liên kết."
+                };
+            }
+
+            // Load all dependencies of the project to check cycle (Target -> ... -> Source)
+            var projTaskIds = await taskRepo.GetQueryable()
+                .Where(t => t.ProjectId == sourceTask.ProjectId)
+                .Select(t => t.Id)
+                .ToListAsync();
+
+            var projectDependencies = await _unitOfWork.Repository<TaskDependency>().GetQueryable()
+                .AsNoTracking()
+                .Where(d => projTaskIds.Contains(d.PredecessorId) && projTaskIds.Contains(d.SuccessorId))
+                .ToListAsync();
+
+            if (HasCycle(request.Source, request.Target, projectDependencies))
+            {
+                return new GanttDependencyCreateResult
+                {
+                    Success = false,
+                    ErrorMessage = $"Không thể tạo liên kết: Sẽ tạo vòng lặp phụ thuộc (cycle) giữa '{sourceTask.Title}' và '{targetTask.Title}'."
+                };
             }
 
             var dep = new TaskDependency
@@ -199,19 +235,24 @@ namespace FlowSpace.Application.Services
                 LagDays = request.LagDays,
                 Type = Enum.TryParse<Domain.Enums.DependencyType>(request.Type, out var type) ? type : Domain.Enums.DependencyType.FinishToStart
             };
+
             await _unitOfWork.Repository<TaskDependency>().AddAsync(dep);
             await _unitOfWork.SaveChangesAsync();
+
             request.Id = dep.Id;
-            return request;
+            return new GanttDependencyCreateResult
+            {
+                Success = true,
+                Dependency = request
+            };
         }
 
-        private async Task<bool> HasCycleAsync(Guid source, Guid target)
+        public static bool HasCycle(Guid source, Guid target, List<TaskDependency> existingLinks)
         {
             if (source == target) return true;
-            var allLinks = await _unitOfWork.Repository<TaskDependency>().GetQueryable().AsNoTracking().ToListAsync();
-            
+
             var adj = new Dictionary<Guid, List<Guid>>();
-            foreach (var l in allLinks)
+            foreach (var l in existingLinks)
             {
                 if (!adj.ContainsKey(l.PredecessorId)) adj[l.PredecessorId] = new List<Guid>();
                 adj[l.PredecessorId].Add(l.SuccessorId);

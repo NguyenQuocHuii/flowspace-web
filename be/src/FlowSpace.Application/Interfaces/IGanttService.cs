@@ -7,7 +7,7 @@ namespace FlowSpace.Application.Interfaces
     public interface IGanttService
     {
         Task<GanttTimelineDto> GetTimelineAsync(Guid projectId);
-        Task<GanttDependencyDto?> CreateDependencyAsync(GanttDependencyDto request);
+        Task<GanttDependencyCreateResult> CreateDependencyAsync(GanttDependencyDto request);
         Task<bool> DeleteDependencyAsync(Guid id);
         Task<GanttMilestoneDto?> CreateMilestoneAsync(GanttMilestoneDto request);
         Task<GanttMilestoneDto?> UpdateMilestoneAsync(Guid milestoneId, DateTime date);

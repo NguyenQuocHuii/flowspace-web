@@ -32,8 +32,11 @@ namespace FlowSpace.Api.Controllers
         public async Task<ActionResult<ApiResponse<GanttDependencyDto>>> CreateDependency([FromBody] GanttDependencyDto request)
         {
             var result = await _ganttService.CreateDependencyAsync(request);
-            if (result == null) return FailResponse<GanttDependencyDto>("Failed to create dependency", StatusCodes.Status400BadRequest);
-            return OkResponse(result, "Dependency created");
+            if (!result.Success)
+            {
+                return FailResponse<GanttDependencyDto>(result.ErrorMessage ?? "Không thể tạo liên kết.", StatusCodes.Status400BadRequest);
+            }
+            return OkResponse(result.Dependency, "Tạo liên kết phụ thuộc thành công.");
         }
         
         [HttpDelete("dependencies/{id:guid}")]
