@@ -239,6 +239,112 @@
   margin-top: 8px;
 }
 
+/* Task List Alignment Fix */
+.dashboard-task-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+}
+
+.dashboard-task-status-icon {
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.dashboard-task-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dashboard-task-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--fs-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+
+.dashboard-task-sub {
+  font-size: 12px;
+  color: var(--fs-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-task-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.dashboard-task-date {
+  font-size: 11.5px;
+  color: var(--fs-text-muted);
+  font-weight: 500;
+}
+
+.dashboard-task-date.is-overdue {
+  color: var(--fs-danger);
+  font-weight: 600;
+}
+
+/* Project Progress Card Alignment Fix */
+.dashboard-proj-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+}
+
+.dashboard-proj-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dashboard-proj-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--fs-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.dashboard-proj-progress-text {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--fs-accent);
+  flex-shrink: 0;
+}
+
+.dashboard-proj-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: var(--fs-text-muted);
+  margin-top: 2px;
+}
+
+.dashboard-proj-meta {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Doughnut Chart Legend Layout Fix (Phòng tránh đè chữ / bể dòng) */
 .dashboard-status-chart-container {
   display: flex;
   align-items: center;
@@ -253,25 +359,27 @@
   flex: 1;
   display: grid;
   place-items: center;
-  max-width: 150px;
+  max-width: 140px;
 }
 
 .dashboard-status-chart-wrap canvas {
-  max-width: 140px !important;
-  max-height: 140px !important;
+  max-width: 135px !important;
+  max-height: 135px !important;
 }
 
 .dashboard-status-legend {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  flex: 1.2;
+  flex: 1.3;
+  min-width: 0;
 }
 
 .dashboard-legend-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   font-size: 12.5px;
   color: var(--fs-text-secondary);
 }
@@ -281,11 +389,12 @@
   align-items: center;
   gap: 8px;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .dashboard-legend-color {
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -294,67 +403,9 @@
   font-weight: 650;
   color: var(--fs-text);
   background: var(--fs-bg-secondary);
-  padding: 2px 9px;
-  border-radius: 10px;
+  padding: 2px 8px;
+  border-radius: 8px;
   font-size: 11px;
   border: 1px solid var(--fs-border);
-}
-
-/* Danh sách Item (Task, Project, Activity) */
-.dashboard-list-item {
-  display: flex;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid var(--fs-border);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  background: var(--fs-bg);
-  width: 100%;
-  text-decoration: none;
-  margin-bottom: 8px;
-  position: relative;
-}
-
-.dashboard-list-item:hover {
-  background: var(--fs-bg-secondary) !important;
-  border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-  transform: translateX(4px);
-}
-
-.dashboard-list-item:active {
-  transform: translateX(4px) scale(0.99);
-}
-
-/* Quick Action Items */
-.dashboard-quick-action {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px solid var(--fs-border);
-  border-radius: 14px;
-  background: var(--fs-bg);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.dashboard-quick-action:hover {
-  border-color: rgba(99, 102, 241, 0.35);
-  background: rgba(99, 102, 241, 0.05);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.08);
-}
-
-.dashboard-quick-action:active {
-  transform: translateY(0) scale(0.98);
-}
-
-/* Responsive UI Spec */
-@media (max-width: 991.98px) {
-  .dashboard-hero-banner { flex-direction: column; align-items: flex-start; gap: 16px; padding: 20px; }
-  .dashboard-hero-actions { width: 100%; justify-content: flex-start; }
-  .dashboard-chart-card { height: 300px; }
-}
-
-@media (max-width: 575.98px) {
-  .dashboard-stat-card { min-height: 136px; padding: 14px; }
-  .fs-stat-value { font-size: 26px; }
-  .dashboard-status-chart-container { flex-direction: column; gap: 12px; }
+  flex-shrink: 0;
 }

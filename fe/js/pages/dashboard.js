@@ -240,21 +240,23 @@
       }
 
       container.innerHTML = tasks
-        .slice(0, 6)
+        .slice(0, 5)
         .map((task) => {
           const overdue = task.dueDate && FS.date.isOverdue(task.dueDate);
           const statusDone = task.status === "done";
           return `
             <button class="dashboard-list-item dashboard-task-item task-open-btn text-start border-0" type="button" data-task-id="${task.id}">
-              <i class="bi bi-${statusDone ? "check-circle-fill text-success" : "circle text-muted"}" aria-hidden="true"></i>
-              <span class="flex-grow-1 text-truncate">
-                <strong class="d-block small text-dark">${FS.str.escape(task.title)}</strong>
-                <small class="fs-small text-secondary">${FS.str.escape(task.projectName || "—")}</small>
-              </span>
-              <span class="d-flex align-items-center gap-2 flex-shrink-0">
+              <div class="dashboard-task-status-icon">
+                <i class="bi bi-${statusDone ? "check-circle-fill text-success" : "circle text-muted"}" aria-hidden="true"></i>
+              </div>
+              <div class="dashboard-task-main">
+                <strong class="dashboard-task-title">${FS.str.escape(task.title)}</strong>
+                <span class="dashboard-task-sub">${FS.str.escape(task.projectName || "—")}</span>
+              </div>
+              <div class="dashboard-task-meta">
                 ${FS.badge.priority(task.priority)}
-                <small class="${overdue ? "text-danger fw-semibold" : "text-secondary"}">${FS.date.short(task.dueDate)}</small>
-              </span>
+                <span class="dashboard-task-date ${overdue ? "is-overdue" : ""}"><i class="bi bi-calendar3 me-1"></i>${FS.date.short(task.dueDate)}</span>
+              </div>
             </button>
           `;
         })
@@ -282,17 +284,17 @@
           const progress = Math.min(100, Math.max(0, Number(project.progress) || 0));
           return `
             <button class="dashboard-list-item dashboard-proj-item proj-open-btn text-start border-0" type="button" data-proj-id="${project.id}">
-              <span class="d-flex align-items-center gap-2 mb-2">
-                <strong class="small text-dark text-truncate flex-grow-1">${FS.str.escape(project.name)}</strong>
-                <span class="small fw-bold text-primary">${progress}%</span>
-              </span>
-              <span class="fs-progress fs-progress-sm d-block mb-2">
-                <span class="fs-progress-bar" style="width:${progress}%"></span>
-              </span>
-              <span class="d-flex justify-content-between align-items-center mt-1">
-                <small class="fs-small text-secondary"><i class="bi bi-person me-1"></i>${FS.str.escape(project.ownerName || "—")}</small>
-                <small class="fs-small text-secondary"><i class="bi bi-calendar3 me-1"></i>${FS.date.format(project.endDate)}</small>
-              </span>
+              <div class="dashboard-proj-header">
+                <strong class="dashboard-proj-name">${FS.str.escape(project.name)}</strong>
+                <span class="dashboard-proj-progress-text">${progress}%</span>
+              </div>
+              <div class="fs-progress fs-progress-sm">
+                <div class="fs-progress-bar" style="width:${progress}%"></div>
+              </div>
+              <div class="dashboard-proj-footer">
+                <span class="dashboard-proj-meta"><i class="bi bi-person me-1"></i>${FS.str.escape(project.ownerName || "—")}</span>
+                <span class="dashboard-proj-meta"><i class="bi bi-calendar-event me-1"></i>${FS.date.format(project.endDate)}</span>
+              </div>
             </button>
           `;
         })
