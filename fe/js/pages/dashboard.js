@@ -422,21 +422,38 @@
           existingActChart.destroy();
         }
 
+        // Create Gradient fill for bars
+        const gradientPrimary = actCtx.createLinearGradient(0, 0, 0, 220);
+        gradientPrimary.addColorStop(0, "#6366f1");
+        gradientPrimary.addColorStop(1, "#818cf8");
+
+        const gradientHover = actCtx.createLinearGradient(0, 0, 0, 220);
+        gradientHover.addColorStop(0, "#4f46e5");
+        gradientHover.addColorStop(1, "#6366f1");
+
+        const gradientSoft = actCtx.createLinearGradient(0, 0, 0, 220);
+        gradientSoft.addColorStop(0, "rgba(99, 102, 241, 0.25)");
+        gradientSoft.addColorStop(1, "rgba(99, 102, 241, 0.08)");
+
+        const gradientSoftHover = actCtx.createLinearGradient(0, 0, 0, 220);
+        gradientSoftHover.addColorStop(0, "rgba(99, 102, 241, 0.45)");
+        gradientSoftHover.addColorStop(1, "rgba(99, 102, 241, 0.15)");
+
         this._charts.push(
           new Chart(actCtx, {
             type: "bar",
             data: {
-              labels: ["CN", "T2", "T3", "T4", "T5", "T6", "T7"],
+              labels: ["CN", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"],
               datasets: [
                 {
                   label: "Giờ làm",
                   data: formattedHours,
-                  backgroundColor: formattedHours.map((_, idx) => (idx === todayDayIdx ? "#6366f1" : "#e0e7ff")),
-                  hoverBackgroundColor: formattedHours.map((_, idx) => (idx === todayDayIdx ? "#4f46e5" : "#c7d2fe")),
-                  borderRadius: 6,
+                  backgroundColor: formattedHours.map((_, idx) => (idx === todayDayIdx ? gradientPrimary : gradientSoft)),
+                  hoverBackgroundColor: formattedHours.map((_, idx) => (idx === todayDayIdx ? gradientHover : gradientSoftHover)),
+                  borderRadius: { topLeft: 10, topRight: 10, bottomLeft: 4, bottomRight: 4 },
                   borderSkipped: false,
-                  barThickness: 28,
-                  maxBarThickness: 32
+                  barThickness: 32,
+                  maxBarThickness: 36
                 }
               ]
             },
@@ -445,27 +462,51 @@
               maintainAspectRatio: false,
               layout: {
                 padding: {
-                  top: 15,
+                  top: 20,
                   bottom: 5,
-                  left: 10,
-                  right: 10
+                  left: 0,
+                  right: 0
                 }
               },
               plugins: {
                 legend: { display: false },
                 tooltip: {
+                  backgroundColor: "#0f172a",
+                  titleFont: { family: "Inter", size: 12, weight: "600" },
+                  bodyFont: { family: "Inter", size: 13, weight: "500" },
+                  padding: 12,
+                  cornerRadius: 12,
+                  boxPadding: 4,
+                  displayColors: false,
                   callbacks: {
-                    label: (context) => `Giờ làm: ${context.parsed.y}h`
+                    title: (items) => `${items[0].label}`,
+                    label: (context) => `⏱️ Giờ làm: ${context.parsed.y} giờ`
                   }
                 }
               },
               scales: {
-                x: { grid: { display: false }, border: { display: false } },
+                x: {
+                  grid: { display: false },
+                  border: { display: false },
+                  ticks: {
+                    color: (ctx) => (ctx.index === todayDayIdx ? "#6366f1" : "#94a3b8"),
+                    font: (ctx) => ({
+                      family: "Inter",
+                      size: 12,
+                      weight: ctx.index === todayDayIdx ? "700" : "500"
+                    })
+                  }
+                },
                 y: {
                   beginAtZero: true,
-                  grid: { color: "#f1f5f9" },
+                  grid: { color: "rgba(241, 245, 249, 0.8)", drawBorder: false },
                   border: { display: false },
-                  ticks: { callback: (value) => `${value}h` }
+                  ticks: {
+                    color: "#94a3b8",
+                    font: { family: "Inter", size: 11, weight: "500" },
+                    stepSize: 10,
+                    callback: (value) => `${value}h`
+                  }
                 }
               }
             }
