@@ -4,23 +4,28 @@ using System.Threading.Tasks;
 using FlowSpace.Application.Common.Dtos;
 using FlowSpace.Application.Interfaces;
 using FlowSpace.Domain.Entities;
-using FlowSpace.Persistence.Contexts;
+using FlowSpace.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlowSpace.Application.Services
 {
     public class GanttService : IGanttService
     {
-        private readonly FlowSpaceDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public GanttService(FlowSpaceDbContext context)
+        public GanttService(IUnitOfWork unitOfWork)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<GanttTimelineDto> GetTimelineAsync(Guid projectId)
         {
-            var tasks = await _context.Tasks
+            var taskRepo = _unitOfWork.Repository<TaskItem>().GetQueryable().AsNoTracking();
+            var milestoneRepo = _unitOfWork.Repository<Milestone>().GetQueryable().AsNoTracking();
+            var depRepo = _unitOfWork.Repository<TaskDependency>().GetQueryable().AsNoTracking();
+            var resRepo = _unitOfWork.Repository<TaskResource>().GetQueryable().AsNoTracking();
+
+            var tasks = await taskRepo
                 .Include(t => t.Assignee)
                 .Where(t => t.ProjectId == projectId)
                 .Select(t => new GanttTaskDto
@@ -40,7 +45,7 @@ namespace FlowSpace.Application.Services
                     Progress = t.CompletionScore ?? 0
                 }).ToListAsync();
 
-            var milestones = await _context.Milestones
+            var milestones = await milestoneRepo
                 .Where(m => m.ProjectId == projectId)
                 .Select(m => new GanttMilestoneDto
                 {
@@ -52,7 +57,7 @@ namespace FlowSpace.Application.Services
                 }).ToListAsync();
 
             var taskIds = tasks.Select(t => t.Id).ToList();
-            var links = await _context.TaskDependencies
+            var links = await depRepo
                 .Where(d => taskIds.Contains(d.PredecessorId) || taskIds.Contains(d.SuccessorId))
                 .Select(d => new GanttDependencyDto
                 {
@@ -63,7 +68,7 @@ namespace FlowSpace.Application.Services
                     LagDays = d.LagDays
                 }).ToListAsync();
 
-            var resources = await _context.TaskResources
+            var resources = await resRepo
                 .Include(r => r.User)
                 .Where(r => taskIds.Contains(r.TaskId))
                 .Select(r => new GanttResourceDto
@@ -94,18 +99,19 @@ namespace FlowSpace.Application.Services
                 LagDays = request.LagDays,
                 Type = Enum.TryParse<Domain.Enums.DependencyType>(request.Type, out var type) ? type : Domain.Enums.DependencyType.FinishToStart
             };
-            _context.TaskDependencies.Add(dep);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.Repository<TaskDependency>().AddAsync(dep);
+            await _unitOfWork.SaveChangesAsync();
             request.Id = dep.Id;
             return request;
         }
 
         public async Task<bool> DeleteDependencyAsync(Guid id)
         {
-            var dep = await _context.TaskDependencies.FindAsync(id);
+            var repo = _unitOfWork.Repository<TaskDependency>();
+            var dep = await repo.GetByIdAsync(id);
             if (dep == null) return false;
-            _context.TaskDependencies.Remove(dep);
-            await _context.SaveChangesAsync();
+            repo.Delete(dep);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
@@ -117,20 +123,20 @@ namespace FlowSpace.Application.Services
                 Name = request.Name,
                 Date = request.Date,
                 OwnerId = request.OwnerId,
-                // ProjectId would normally be resolved from request
             };
-            _context.Milestones.Add(milestone);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.Repository<Milestone>().AddAsync(milestone);
+            await _unitOfWork.SaveChangesAsync();
             request.Id = milestone.Id;
             return request;
         }
 
         public async Task<bool> DeleteMilestoneAsync(Guid id)
         {
-            var milestone = await _context.Milestones.FindAsync(id);
+            var repo = _unitOfWork.Repository<Milestone>();
+            var milestone = await repo.GetByIdAsync(id);
             if (milestone == null) return false;
-            _context.Milestones.Remove(milestone);
-            await _context.SaveChangesAsync();
+            repo.Delete(milestone);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
     }

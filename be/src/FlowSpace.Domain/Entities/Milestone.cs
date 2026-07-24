@@ -1,6 +1,8 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using FlowSpace.Domain.Enums;
+using TaskStatus = FlowSpace.Domain.Enums.TaskStatus;
 
 namespace FlowSpace.Domain.Entities
 {
@@ -29,7 +31,7 @@ namespace FlowSpace.Domain.Entities
         [ForeignKey(nameof(OwnerId))]
         public User? Owner { get; set; }
 
-        public Enums.TaskStatus Status { get; set; } = Enums.TaskStatus.Todo;
+        public TaskStatus Status { get; set; } = TaskStatus.Todo;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
