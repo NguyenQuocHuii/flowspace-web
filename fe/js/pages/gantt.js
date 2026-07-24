@@ -550,18 +550,24 @@
         } else if (currentTask && originalStart && originalEnd) {
           const backupStart = originalStart.toISOString();
           const backupEnd = originalEnd.toISOString();
+          const updateSource = dragMode === 'resize-left' ? 'resize_start' : (dragMode === 'resize-right' ? 'resize_end' : 'drag');
           
           FS.apiCall({
-            url: FS.API_BASE + '/api/v1/gantt/tasks/' + currentTask.id + '/reschedule',
+            url: FS.API_BASE + '/api/v1/gantt/tasks/' + currentTask.id + '/schedule',
             type: 'PATCH',
             data: {
-              startDate: currentTask.startDate,
-              dueDate: currentTask.dueDate,
-              progress: currentTask.progress
+              taskId: currentTask.id,
+              newStartDate: currentTask.startDate,
+              newDueDate: currentTask.dueDate,
+              source: updateSource
             }
           }).then(res => {
             if (!res?.success) {
               throw new Error(res?.message || 'Reschedule rejected');
+            }
+            // If cascading tasks were affected, reload gantt timeline
+            if (res.data?.affectedTaskIds && res.data.affectedTaskIds.length > 1) {
+              self._loadGanttData();
             }
           }).catch(err => {
             console.error('Reschedule rejected by server (Constraint/Cycle):', err);
@@ -570,7 +576,7 @@
             currentTask.dueDate = backupEnd;
             self._render();
             if (typeof FS.toast?.error === 'function') {
-              FS.toast.error('Không thể dời lịch: Vi phạm quy tắc phụ thuộc (Dependency constraint)!');
+              FS.toast.error(err.responseJSON?.message || err.message || 'Không thể dời lịch: Vi phạm quy tắc phụ thuộc (Dependency constraint)!');
             }
           });
         }

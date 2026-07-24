@@ -64,4 +64,20 @@ namespace FlowSpace.Application.Common.Dtos
         public DateTime? DueDate { get; set; }
         public int? Progress { get; set; }
     }
+
+    public class GanttScheduleUpdateDto
+    {
+        public Guid TaskId { get; set; }
+        public DateTime NewStartDate { get; set; }
+        public DateTime NewDueDate { get; set; }
+        public string Source { get; set; } = "drag"; // "drag" | "resize_start" | "resize_end"
+    }
+
+    public class GanttScheduleUpdateResult
+    {
+        public bool Success { get; set; }
+        public string? ErrorMessage { get; set; }
+        public GanttTaskDto? UpdatedTask { get; set; }
+        public IReadOnlyCollection<Guid> AffectedTaskIds { get; set; } = new List<Guid>();
+    }
 }

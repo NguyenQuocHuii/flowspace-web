@@ -13,5 +13,6 @@ namespace FlowSpace.Application.Interfaces
         Task<GanttMilestoneDto?> UpdateMilestoneAsync(Guid milestoneId, DateTime date);
         Task<bool> DeleteMilestoneAsync(Guid id);
         Task<GanttTaskDto?> RescheduleTaskAsync(Guid taskId, RescheduleTaskRequest request);
+        Task<GanttScheduleUpdateResult> UpdateTaskScheduleAsync(GanttScheduleUpdateDto dto, Guid currentUserId);
     }
 }

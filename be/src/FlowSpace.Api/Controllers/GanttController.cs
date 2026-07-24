@@ -13,10 +13,12 @@ namespace FlowSpace.Api.Controllers
     public class GanttController : BaseApiController
     {
         private readonly IGanttService _ganttService;
+        private readonly ICurrentUserService _currentUserService;
 
-        public GanttController(IGanttService ganttService)
+        public GanttController(IGanttService ganttService, ICurrentUserService currentUserService)
         {
             _ganttService = ganttService;
+            _currentUserService = currentUserService;
         }
 
         [HttpGet("{projectId:guid}")]
@@ -72,6 +74,25 @@ namespace FlowSpace.Api.Controllers
             var result = await _ganttService.RescheduleTaskAsync(taskId, request);
             if (result == null) return FailResponse<GanttTaskDto>("Reschedule failed or dependency constraint violated", StatusCodes.Status400BadRequest);
             return OkResponse(result, "Task rescheduled successfully");
+        }
+
+        [HttpPatch("tasks/{id:guid}/schedule")]
+        public async Task<ActionResult<ApiResponse<GanttScheduleUpdateResult>>> UpdateTaskSchedule(Guid id, [FromBody] GanttScheduleUpdateDto dto)
+        {
+            dto.TaskId = id;
+            Guid currentUserId = Guid.Empty;
+            if (!string.IsNullOrEmpty(_currentUserService.UserId))
+            {
+                Guid.TryParse(_currentUserService.UserId, out currentUserId);
+            }
+
+            var result = await _ganttService.UpdateTaskScheduleAsync(dto, currentUserId);
+            if (!result.Success)
+            {
+                return FailResponse<GanttScheduleUpdateResult>(result.ErrorMessage ?? "Cập nhật lịch trình thất bại.", StatusCodes.Status400BadRequest);
+            }
+
+            return OkResponse(result, "Cập nhật lịch trình công việc thành công.");
         }
     }
 }
