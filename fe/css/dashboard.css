@@ -15,8 +15,8 @@
   margin-left: -10px;
 }
 
-#dashboard-page .dashboard-summary-row > [class*="col-"],
-#dashboard-page .dashboard-content-row > [class*="col-"] {
+#dashboard-page .dashboard-summary-row>[class*="col-"],
+#dashboard-page .dashboard-content-row>[class*="col-"] {
   padding-right: 10px;
   padding-left: 10px;
   min-width: 0;
@@ -96,7 +96,7 @@
   background: #ffffff;
   color: var(--fs-text);
   border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
 .shadow-accent {
@@ -114,7 +114,7 @@
   background: var(--fs-bg);
   border: 1px solid var(--fs-border);
   border-radius: 18px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -147,11 +147,30 @@
   transform: scale(1.1) rotate(2deg);
 }
 
-.dashboard-icon-accent { background: rgba(99, 102, 241, 0.1); color: var(--fs-accent); }
-.dashboard-icon-info { background: rgba(59, 130, 246, 0.1); color: var(--fs-info); }
-.dashboard-icon-danger { background: rgba(239, 68, 68, 0.1); color: var(--fs-danger); }
-.dashboard-icon-success { background: rgba(34, 197, 94, 0.1); color: var(--fs-success); }
-.dashboard-icon-warning { background: rgba(245, 158, 11, 0.1); color: var(--fs-warning); }
+.dashboard-icon-accent {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--fs-accent);
+}
+
+.dashboard-icon-info {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--fs-info);
+}
+
+.dashboard-icon-danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--fs-danger);
+}
+
+.dashboard-icon-success {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--fs-success);
+}
+
+.dashboard-icon-warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--fs-warning);
+}
 
 .fs-stat-value {
   font-size: 32px;
@@ -217,14 +236,14 @@
 .dashboard-section-card {
   border-radius: 20px;
   border: 1px solid var(--fs-border);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.02);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   background: var(--fs-bg);
 }
 
 .dashboard-chart-card:hover,
 .dashboard-section-card:hover {
-  box-shadow: 0 12px 32px rgba(0,0,0,0.05);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.05);
   border-color: rgba(99, 102, 241, 0.25);
 }
 
@@ -260,7 +279,7 @@
   text-decoration: none;
   margin-bottom: 10px;
   position: relative;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.01);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.01);
 }
 
 .dashboard-list-item:hover {
@@ -427,220 +446,250 @@
   gap: 10px;
   flex: 1;
   min-width: 0;
-/* ============================================================
+  /* ============================================================
    Senior Cross-Device Responsive System (Web & App Mobile)
    ============================================================ */
 
-/* Large Desktop Displays (1400px+) */
-@media (min-width: 1400px) {
-  #dashboard-page {
-    max-width: 1440px;
-  }
-  .dashboard-chart-card {
-    height: 380px;
-    padding: 24px 28px;
-  }
-  .dashboard-section-card {
-    padding: 24px 28px;
-  }
-}
+  /* Large Desktop Displays (1400px+) */
+  @media (min-width: 1400px) {
+    #dashboard-page {
+      max-width: 1440px;
+    }
 
-/* Laptops & Standard Web Displays (992px - 1399.98px) */
-@media (max-width: 1399.98px) and (min-width: 992px) {
-  .dashboard-chart-card {
-    height: 360px;
-    padding: 20px 22px;
-  }
-  .dashboard-section-card {
-    padding: 20px 22px;
-  }
-  .dashboard-status-chart-wrap {
-    width: 110px;
-    height: 110px;
-  }
-  .dashboard-status-chart-wrap canvas {
-    width: 110px !important;
-    height: 110px !important;
-  }
-}
+    .dashboard-chart-card {
+      height: 380px;
+      padding: 24px 28px;
+    }
 
-/* Tablets & Mobile Landscape (768px - 991.98px) */
-@media (max-width: 991.98px) {
-  #dashboard-page {
-    padding-bottom: 24px;
-  }
-  .dashboard-hero-banner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-    padding: 20px;
-    border-radius: 16px;
-  }
-  .dashboard-hero-actions {
-    width: 100%;
-    justify-content: flex-start;
-  }
-  .dashboard-chart-card {
-    height: 340px;
-    padding: 20px;
-    border-radius: 16px;
-  }
-  .dashboard-section-card {
-    padding: 20px;
-    border-radius: 16px;
-  }
-}
-
-/* Mobile Devices & App Interface Deep Optimization (< 767.98px) */
-@media (max-width: 767.98px) {
-  #page-content {
-    padding: 12px 12px 28px 12px !important;
-  }
-  
-  .dashboard-hero-banner {
-    padding: 18px 16px;
-    border-radius: 16px;
-  }
-  .dashboard-hero-title {
-    font-size: 20px;
-    line-height: 1.3;
-  }
-  .dashboard-hero-subtitle {
-    font-size: 12px;
-  }
-  
-  /* Lưới 2 cột căn chỉnh vuông vắn cho 4 Thẻ Stat Cards trên Native App Mobile */
-  #dashboard-page .dashboard-summary-row {
-    margin-right: -6px;
-    margin-left: -6px;
+    .dashboard-section-card {
+      padding: 24px 28px;
+    }
   }
 
-  #dashboard-page .dashboard-summary-row > [class*="col-"] {
-    padding-right: 6px;
-    padding-left: 6px;
-    margin-bottom: 12px;
+  /* Laptops & Standard Web Displays (992px - 1399.98px) */
+  @media (max-width: 1399.98px) and (min-width: 992px) {
+    .dashboard-chart-card {
+      height: 360px;
+      padding: 20px 22px;
+    }
+
+    .dashboard-section-card {
+      padding: 20px 22px;
+    }
+
+    .dashboard-status-chart-wrap {
+      width: 110px;
+      height: 110px;
+    }
+
+    .dashboard-status-chart-wrap canvas {
+      width: 110px !important;
+      height: 110px !important;
+    }
   }
 
-  .dashboard-stat-card {
-    min-height: 124px;
-    padding: 14px;
-    border-radius: 16px;
-    border: 1px solid var(--fs-border);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  /* Tablets & Mobile Landscape (768px - 991.98px) */
+  @media (max-width: 991.98px) {
+    #dashboard-page {
+      padding-bottom: 24px;
+    }
+
+    .dashboard-hero-banner {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 20px;
+      border-radius: 16px;
+    }
+
+    .dashboard-hero-actions {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .dashboard-chart-card {
+      height: 340px;
+      padding: 20px;
+      border-radius: 16px;
+    }
+
+    .dashboard-section-card {
+      padding: 20px;
+      border-radius: 16px;
+    }
   }
 
-  .dashboard-stat-card:active {
-    transform: scale(0.97);
-    background: var(--fs-bg-secondary);
+  /* Mobile Devices & App Interface (< 767.98px) */
+  @media (max-width: 767.98px) {
+    #page-content {
+      padding: 12px 10px 28px 10px !important;
+    }
+
+    .dashboard-hero-banner {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 18px 16px;
+      border-radius: 16px;
+      gap: 16px;
+    }
+
+    .dashboard-hero-content {
+      width: 100%;
+    }
+
+    .dashboard-hero-title {
+      font-size: 20px;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+
+    .dashboard-hero-subtitle {
+      font-size: 12px;
+    }
+
+    .dashboard-hero-actions {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .dashboard-hero-actions .btn {
+      width: 100%;
+      justify-content: center;
+      padding: 10px 16px;
+      font-size: 13px;
+    }
+
+    /* Touch target & spacing cho Stat Cards */
+    #dashboard-page .dashboard-summary-row {
+      margin-right: -4px;
+      margin-left: -4px;
+    }
+
+    #dashboard-page .dashboard-summary-row>[class*="col-"] {
+      padding-right: 4px;
+      padding-left: 4px;
+      margin-bottom: 10px;
+    }
+
+    .dashboard-stat-card {
+      min-height: 120px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid var(--fs-border);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+
+    .dashboard-stat-card:active {
+      transform: scale(0.97);
+      background: var(--fs-bg-secondary);
+    }
+
+    .fs-stat-value {
+      font-size: 22px;
+      letter-spacing: -0.4px;
+    }
+
+    .fs-stat-label {
+      font-size: 11.5px;
+    }
+
+    .fs-stat-icon {
+      width: 34px;
+      height: 34px;
+      font-size: 15px;
+      border-radius: 8px;
+    }
+
+    /* Chuyển Donut Chart Legend sang dạng Nằm ngang linh hoạt cho App Mobile */
+    .dashboard-chart-card {
+      height: auto;
+      min-height: 310px;
+      padding: 16px;
+      border-radius: 16px;
+      margin-bottom: 16px;
+    }
+
+    .dashboard-section-card {
+      padding: 16px;
+      border-radius: 16px;
+      margin-bottom: 16px;
+    }
+
+    .dashboard-status-chart-container {
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 0 0 0;
+    }
+
+    .dashboard-status-chart-wrap {
+      width: 125px;
+      height: 125px;
+    }
+
+    .dashboard-status-chart-wrap canvas {
+      width: 125px !important;
+      height: 125px !important;
+    }
+
+    .dashboard-status-legend {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px 10px;
+    }
+
+    .dashboard-legend-item {
+      background: var(--fs-bg);
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--fs-border);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.01);
+    }
+
+    /* Task & Project List items Touch Targets (Min 44px) */
+    .dashboard-list-item {
+      padding: 12px 14px;
+      min-height: 52px;
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+
+    .dashboard-task-title,
+    .dashboard-proj-name {
+      font-size: 13.5px;
+    }
+
+    .dashboard-task-sub,
+    .dashboard-proj-footer {
+      font-size: 11.5px;
+    }
   }
 
-  .fs-stat-value {
-    font-size: 24px;
-    letter-spacing: -0.4px;
-  }
+  /* Extra Small Phones (< 480px) */
+  @media (max-width: 480px) {
+    .dashboard-hero-title {
+      font-size: 18px;
+    }
 
-  .fs-stat-label {
-    font-size: 12px;
-  }
+    .dashboard-status-legend {
+      grid-template-columns: repeat(2, 1fr);
+    }
 
-  .fs-stat-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 16px;
-    border-radius: 10px;
-  }
+    .dashboard-task-item {
+      gap: 10px;
+    }
 
-  /* Biểu đồ Trạng Thái & Hoạt Động Tuần Này cho App Mobile */
-  .dashboard-chart-card {
-    height: auto;
-    min-height: 310px;
-    padding: 18px 16px;
-    border-radius: 16px;
-    margin-bottom: 16px;
-  }
-  
-  .dashboard-section-card {
-    padding: 18px 16px;
-    border-radius: 16px;
-    margin-bottom: 16px;
-  }
+    .dashboard-task-meta {
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+    }
 
-  .dashboard-status-chart-container {
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-    padding: 12px 0 0 0;
+    .dashboard-task-date {
+      font-size: 11px;
+    }
   }
-  
-  .dashboard-status-chart-wrap {
-    width: 125px;
-    height: 125px;
-  }
-
-  .dashboard-status-chart-wrap canvas {
-    width: 125px !important;
-    height: 125px !important;
-  }
-  
-  .dashboard-status-legend {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px 10px;
-  }
-  
-  .dashboard-legend-item {
-    background: var(--fs-bg);
-    padding: 8px 10px;
-    border-radius: 12px;
-    border: 1px solid var(--fs-border);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.01);
-  }
-
-  /* Native Mobile App List Items (Touch target min 48px, active feedback) */
-  .dashboard-list-item {
-    padding: 12px 14px;
-    min-height: 54px;
-    border-radius: 14px;
-    margin-bottom: 8px;
-    border: 1px solid var(--fs-border);
-    background: var(--fs-bg) !important;
-    -webkit-tap-highlight-color: transparent;
-  }
-  
-  .dashboard-list-item:active {
-    background: var(--fs-bg-secondary) !important;
-    transform: scale(0.98);
-  }
-
-  .dashboard-task-title,
-  .dashboard-proj-name {
-    font-size: 13.5px;
-  }
-  
-  .dashboard-task-sub,
-  .dashboard-proj-footer {
-    font-size: 11.5px;
-  }
-}
-
-/* Extra Small Mobile Devices (< 480px) */
-@media (max-width: 480px) {
-  .dashboard-status-legend {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .dashboard-task-item {
-    gap: 10px;
-  }
-
-  .dashboard-task-meta {
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-  }
-
-  .dashboard-task-date {
-    font-size: 11px;
-  }
-}
