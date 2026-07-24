@@ -1,376 +1,770 @@
 <!-- ============================================================
-     FlowSpace — Gantt Chart Page (Enterprise SaaS Edition)
+     FlowSpace — Gantt Chart (Enterprise SaaS 2026 — Full Redesign)
+     Inspired by Jira Advanced Roadmap / ClickUp / Monday / MS Project
      ============================================================ -->
 <div class="page-enter" id="gantt-page">
 
-  <!-- Header -->
-  <div class="fs-page-header gantt-page-header">
-    <div>
-      <div class="fs-breadcrumb" style="font-size:12px; color:var(--fs-text-muted); margin-bottom:4px; display:flex; gap:6px; align-items:center;">
-        <span>FlowSpace</span> <i class="bi bi-chevron-right" style="font-size:10px"></i> <span>Gantt Chart</span>
+  <!-- ═══════════════════════════════════════════════════════════
+       HEADER BAR — Project Context + Navigation
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="gc-header" role="banner">
+    <div class="gc-header-left">
+      <div class="gc-project-selector">
+        <i class="bi bi-kanban" style="color:var(--fs-accent);font-size:16px"></i>
+        <select class="gc-project-dropdown" id="gantt-filter-project" aria-label="Chọn dự án">
+          <option value="">Chọn dự án...</option>
+        </select>
       </div>
-      <h1 class="fs-page-title">Gantt Chart</h1>
+      <div class="gc-date-range" id="gantt-date-range" aria-live="polite">
+        <span class="gc-date-range-text">—</span>
+      </div>
     </div>
-    <div class="d-flex align-items-center gap-2">
-      <button class="btn btn-sm btn-outline-primary" id="gantt-btn-add-milestone">
-        <i class="bi bi-gem me-1"></i> + Milestone
+    <div class="gc-header-right">
+      <button class="gc-btn gc-btn-today" id="gantt-btn-today" title="Hôm nay (T)">
+        <i class="bi bi-calendar-event"></i> Hôm nay
       </button>
-      <button class="btn btn-sm btn-outline-secondary" id="gantt-btn-refresh" title="Làm mới">
-        <i class="bi bi-arrow-clockwise"></i>
-      </button>
-      <button class="btn btn-sm btn-outline-secondary" id="gantt-btn-fullscreen" title="Toàn màn hình">
-        <i class="bi bi-arrows-fullscreen"></i>
-      </button>
-      <button class="btn btn-sm btn-primary" id="gantt-btn-export">
-        <i class="bi bi-download me-1"></i> Export
-      </button>
+      <div class="gc-nav-arrows">
+        <button class="gc-btn gc-btn-icon" id="gantt-btn-prev" title="Lùi (←)" aria-label="Lùi">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        <button class="gc-btn gc-btn-icon" id="gantt-btn-next" title="Tiến (→)" aria-label="Tiến">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- KPI Dashboard -->
-  <div class="gantt-dashboard-row mb-4">
-    <div class="fs-stat-card">
-      <div class="fs-stat-title">Tổng Dự Án</div>
-      <div class="fs-stat-value" id="gantt-stat-projects">-</div>
-      <div class="fs-stat-icon" style="background:rgba(99,102,241,0.1);color:#6366f1"><i class="bi bi-folder"></i></div>
-    </div>
-    <div class="fs-stat-card">
-      <div class="fs-stat-title">Tổng Công Việc</div>
-      <div class="fs-stat-value" id="gantt-stat-tasks">-</div>
-      <div class="fs-stat-icon" style="background:rgba(16,185,129,0.1);color:#10b981"><i class="bi bi-check-square"></i></div>
-    </div>
-    <div class="fs-stat-card">
-      <div class="fs-stat-title">Đang Thực Hiện</div>
-      <div class="fs-stat-value" id="gantt-stat-active">-</div>
-      <div class="fs-stat-icon" style="background:rgba(59,130,246,0.1);color:#3b82f6"><i class="bi bi-play-circle"></i></div>
-    </div>
-    <div class="fs-stat-card">
-      <div class="fs-stat-title">Quá Hạn</div>
-      <div class="fs-stat-value text-danger" id="gantt-stat-overdue">-</div>
-      <div class="fs-stat-icon" style="background:rgba(239,68,68,0.1);color:#ef4444"><i class="bi bi-exclamation-triangle"></i></div>
-    </div>
-  </div>
-
-  <!-- Toolbar -->
-  <div class="gantt-toolbar d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
-    <div class="d-flex align-items-center gap-2 flex-grow-1" style="min-width: 280px;">
-      <div class="fs-search-box flex-grow-1" style="max-width:300px;">
-        <i class="bi bi-search fs-search-icon"></i>
-        <input type="text" class="fs-search-input" id="gantt-search" placeholder="Tìm kiếm công việc...">
+  <!-- ═══════════════════════════════════════════════════════════
+       TOOLBAR — Zoom + Filters + Toggles + Actions
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="gc-toolbar" role="toolbar" aria-label="Gantt controls">
+    <!-- Zoom Group -->
+    <div class="gc-toolbar-section">
+      <div class="gc-zoom-group" role="radiogroup" aria-label="Zoom level">
+        <button class="gc-zoom-btn" data-zoom="day" role="radio" aria-checked="false">Ngày</button>
+        <button class="gc-zoom-btn active" data-zoom="week" role="radio" aria-checked="true">Tuần</button>
+        <button class="gc-zoom-btn" data-zoom="month" role="radio" aria-checked="false">Tháng</button>
+        <button class="gc-zoom-btn" data-zoom="quarter" role="radio" aria-checked="false">Quý</button>
+        <button class="gc-zoom-btn" data-zoom="year" role="radio" aria-checked="false">Năm</button>
       </div>
-      <select class="fs-filter-select" id="gantt-filter-project">
-        <option value="">Tất cả dự án</option>
-      </select>
-      <select class="fs-filter-select" id="gantt-filter-status">
+    </div>
+
+    <!-- Search + Filters -->
+    <div class="gc-toolbar-section gc-toolbar-filters">
+      <div class="gc-search-wrapper">
+        <i class="bi bi-search gc-search-icon"></i>
+        <input type="text" class="gc-search-input" id="gantt-search" placeholder="Tìm task..." aria-label="Tìm kiếm công việc">
+      </div>
+      <select class="gc-filter-select" id="gantt-filter-status" aria-label="Lọc trạng thái">
         <option value="">Trạng thái</option>
         <option value="todo">Chưa bắt đầu</option>
         <option value="active">Đang làm</option>
         <option value="done">Hoàn thành</option>
       </select>
-      
-      <!-- Legend for Critical Path -->
-      <div class="d-none d-lg-flex align-items-center gap-2 ms-2" style="font-size:12px;">
-        <span style="width:12px;height:12px;background:#ef4444;border-radius:2px;display:inline-block;"></span>
-        <span class="text-muted" style="font-weight:500;">Đường găng (Critical Path)</span>
-      </div>
+      <select class="gc-filter-select" id="gantt-filter-priority" aria-label="Lọc độ ưu tiên">
+        <option value="">Ưu tiên</option>
+        <option value="high">Cao</option>
+        <option value="medium">Trung bình</option>
+        <option value="low">Thấp</option>
+      </select>
+      <select class="gc-filter-select" id="gantt-filter-assignee" aria-label="Lọc người phụ trách">
+        <option value="">Người thực hiện</option>
+      </select>
     </div>
-    
-    <div class="fs-view-toggle-group">
-      <button class="view-toggle gantt-zoom" data-zoom="day" title="Xem theo Ngày">Day</button>
-      <button class="view-toggle gantt-zoom active" data-zoom="week" title="Xem theo Tuần">Week</button>
-      <button class="view-toggle gantt-zoom" data-zoom="month" title="Xem theo Tháng">Month</button>
-      <button class="view-toggle gantt-zoom" data-zoom="quarter" title="Xem theo Quý">Quarter</button>
+
+    <!-- Toggles + Actions -->
+    <div class="gc-toolbar-section gc-toolbar-actions">
+      <label class="gc-toggle" title="Đường găng">
+        <input type="checkbox" id="gantt-toggle-critical" checked>
+        <span class="gc-toggle-track"></span>
+        <span class="gc-toggle-label">Critical Path</span>
+      </label>
+      <label class="gc-toggle" title="Baseline">
+        <input type="checkbox" id="gantt-toggle-baseline">
+        <span class="gc-toggle-track"></span>
+        <span class="gc-toggle-label">Baseline</span>
+      </label>
+
+      <div class="gc-action-divider"></div>
+
+      <button class="gc-btn gc-btn-accent" id="gantt-btn-add-milestone" title="Thêm cột mốc">
+        <i class="bi bi-gem"></i> <span class="gc-btn-text">Milestone</span>
+      </button>
+      <button class="gc-btn gc-btn-icon" id="gantt-btn-fullscreen" title="Toàn màn hình (F)">
+        <i class="bi bi-arrows-fullscreen"></i>
+      </button>
+      <button class="gc-btn gc-btn-icon" id="gantt-btn-refresh" title="Làm mới (R)">
+        <i class="bi bi-arrow-clockwise"></i>
+      </button>
+      <button class="gc-btn gc-btn-primary" id="gantt-btn-export" title="Xuất file">
+        <i class="bi bi-download"></i> <span class="gc-btn-text">Export</span>
+      </button>
     </div>
   </div>
 
-  <!-- Gantt Container (CSS Grid Layout) -->
-  <div class="gantt-wrapper fs-card">
-    
-    <!-- Sidebar Tree (Left) -->
-    <div class="gantt-sidebar" id="gantt-sidebar">
-      <div class="gantt-sidebar-header">
-        <div class="col-name">Tên Công Việc</div>
-        <div class="col-assignee">Phụ Trách</div>
-        <div class="col-status">Trạng Thái</div>
-      </div>
-      <div class="gantt-sidebar-content" id="gantt-sidebar-content">
-        <!-- Rendered by JS -->
-      </div>
-    </div>
-    
-    <!-- Timeline Grid (Right) -->
-    <div class="gantt-timeline-container" id="gantt-timeline-container">
-      <svg id="gantt-svg-layer"></svg>
-      <div class="gantt-timeline-header" id="gantt-timeline-header">
-        <!-- Rendered by JS -->
-      </div>
-      <div class="gantt-timeline-content" id="gantt-timeline-content">
-        <!-- Rendered by JS -->
-      </div>
-    </div>
-    
+  <!-- ═══════════════════════════════════════════════════════════
+       LEGEND BAR — Color meanings
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="gc-legend" id="gantt-legend" role="complementary" aria-label="Chú thích màu">
+    <div class="gc-legend-item"><span class="gc-legend-dot" style="background:#3b82f6"></span>Đang làm</div>
+    <div class="gc-legend-item"><span class="gc-legend-dot" style="background:#10b981"></span>Hoàn thành</div>
+    <div class="gc-legend-item"><span class="gc-legend-dot" style="background:#94a3b8"></span>Chưa bắt đầu</div>
+    <div class="gc-legend-item"><span class="gc-legend-dot" style="background:#ef4444"></span>Đường găng</div>
+    <div class="gc-legend-item"><span class="gc-legend-dot gc-legend-diamond" style="background:#f59e0b"></span>Milestone</div>
+    <div class="gc-legend-item"><span class="gc-legend-dot gc-legend-baseline"></span>Baseline</div>
+    <div class="gc-legend-item gc-legend-item-muted"><span class="gc-legend-stripe"></span>Cuối tuần</div>
+    <div class="gc-legend-shortcut"><kbd>?</kbd> Phím tắt</div>
   </div>
 
-  <!-- Mobile FAB -->
-  <button class="btn btn-primary rounded-circle shadow-lg gantt-fab d-md-none" id="gantt-mobile-add" style="position:fixed; bottom:24px; right:24px; width:56px; height:56px; z-index:100;">
-    <i class="bi bi-plus" style="font-size:28px; line-height:1;"></i>
-  </button>
+  <!-- ═══════════════════════════════════════════════════════════
+       MAIN BODY — Split View (Task Table + Timeline)
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="gc-body" id="gantt-body" role="main">
 
-  <!-- Milestone CRUD Modal -->
-  <div class="modal fade" id="gantt-milestone-modal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="gantt-milestone-modal-title">Thêm Cột Mốc (Milestone)</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <!-- Loading Skeleton -->
+    <div class="gc-loading" id="gantt-loading" aria-label="Đang tải">
+      <div class="gc-skeleton-panel gc-skeleton-left">
+        <div class="gc-skeleton-row gc-skeleton-header"></div>
+        <div class="gc-skeleton-row"></div><div class="gc-skeleton-row"></div>
+        <div class="gc-skeleton-row"></div><div class="gc-skeleton-row"></div>
+        <div class="gc-skeleton-row"></div><div class="gc-skeleton-row"></div>
+        <div class="gc-skeleton-row"></div><div class="gc-skeleton-row"></div>
+      </div>
+      <div class="gc-skeleton-panel gc-skeleton-right">
+        <div class="gc-skeleton-row gc-skeleton-header"></div>
+        <div class="gc-skeleton-bar" style="width:60%;margin-left:10%"></div>
+        <div class="gc-skeleton-bar" style="width:40%;margin-left:20%"></div>
+        <div class="gc-skeleton-bar" style="width:75%;margin-left:5%"></div>
+        <div class="gc-skeleton-bar" style="width:30%;margin-left:40%"></div>
+        <div class="gc-skeleton-bar" style="width:55%;margin-left:15%"></div>
+        <div class="gc-skeleton-bar" style="width:45%;margin-left:25%"></div>
+        <div class="gc-skeleton-bar" style="width:65%;margin-left:8%"></div>
+        <div class="gc-skeleton-bar" style="width:35%;margin-left:30%"></div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="gc-empty" id="gantt-empty" style="display:none" role="status">
+      <div class="gc-empty-inner">
+        <i class="bi bi-calendar2-range gc-empty-icon"></i>
+        <h3 class="gc-empty-title">Chưa có công việc nào</h3>
+        <p class="gc-empty-desc">Chọn một dự án từ dropdown phía trên để xem timeline, hoặc tạo công việc mới trong mục Công Việc.</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div class="gc-error" id="gantt-error" style="display:none" role="alert">
+      <i class="bi bi-exclamation-triangle gc-error-icon"></i>
+      <p class="gc-error-text">Không thể tải dữ liệu Gantt. Vui lòng thử lại.</p>
+      <button class="gc-btn gc-btn-primary" id="gantt-btn-retry">Thử lại</button>
+    </div>
+
+    <!-- LEFT PANEL — Task Table -->
+    <div class="gc-table" id="gantt-table" style="display:none">
+      <div class="gc-table-header" id="gantt-table-header">
+        <div class="gc-th gc-th-task">Công việc</div>
+        <div class="gc-th gc-th-assignee">Phụ trách</div>
+        <div class="gc-th gc-th-priority">Ưu tiên</div>
+        <div class="gc-th gc-th-status">Trạng thái</div>
+        <div class="gc-th gc-th-progress">Tiến độ</div>
+        <div class="gc-th gc-th-start">Bắt đầu</div>
+        <div class="gc-th gc-th-end">Kết thúc</div>
+        <div class="gc-th gc-th-duration">Ngày</div>
+      </div>
+      <div class="gc-table-body" id="gantt-table-body" role="treegrid" aria-label="Danh sách công việc">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- RESIZER -->
+    <div class="gc-resizer" id="gantt-resizer" style="display:none" role="separator" aria-orientation="vertical" aria-label="Resize panels" tabindex="0"></div>
+
+    <!-- RIGHT PANEL — Timeline -->
+    <div class="gc-timeline" id="gantt-timeline" style="display:none">
+      <svg class="gc-svg-layer" id="gantt-svg-layer" aria-hidden="true"></svg>
+      <div class="gc-timeline-header" id="gantt-timeline-header">
+        <!-- Rendered by JS: dual-row (month/week + day) -->
+      </div>
+      <div class="gc-timeline-body" id="gantt-timeline-body">
+        <!-- Rendered by JS: task bars, milestones, baseline -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       CONTEXT MENU (hidden, positioned on right-click)
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="gc-context-menu" id="gantt-context-menu" role="menu" aria-hidden="true" style="display:none">
+    <button class="gc-ctx-item" data-action="detail" role="menuitem"><i class="bi bi-eye"></i> Xem chi tiết</button>
+    <button class="gc-ctx-item" data-action="edit" role="menuitem"><i class="bi bi-pencil"></i> Chỉnh sửa</button>
+    <div class="gc-ctx-divider"></div>
+    <button class="gc-ctx-item" data-action="add-dep" role="menuitem"><i class="bi bi-link-45deg"></i> Thêm liên kết</button>
+    <button class="gc-ctx-item" data-action="critical" role="menuitem"><i class="bi bi-exclamation-diamond"></i> Xem đường găng</button>
+    <div class="gc-ctx-divider"></div>
+    <button class="gc-ctx-item gc-ctx-danger" data-action="delete" role="menuitem"><i class="bi bi-trash3"></i> Xóa công việc</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MILESTONE MODAL
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="modal fade" id="gantt-milestone-modal" tabindex="-1" aria-labelledby="gantt-milestone-modal-title">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content gc-modal">
+        <div class="modal-header gc-modal-header">
+          <div>
+            <h5 class="modal-title" id="gantt-milestone-modal-title">Thêm Cột Mốc</h5>
+            <p class="gc-modal-subtitle">Đánh dấu mốc quan trọng trên timeline dự án</p>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body gc-modal-body">
           <form id="gantt-milestone-form">
             <input type="hidden" id="gantt-milestone-id">
-            <div class="mb-3">
-              <label class="form-label">Tên Cột Mốc</label>
-              <input type="text" class="form-control" id="gantt-milestone-name" required placeholder="Nhập tên cột mốc...">
+            <div class="gc-form-group">
+              <label class="gc-label" for="gantt-milestone-name">Tên cột mốc <span class="gc-required">*</span></label>
+              <input type="text" class="gc-input" id="gantt-milestone-name" required placeholder="VD: Sprint Review, UAT Sign-off...">
             </div>
-            <div class="mb-3">
-              <label class="form-label">Ngày Thực Hiện</label>
-              <input type="date" class="form-control" id="gantt-milestone-date" required>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Người Phụ Trách</label>
-              <select class="form-select" id="gantt-milestone-owner">
-                <option value="">Chọn người phụ trách...</option>
-              </select>
+            <div class="gc-form-row">
+              <div class="gc-form-group">
+                <label class="gc-label" for="gantt-milestone-date">Ngày <span class="gc-required">*</span></label>
+                <input type="date" class="gc-input" id="gantt-milestone-date" required>
+              </div>
+              <div class="gc-form-group">
+                <label class="gc-label" for="gantt-milestone-owner">Người phụ trách</label>
+                <select class="gc-input" id="gantt-milestone-owner">
+                  <option value="">Chọn...</option>
+                </select>
+              </div>
             </div>
           </form>
         </div>
-        <div class="modal-footer justify-content-between">
-          <button type="button" class="btn btn-outline-danger d-none" id="gantt-milestone-btn-delete">Xóa Cột Mốc</button>
-          <div>
-            <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Hủy</button>
-            <button type="button" class="btn btn-primary" id="gantt-milestone-btn-save">Lưu Cột Mốc</button>
+        <div class="modal-footer gc-modal-footer">
+          <button type="button" class="gc-btn gc-btn-danger" id="gantt-milestone-btn-delete" style="display:none">
+            <i class="bi bi-trash3"></i> Xóa
+          </button>
+          <div class="gc-modal-footer-right">
+            <button type="button" class="gc-btn" data-bs-dismiss="modal">Hủy</button>
+            <button type="button" class="gc-btn gc-btn-primary" id="gantt-milestone-btn-save">
+              <i class="bi bi-check2"></i> Lưu cột mốc
+            </button>
           </div>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Keyboard Shortcuts Modal -->
+  <div class="modal fade" id="gantt-shortcuts-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content gc-modal">
+        <div class="modal-header gc-modal-header">
+          <h5 class="modal-title">Phím tắt</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body gc-modal-body" style="padding:16px">
+          <div class="gc-shortcut-list">
+            <div class="gc-shortcut"><kbd>T</kbd> Hôm nay</div>
+            <div class="gc-shortcut"><kbd>R</kbd> Làm mới</div>
+            <div class="gc-shortcut"><kbd>F</kbd> Toàn màn hình</div>
+            <div class="gc-shortcut"><kbd>←</kbd><kbd>→</kbd> Cuộn timeline</div>
+            <div class="gc-shortcut"><kbd>1-5</kbd> Zoom (D/W/M/Q/Y)</div>
+            <div class="gc-shortcut"><kbd>Esc</kbd> Bỏ chọn</div>
+            <div class="gc-shortcut"><kbd>Del</kbd> Xóa task chọn</div>
+            <div class="gc-shortcut"><kbd>?</kbd> Phím tắt</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CSS — GANTT CHART DESIGN SYSTEM (Enterprise 2026)
+     ═══════════════════════════════════════════════════════════════ -->
 <style>
-/* ============================================================
-   Gantt Chart SaaS Enterprise 2026 Variables & Styles
-   ============================================================ */
+/* ─── GANTT DESIGN TOKENS ────────────────────────────────── */
 :root {
-  --gantt-sidebar-width: 380px;
-  --gantt-cell-height: 44px;
-  --gantt-header-height: 56px;
-  
-  /* Status Colors */
-  --g-status-todo: #94a3b8;
-  --g-status-active: #3b82f6;
-  --g-status-done: #10b981;
-  --g-status-overdue: #ef4444;
-  --g-status-blocked: #f97316;
-  --g-status-review: #8b5cf6;
+  /* Layout */
+  --gc-table-width: 520px;
+  --gc-table-min: 320px;
+  --gc-table-max: 700px;
+  --gc-row-h: 40px;
+  --gc-header-h: 48px;
+  --gc-toolbar-h: 44px;
+  --gc-resizer-w: 4px;
+  --gc-cell-day: 40px;
+  --gc-cell-week: 36px;
+  --gc-cell-month: 20px;
+  --gc-cell-quarter: 14px;
+  --gc-cell-year: 8px;
+
+  /* Gantt-specific colors */
+  --gc-bar-todo: #94a3b8;
+  --gc-bar-active: #6366f1;
+  --gc-bar-done: #10b981;
+  --gc-bar-overdue: #ef4444;
+  --gc-bar-critical: #dc2626;
+  --gc-milestone: #f59e0b;
+  --gc-baseline: #a78bfa;
+  --gc-today: #ef4444;
+  --gc-weekend: rgba(0,0,0,0.018);
+  --gc-holiday: rgba(239,68,68,0.04);
+  --gc-dep-line: #94a3b8;
+  --gc-dep-critical: #ef4444;
+  --gc-progress-fill: rgba(255,255,255,0.3);
+  --gc-selection: rgba(99,102,241,0.08);
+
+  /* Glass */
+  --gc-glass-bg: rgba(255,255,255,0.72);
+  --gc-glass-blur: 12px;
+  --gc-glass-border: rgba(255,255,255,0.4);
 }
 
-/* Dashboard Cards */
-.g-milestone-diamond {
-  width: 14px;
-  height: 14px;
-  background-color: #f59e0b;
-  transform: rotate(45deg);
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  margin-top: -7px;
-  margin-left: -7px;
-  box-shadow: 0 0 0 2px #fff, 0 2px 4px rgba(0,0,0,0.2);
-  z-index: 2;
-  cursor: ew-resize;
-  transition: transform 0.15s;
-}
-.g-milestone-diamond:hover {
-  transform: rotate(45deg) scale(1.25);
+/* ─── DARK MODE ──────────────────────────────────────────── */
+[data-theme="dark"] {
+  --gc-weekend: rgba(255,255,255,0.02);
+  --gc-holiday: rgba(239,68,68,0.06);
+  --gc-glass-bg: rgba(30,41,59,0.8);
+  --gc-glass-border: rgba(255,255,255,0.08);
+  --gc-selection: rgba(99,102,241,0.15);
+  --gc-progress-fill: rgba(255,255,255,0.15);
 }
 
-.g-bar-handle {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 6px;
-  z-index: 4;
-  cursor: ew-resize;
-}
-.g-bar-handle-left {
-  left: 0;
-  border-radius: 6px 0 0 6px;
-}
-.g-bar-handle-right {
-  right: 0;
-  border-radius: 0 6px 6px 0;
-}
-.g-bar-handle:hover {
-  background: rgba(255, 255, 255, 0.5);
-}
-
-.g-task-bar {
-  cursor: grab;
-  position: relative;
-  overflow: hidden;
-}
-.g-task-bar:active {
-  cursor: grabbing;
-}
-
-.g-bar-progress-fill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.35);
-  border-radius: inherit;
-  pointer-events: none;
-}
-
-.g-bar-progress-handle {
-  position: absolute;
-  top: 50%;
-  margin-top: -6px;
-  width: 12px;
-  height: 12px;
-  background: #fff;
-  border: 2px solid var(--fs-accent, #6366f1);
-  border-radius: 50%;
-  z-index: 5;
-  cursor: ew-resize;
-  transform: translateX(-50%);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-}
-.g-bar-progress-handle:hover {
-  transform: translateX(-50%) scale(1.2);
-}
-
-.gantt-dashboard-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+/* ─── HEADER BAR ─────────────────────────────────────────── */
+.gc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
   gap: 16px;
 }
-.fs-stat-card {
+.gc-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+.gc-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.gc-project-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.gc-project-dropdown {
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--fs-text);
+  font-family: var(--fs-font);
+  cursor: pointer;
+  padding: 4px 24px 4px 0;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  max-width: 280px;
+}
+.gc-project-dropdown:focus { outline: 2px solid var(--fs-accent); outline-offset: 2px; border-radius: 4px; }
+
+.gc-date-range { font-size: 13px; color: var(--fs-text-muted); font-weight: 500; white-space: nowrap; }
+.gc-nav-arrows { display: flex; gap: 2px; }
+
+/* ─── BUTTONS ────────────────────────────────────────────── */
+.gc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--fs-border);
   background: var(--fs-bg);
+  color: var(--fs-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--fs-font);
+  cursor: pointer;
+  transition: var(--fs-transition);
+  white-space: nowrap;
+  line-height: 1.4;
+}
+.gc-btn:hover { background: var(--fs-bg-tertiary); border-color: var(--fs-text-muted); }
+.gc-btn:focus-visible { outline: 2px solid var(--fs-accent); outline-offset: 1px; }
+.gc-btn-icon { padding: 6px 8px; }
+.gc-btn-today { font-weight: 600; }
+.gc-btn-primary { background: var(--fs-accent); color: #fff; border-color: var(--fs-accent); }
+.gc-btn-primary:hover { background: var(--fs-accent-hover); border-color: var(--fs-accent-hover); }
+.gc-btn-accent { background: var(--fs-accent-light); color: var(--fs-accent); border-color: transparent; font-weight: 600; }
+.gc-btn-accent:hover { background: var(--fs-accent); color: #fff; }
+.gc-btn-danger { background: var(--fs-danger-light); color: var(--fs-danger); border-color: transparent; }
+.gc-btn-danger:hover { background: var(--fs-danger); color: #fff; }
+
+/* ─── TOOLBAR ────────────────────────────────────────────── */
+.gc-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  flex-wrap: wrap;
+}
+.gc-toolbar-section { display: flex; align-items: center; gap: 8px; }
+.gc-toolbar-filters { flex: 1; min-width: 0; }
+.gc-toolbar-actions { flex-shrink: 0; }
+.gc-action-divider { width: 1px; height: 24px; background: var(--fs-border); margin: 0 4px; }
+
+/* Zoom Group */
+.gc-zoom-group {
+  display: flex;
+  background: var(--fs-bg-tertiary);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+.gc-zoom-btn {
+  padding: 5px 12px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--fs-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--fs-font);
+  cursor: pointer;
+  transition: var(--fs-transition);
+}
+.gc-zoom-btn:hover { color: var(--fs-text); }
+.gc-zoom-btn.active {
+  background: var(--fs-bg);
+  color: var(--fs-accent);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+/* Search */
+.gc-search-wrapper {
+  position: relative;
+  width: 180px;
+  flex-shrink: 0;
+}
+.gc-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: var(--fs-text-muted);
+  pointer-events: none;
+}
+.gc-search-input {
+  width: 100%;
+  padding: 6px 10px 6px 30px;
+  border: 1px solid var(--fs-border);
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: var(--fs-font);
+  color: var(--fs-text);
+  background: var(--fs-bg);
+  transition: var(--fs-transition);
+}
+.gc-search-input:focus { border-color: var(--fs-accent); outline: none; box-shadow: 0 0 0 3px var(--fs-accent-light); }
+
+/* Filter Selects */
+.gc-filter-select {
+  padding: 6px 28px 6px 10px;
+  border: 1px solid var(--fs-border);
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: var(--fs-font);
+  color: var(--fs-text-secondary);
+  background: var(--fs-bg);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  cursor: pointer;
+  transition: var(--fs-transition);
+  min-width: 100px;
+}
+.gc-filter-select:focus { border-color: var(--fs-accent); outline: none; box-shadow: 0 0 0 3px var(--fs-accent-light); }
+
+/* Toggle Switches */
+.gc-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 12px;
+}
+.gc-toggle input { display: none; }
+.gc-toggle-track {
+  width: 32px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--fs-border);
+  position: relative;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.gc-toggle-track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  transition: transform 0.2s;
+}
+.gc-toggle input:checked + .gc-toggle-track { background: var(--fs-accent); }
+.gc-toggle input:checked + .gc-toggle-track::after { transform: translateX(14px); }
+.gc-toggle-label { color: var(--fs-text-muted); font-weight: 500; }
+
+/* ─── LEGEND ─────────────────────────────────────────────── */
+.gc-legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 6px 0;
+  font-size: 11px;
+  color: var(--fs-text-muted);
+  border-bottom: 1px solid var(--fs-border);
+  flex-wrap: wrap;
+}
+.gc-legend-item { display: flex; align-items: center; gap: 5px; font-weight: 500; }
+.gc-legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.gc-legend-diamond { transform: rotate(45deg); width: 8px; height: 8px; border-radius: 1px; }
+.gc-legend-baseline { width: 16px; height: 4px; border-radius: 2px; background: var(--gc-baseline); opacity: 0.5; }
+.gc-legend-stripe { width: 16px; height: 10px; background: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px); border-radius: 2px; }
+.gc-legend-item-muted { opacity: 0.7; }
+.gc-legend-shortcut { margin-left: auto; cursor: pointer; }
+.gc-legend-shortcut:hover { color: var(--fs-accent); }
+.gc-legend-shortcut kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  border: 1px solid var(--fs-border);
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: var(--fs-mono);
+  background: var(--fs-bg-tertiary);
+  margin-right: 3px;
+}
+
+/* ─── MAIN BODY (SPLIT VIEW) ────────────────────────────── */
+.gc-body {
+  display: flex;
+  height: calc(100vh - 240px);
+  min-height: 420px;
   border: 1px solid var(--fs-border);
   border-radius: 12px;
-  padding: 16px 20px;
-  position: relative;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-  transition: transform 0.2s, box-shadow 0.2s;
+  background: var(--fs-bg);
+  box-shadow: var(--fs-shadow-sm);
+  position: relative;
 }
-.fs-stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+
+/* ─── LOADING SKELETON ───────────────────────────────────── */
+.gc-loading {
+  display: flex;
+  width: 100%;
+  height: 100%;
 }
-.fs-stat-title { font-size: 13px; color: var(--fs-text-muted); font-weight: 600; margin-bottom: 8px; }
-.fs-stat-value { font-size: 24px; font-weight: 700; color: var(--fs-text); line-height: 1; }
-.fs-stat-icon {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+.gc-skeleton-panel { display: flex; flex-direction: column; gap: 0; }
+.gc-skeleton-left { width: var(--gc-table-width); border-right: 1px solid var(--fs-border); }
+.gc-skeleton-right { flex: 1; }
+.gc-skeleton-row {
+  height: var(--gc-row-h);
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--fs-border);
+}
+.gc-skeleton-row::after {
+  content: '';
+  display: block;
+  height: 12px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--fs-bg-tertiary) 25%, var(--fs-bg-secondary) 50%, var(--fs-bg-tertiary) 75%);
+  background-size: 200% 100%;
+  animation: gc-shimmer 1.5s infinite;
+}
+.gc-skeleton-header::after { height: 16px; width: 60%; }
+.gc-skeleton-bar {
+  height: var(--gc-row-h);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--fs-border);
+}
+.gc-skeleton-bar::after {
+  content: '';
+  display: block;
+  height: 16px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--fs-bg-tertiary) 25%, var(--fs-bg-secondary) 50%, var(--fs-bg-tertiary) 75%);
+  background-size: 200% 100%;
+  animation: gc-shimmer 1.5s infinite;
+}
+@keyframes gc-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* ─── EMPTY STATE ────────────────────────────────────────── */
+.gc-empty {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  width: 100%;
+  height: 100%;
 }
+.gc-empty-inner { text-align: center; max-width: 360px; padding: 40px 24px; }
+.gc-empty-icon { font-size: 56px; color: var(--fs-text-muted); opacity: 0.3; margin-bottom: 16px; display: block; }
+.gc-empty-title { font-size: 18px; font-weight: 700; color: var(--fs-text); margin-bottom: 8px; }
+.gc-empty-desc { font-size: 13px; color: var(--fs-text-muted); line-height: 1.6; }
 
-/* Wrapper */
-.gantt-wrapper {
+/* ─── ERROR STATE ────────────────────────────────────────── */
+.gc-error {
   display: flex;
-  height: calc(100vh - 280px);
-  min-height: 400px;
-  padding: 0;
-  overflow: hidden;
-  border: 1px solid var(--fs-border);
-  border-radius: 12px;
-  background: var(--fs-bg);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  gap: 12px;
 }
+.gc-error-icon { font-size: 40px; color: var(--fs-danger); opacity: 0.6; }
+.gc-error-text { font-size: 14px; color: var(--fs-text-muted); }
 
-/* Sidebar */
-.gantt-sidebar {
-  width: var(--gantt-sidebar-width);
+/* ─── LEFT PANEL — TASK TABLE ────────────────────────────── */
+.gc-table {
+  width: var(--gc-table-width);
+  min-width: var(--gc-table-min);
+  max-width: var(--gc-table-max);
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--fs-border);
-  background: var(--fs-bg-secondary);
-  z-index: 10;
+  background: var(--fs-bg);
+  z-index: 5;
 }
-.gantt-sidebar-header {
-  height: var(--gantt-header-height);
+.gc-table-header {
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  border-bottom: 1px solid var(--fs-border);
+  height: var(--gc-header-h);
+  padding: 0 12px;
+  border-bottom: 2px solid var(--fs-border);
+  background: var(--gc-glass-bg);
+  backdrop-filter: blur(var(--gc-glass-blur));
+  -webkit-backdrop-filter: blur(var(--gc-glass-blur));
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   color: var(--fs-text-muted);
-  background: var(--fs-bg-secondary);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
-.gantt-sidebar-header .col-name { flex: 1; }
-.gantt-sidebar-header .col-assignee { width: 80px; text-align: center; }
-.gantt-sidebar-header .col-status { width: 90px; text-align: center; }
+.gc-th { padding: 0 6px; white-space: nowrap; user-select: none; }
+.gc-th-task { flex: 1; min-width: 140px; }
+.gc-th-assignee { width: 64px; text-align: center; }
+.gc-th-priority { width: 56px; text-align: center; }
+.gc-th-status { width: 80px; text-align: center; }
+.gc-th-progress { width: 56px; text-align: center; }
+.gc-th-start { width: 70px; text-align: center; }
+.gc-th-end { width: 70px; text-align: center; }
+.gc-th-duration { width: 40px; text-align: center; }
 
-.gantt-sidebar-content {
-  flex: 1;
-  overflow-y: hidden; /* Synced with timeline scroll */
-  background: var(--fs-bg);
-}
+.gc-table-body { flex: 1; overflow-y: hidden; }
 
-/* Sidebar Rows */
-.g-row {
+/* Table Rows */
+.gc-tr {
   display: flex;
   align-items: center;
-  height: var(--gantt-cell-height);
-  padding: 0 16px;
+  height: var(--gc-row-h);
+  padding: 0 12px;
   border-bottom: 1px solid var(--fs-border);
-  transition: background 0.15s;
   cursor: pointer;
+  transition: background 0.12s;
+  font-size: 12px;
 }
-.g-row:hover { background: var(--fs-bg-hover); }
-.g-row-project { background: var(--fs-bg-secondary); font-weight: 600; }
-.g-row-project:hover { background: var(--fs-bg-secondary); filter: brightness(0.97); }
+.gc-tr:hover { background: var(--gc-selection); }
+.gc-tr.gc-tr-selected { background: var(--gc-selection); box-shadow: inset 3px 0 0 var(--fs-accent); }
+.gc-tr-project { background: var(--fs-bg-secondary); font-weight: 600; font-size: 13px; }
+.gc-tr-project:hover { background: var(--fs-bg-secondary); filter: brightness(0.97); }
+.gc-tr-milestone { background: rgba(245,158,11,0.03); }
 
-.g-col-name { flex: 1; display: flex; align-items: center; gap: 8px; overflow: hidden; }
-.g-col-name .title { font-size: 13px; color: var(--fs-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.g-col-assignee { width: 80px; display: flex; justify-content: center; }
-.g-col-status { width: 90px; display: flex; justify-content: center; }
+/* Table Cells */
+.gc-td { padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gc-td-task {
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+}
+.gc-td-task .gc-task-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--fs-text); font-weight: 500; }
+.gc-td-task .gc-expand-btn { width: 18px; height: 18px; border: none; background: none; cursor: pointer; color: var(--fs-text-muted); font-size: 10px; flex-shrink: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: var(--fs-transition); }
+.gc-td-task .gc-expand-btn:hover { background: var(--fs-bg-tertiary); color: var(--fs-text); }
+.gc-td-assignee { width: 64px; display: flex; justify-content: center; }
+.gc-td-priority { width: 56px; display: flex; justify-content: center; }
+.gc-td-status { width: 80px; display: flex; justify-content: center; }
+.gc-td-progress { width: 56px; text-align: center; color: var(--fs-text-muted); font-weight: 500; }
+.gc-td-start, .gc-td-end { width: 70px; text-align: center; color: var(--fs-text-muted); font-size: 11px; }
+.gc-td-duration { width: 40px; text-align: center; color: var(--fs-text-muted); font-size: 11px; font-weight: 600; }
 
-/* Status Badges */
-.g-status-badge {
-  font-size: 11px;
+/* Avatar */
+.gc-avatar { width: 22px; height: 22px; border-radius: 50%; background: var(--fs-accent-light); color: var(--fs-accent); display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; }
+/* Priority Dot */
+.gc-priority-dot { width: 8px; height: 8px; border-radius: 50%; }
+.gc-priority-high { background: var(--fs-priority-high); }
+.gc-priority-medium { background: var(--fs-priority-medium); }
+.gc-priority-low { background: var(--fs-priority-low); }
+.gc-priority-none { background: var(--fs-priority-none); }
+/* Status Badge */
+.gc-status-badge {
+  font-size: 10px;
   padding: 2px 8px;
   border-radius: 99px;
   font-weight: 600;
-  text-transform: capitalize;
 }
-.g-status-todo { background: rgba(148,163,184,0.1); color: var(--g-status-todo); }
-.g-status-active { background: rgba(59,130,246,0.1); color: var(--g-status-active); }
-.g-status-done { background: rgba(16,185,129,0.1); color: var(--g-status-done); }
-.g-status-overdue { background: rgba(239,68,68,0.1); color: var(--g-status-overdue); }
+.gc-status-todo { background: rgba(148,163,184,0.12); color: #64748b; }
+.gc-status-active { background: rgba(99,102,241,0.1); color: #6366f1; }
+.gc-status-done { background: rgba(16,185,129,0.1); color: #10b981; }
+.gc-status-overdue { background: rgba(239,68,68,0.1); color: #ef4444; }
+/* Mini Progress Bar */
+.gc-progress-mini { width: 32px; height: 4px; border-radius: 2px; background: var(--fs-bg-tertiary); overflow: hidden; display: inline-block; vertical-align: middle; }
+.gc-progress-mini-fill { height: 100%; border-radius: 2px; background: var(--fs-accent); transition: width 0.3s; }
 
-/* Avatars */
-.g-avatar {
-  width: 24px; height: 24px; border-radius: 50%;
-  background: var(--fs-border); color: var(--fs-text-muted);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 10px; font-weight: 600; text-transform: uppercase;
+/* ─── RESIZER ────────────────────────────────────────────── */
+.gc-resizer {
+  width: var(--gc-resizer-w);
+  cursor: col-resize;
+  background: transparent;
+  position: relative;
+  flex-shrink: 0;
+  z-index: 6;
+  transition: background 0.15s;
 }
+.gc-resizer::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 32px;
+  border-radius: 2px;
+  background: var(--fs-border);
+  transition: var(--fs-transition);
+}
+.gc-resizer:hover, .gc-resizer.gc-resizing { background: var(--fs-accent-light); }
+.gc-resizer:hover::after, .gc-resizer.gc-resizing::after { background: var(--fs-accent); height: 48px; }
 
-/* Timeline Container */
-.gantt-timeline-container {
+/* ─── RIGHT PANEL — TIMELINE ────────────────────────────── */
+.gc-timeline {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -378,100 +772,110 @@
   position: relative;
   background: var(--fs-bg);
 }
-
-/* Timeline Grid Layout */
-.gantt-timeline-header {
-  display: flex;
-  height: var(--gantt-header-height);
-  border-bottom: 1px solid var(--fs-border);
+.gc-timeline-header {
   position: sticky;
   top: 0;
-  z-index: 20;
-  background: var(--fs-bg-secondary);
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  background: var(--gc-glass-bg);
+  backdrop-filter: blur(var(--gc-glass-blur));
+  -webkit-backdrop-filter: blur(var(--gc-glass-blur));
+  border-bottom: 2px solid var(--fs-border);
   width: max-content;
+  min-width: 100%;
 }
-.gantt-timeline-content {
+.gc-timeline-header-row {
+  display: flex;
+  height: calc(var(--gc-header-h) / 2);
+}
+.gc-th-cell {
+  border-right: 1px solid var(--fs-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fs-text-muted);
+  flex-shrink: 0;
+  user-select: none;
+}
+.gc-th-cell.gc-th-month { text-transform: uppercase; letter-spacing: 0.4px; font-size: 10px; }
+.gc-th-cell.gc-th-day { font-size: 11px; font-weight: 500; }
+.gc-th-cell.gc-th-today { color: var(--gc-today); font-weight: 700; background: rgba(239,68,68,0.04); }
+.gc-th-cell.gc-th-weekend { background: var(--gc-weekend); color: var(--fs-text-muted); opacity: 0.7; }
+
+.gc-timeline-body {
   position: relative;
   min-height: min-content;
   width: max-content;
+  min-width: 100%;
 }
 
-/* SVG Dependency Layer */
-#gantt-svg-layer {
-  position: absolute;
-  top: var(--gantt-header-height);
-  left: 0;
-  width: 100%;
-  height: calc(100% - var(--gantt-header-height));
-  pointer-events: none;
-  z-index: 15;
-  overflow: visible;
-}
-
-/* Timeline Cells */
-.g-t-header-cell {
+/* Timeline Rows */
+.gc-trow {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border-right: 1px solid var(--fs-border);
-  flex-shrink: 0;
-  font-size: 11px;
-  color: var(--fs-text-muted);
-}
-.g-t-header-cell.weekend { background: rgba(0,0,0,0.02); }
-.g-t-header-cell.today { color: var(--fs-accent); font-weight: 700; background: rgba(99,102,241,0.05); }
-.g-t-header-cell .top-lbl { font-size: 10px; text-transform: uppercase; font-weight: 600; margin-bottom: 2px; }
-.g-t-header-cell .bot-lbl { font-size: 13px; font-weight: 500; }
-.g-t-header-cell.today .bot-lbl { font-weight: 700; }
-
-.g-t-row {
-  display: flex;
-  height: var(--gantt-cell-height);
+  height: var(--gc-row-h);
   border-bottom: 1px solid var(--fs-border);
   position: relative;
 }
-.g-t-row:hover { background: var(--fs-bg-hover); }
-.g-t-row-project { background: var(--fs-bg-secondary); }
+.gc-trow:hover { background: var(--gc-selection); }
+.gc-trow-project { background: var(--fs-bg-secondary); }
 
-.g-t-cell {
+.gc-tcell {
   border-right: 1px solid var(--fs-border);
   flex-shrink: 0;
   position: relative;
 }
-.g-t-cell.weekend { background: rgba(0,0,0,0.02); }
-.g-t-cell.today { background: rgba(99,102,241,0.03); }
+.gc-tcell-weekend { background: var(--gc-weekend); }
+.gc-tcell-holiday { background: var(--gc-holiday); }
+.gc-tcell-today { background: rgba(239,68,68,0.025); }
 
 /* Today Line */
-.g-today-line {
+.gc-today-line {
   position: absolute;
-  top: 0; bottom: 0;
+  top: 0;
+  bottom: 0;
   width: 2px;
-  background: var(--fs-danger);
-  z-index: 12;
+  left: 50%;
+  background: var(--gc-today);
+  z-index: 7;
   pointer-events: none;
-  box-shadow: 0 0 6px rgba(239,68,68,0.4);
+  box-shadow: 0 0 8px rgba(239,68,68,0.35);
 }
-.g-today-line::before {
+.gc-today-line::before {
   content: '';
   position: absolute;
-  top: -4px; left: -3px;
-  width: 8px; height: 8px;
+  top: -3px;
+  left: -3px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: var(--fs-danger);
+  background: var(--gc-today);
 }
 
-/* Task Bars */
-.g-task-bar-wrapper {
+/* SVG Layer */
+.gc-svg-layer {
+  position: absolute;
+  top: var(--gc-header-h);
+  left: 0;
+  width: 100%;
+  height: calc(100% - var(--gc-header-h));
+  pointer-events: none;
+  z-index: 6;
+  overflow: visible;
+}
+
+/* ─── TASK BARS ──────────────────────────────────────────── */
+.gc-bar-wrapper {
   position: absolute;
   top: 6px;
-  height: calc(var(--gantt-cell-height) - 12px);
-  z-index: 10;
+  height: calc(var(--gc-row-h) - 12px);
+  z-index: 5;
   display: flex;
   align-items: center;
-  transition: transform 0.2s, opacity 0.2s;
 }
-.g-task-bar {
+.gc-bar {
   width: 100%;
   height: 100%;
   border-radius: 6px;
@@ -479,86 +883,193 @@
   align-items: center;
   padding: 0 8px;
   color: #fff;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  cursor: grab;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
   position: relative;
-  transition: filter 0.2s, box-shadow 0.2s;
+  transition: filter 0.15s, box-shadow 0.15s;
 }
-.g-task-bar:hover {
-  filter: brightness(1.1);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-  z-index: 11;
-}
+.gc-bar:hover { filter: brightness(1.1); box-shadow: 0 3px 10px rgba(0,0,0,0.2); z-index: 6; }
+.gc-bar:active { cursor: grabbing; }
+.gc-bar-critical { box-shadow: 0 1px 4px rgba(239,68,68,0.3); }
 
-/* Progress Overlay */
-.g-task-progress {
+/* Progress Fill Inside Bar */
+.gc-bar-progress {
   position: absolute;
-  top: 0; left: 0; bottom: 0;
-  background: rgba(255,255,255,0.25);
-  border-radius: 6px 0 0 6px;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background: var(--gc-progress-fill);
+  border-radius: inherit;
   pointer-events: none;
+  transition: width 0.3s;
 }
-.g-task-bar[style*="100%"] .g-task-progress { border-radius: 6px; }
-.g-task-title-inner { position: relative; z-index: 2; display: flex; align-items: center; gap: 6px; }
 
-/* Dependency Handles */
-.g-dep-handle {
+/* Progress Handle */
+.gc-bar-progress-knob {
   position: absolute;
   top: 50%;
-  transform: translateY(-50%);
-  width: 8px; height: 8px;
-  border-radius: 50%;
+  margin-top: -5px;
+  width: 10px;
+  height: 10px;
   background: #fff;
-  border: 2px solid var(--fs-text-muted);
+  border: 2px solid var(--fs-accent);
+  border-radius: 50%;
+  z-index: 7;
+  cursor: ew-resize;
+  transform: translateX(-50%);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
   opacity: 0;
-  transition: opacity 0.2s;
-  z-index: 12;
+  transition: opacity 0.15s, transform 0.15s;
 }
-.g-task-bar-wrapper:hover .g-dep-handle { opacity: 1; }
-.g-dep-left { left: -4px; }
-.g-dep-right { right: -4px; }
+.gc-bar-wrapper:hover .gc-bar-progress-knob { opacity: 1; }
+.gc-bar-progress-knob:hover { transform: translateX(-50%) scale(1.3); }
 
-/* Project Bar (Summary) */
-.g-project-bar {
-  height: 8px;
-  background: var(--fs-accent);
-  opacity: 0.5;
-  border-radius: 4px;
+/* Bar Label */
+.gc-bar-label { position: relative; z-index: 2; display: flex; align-items: center; gap: 4px; pointer-events: none; }
+
+/* Resize Handles */
+.gc-handle {
   position: absolute;
-  top: 50%; transform: translateY(-50%);
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  z-index: 7;
+  cursor: ew-resize;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+}
+.gc-bar-wrapper:hover .gc-handle { opacity: 1; }
+.gc-handle:hover { background: rgba(255,255,255,0.5); }
+.gc-handle-l { left: 0; border-radius: 6px 0 0 6px; }
+.gc-handle-r { right: 0; border-radius: 0 6px 6px 0; }
+
+/* Baseline Bar */
+.gc-baseline-bar {
+  position: absolute;
+  bottom: 2px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--gc-baseline);
+  opacity: 0.4;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* ─── MILESTONE DIAMOND ──────────────────────────────────── */
+.gc-milestone {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  margin-left: -7px;
+  background: var(--gc-milestone);
+  transform: rotate(45deg);
+  border-radius: 2px;
+  box-shadow: 0 0 0 2px var(--fs-bg), 0 2px 6px rgba(0,0,0,0.2);
+  z-index: 5;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.gc-milestone:hover { transform: rotate(45deg) scale(1.3); }
+
+/* ─── CONTEXT MENU ───────────────────────────────────────── */
+.gc-context-menu {
+  position: fixed;
+  min-width: 180px;
+  background: var(--fs-bg);
+  border: 1px solid var(--fs-border);
+  border-radius: 10px;
+  box-shadow: var(--fs-shadow-md);
+  padding: 4px;
+  z-index: var(--fs-z-dropdown);
+  animation: gc-ctx-in 0.12s ease-out;
+}
+@keyframes gc-ctx-in { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+.gc-ctx-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: var(--fs-font);
+  color: var(--fs-text);
+  cursor: pointer;
+  transition: background 0.1s;
 }
-.g-project-bar::before, .g-project-bar::after {
-  content: ''; position: absolute; top: 0;
-  border-style: solid;
+.gc-ctx-item:hover { background: var(--fs-bg-tertiary); }
+.gc-ctx-item i { font-size: 14px; color: var(--fs-text-muted); width: 16px; text-align: center; }
+.gc-ctx-danger { color: var(--fs-danger); }
+.gc-ctx-danger:hover { background: var(--fs-danger-light); }
+.gc-ctx-danger i { color: var(--fs-danger); }
+.gc-ctx-divider { height: 1px; background: var(--fs-border); margin: 4px 8px; }
+
+/* ─── MODAL UPGRADES ─────────────────────────────────────── */
+.gc-modal { border-radius: 16px; border: 1px solid var(--fs-border); box-shadow: var(--fs-shadow-xl); overflow: hidden; }
+.gc-modal-header { padding: 20px 24px 12px; border-bottom: none; }
+.gc-modal-header .modal-title { font-size: 18px; font-weight: 700; }
+.gc-modal-subtitle { font-size: 12px; color: var(--fs-text-muted); margin-top: 4px; }
+.gc-modal-body { padding: 0 24px 16px; }
+.gc-modal-footer { padding: 12px 24px 20px; border-top: 1px solid var(--fs-border); display: flex; justify-content: space-between; align-items: center; }
+.gc-modal-footer-right { display: flex; gap: 8px; }
+
+.gc-form-group { margin-bottom: 16px; }
+.gc-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.gc-label { display: block; font-size: 12px; font-weight: 600; color: var(--fs-text-secondary); margin-bottom: 6px; }
+.gc-required { color: var(--fs-danger); }
+.gc-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--fs-border);
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: var(--fs-font);
+  color: var(--fs-text);
+  background: var(--fs-bg);
+  transition: var(--fs-transition);
 }
-.g-project-bar::before {
-  left: 0; border-width: 8px 8px 0 0; border-color: var(--fs-accent) transparent transparent transparent;
+.gc-input:focus { border-color: var(--fs-accent); outline: none; box-shadow: 0 0 0 3px var(--fs-accent-light); }
+.gc-input::placeholder { color: var(--fs-text-muted); }
+
+/* ─── KEYBOARD SHORTCUTS ─────────────────────────────────── */
+.gc-shortcut-list { display: flex; flex-direction: column; gap: 8px; }
+.gc-shortcut { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--fs-text-secondary); }
+.gc-shortcut kbd { min-width: 22px; text-align: center; }
+
+/* ─── RESPONSIVE ─────────────────────────────────────────── */
+@media (max-width: 1200px) {
+  .gc-toolbar-filters { flex-wrap: wrap; }
+  .gc-btn-text { display: none; }
 }
-.g-project-bar::after {
-  right: 0; border-width: 8px 0 0 8px; border-color: var(--fs-accent) transparent transparent transparent;
+@media (max-width: 992px) {
+  :root { --gc-table-width: 360px; }
+  .gc-th-priority, .gc-td-priority, .gc-th-start, .gc-td-start, .gc-th-end, .gc-td-end, .gc-th-duration, .gc-td-duration { display: none; }
+  .gc-legend { display: none; }
+  .gc-filter-select { display: none; }
+}
+@media (max-width: 768px) {
+  .gc-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .gc-toolbar { flex-direction: column; align-items: stretch; }
+  .gc-toolbar-actions { flex-wrap: wrap; justify-content: flex-end; }
+  .gc-body { flex-direction: column; height: calc(100vh - 300px); }
+  .gc-table { width: 100% !important; max-width: none; min-width: 0; border-right: none; border-bottom: 1px solid var(--fs-border); max-height: 200px; }
+  .gc-resizer { display: none !important; }
+  .gc-timeline { min-height: 300px; }
+  .gc-th-assignee, .gc-td-assignee, .gc-th-status, .gc-td-status, .gc-th-progress, .gc-td-progress { display: none; }
 }
 
-/* Mobile Responsive */
-@media (max-width: 991.98px) {
-  .gantt-sidebar { width: 220px; }
-  .gantt-sidebar-header .col-assignee, .gantt-sidebar-header .col-status,
-  .g-col-assignee, .g-col-status { display: none; }
-}
-
-@media (max-width: 767.98px) {
-  .gantt-wrapper { flex-direction: column; height: calc(100vh - 200px); border-radius: 8px; }
-  .gantt-sidebar { width: 100%; height: auto; flex-shrink: 0; border-right: none; border-bottom: 1px solid var(--fs-border); }
-  .gantt-sidebar-header { display: none; }
-  .gantt-sidebar-content { overflow-y: auto; max-height: 150px; }
-  .gantt-timeline-container { flex: 1; min-height: 300px; }
-  .gantt-page-header { flex-direction: column; align-items: flex-start !important; gap: 12px; }
-  .gantt-toolbar { flex-direction: column; align-items: stretch !important; }
-  .fs-view-toggle-group { width: 100%; display: flex; }
-  .fs-view-toggle-group .view-toggle { flex: 1; text-align: center; }
+/* ─── ANIMATIONS ─────────────────────────────────────────── */
+.gc-bar, .gc-milestone, .gc-handle, .gc-bar-progress-knob {
+  will-change: transform;
 }
 </style>
