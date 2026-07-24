@@ -58,111 +58,101 @@ namespace FlowSpace.Application.Services
                 .Select(group => new { Status = group.Key, Count = group.Count() })
                 .ToListAsync();
 
-            // 1. Lấy danh sách MyTasks chưa hoàn thành (tối đa 6 task)
-            var dbTasks = await userTaskQuery
+            // 1. Lấy danh sách MyTasks chưa hoàn thành (tối đa 6 task) dùng Direct Projection
+            var tasksDto = await userTaskQuery
                 .Where(t => t.Status != TaskStatus.Done)
-                .Include(t => t.Project)
-                .Include(t => t.Assignee)
                 .OrderBy(t => t.DueDate)
                 .Take(6)
+                .Select(t => new TaskResponse
+                {
+                    Id = t.Id,
+                    Code = t.Code,
+                    Title = t.Title,
+                    Description = t.Description,
+                    ProjectId = t.ProjectId,
+                    ProjectName = t.Project != null ? t.Project.Name : "—",
+                    AssigneeId = t.AssigneeId,
+                    AssigneeName = t.Assignee != null ? t.Assignee.Name : "Unknown",
+                    AssigneeAvatar = t.Assignee != null ? t.Assignee.Avatar : "??",
+                    AssigneeColor = t.Assignee != null ? t.Assignee.Color : "#6366f1",
+                    Status = t.Status.ToString().ToLower(),
+                    Priority = t.Priority.ToString().ToLower(),
+                    StartDate = t.StartDate,
+                    DueDate = t.DueDate,
+                    CompletedAt = t.CompletedAt,
+                    EstimatedHours = t.EstimatedHours,
+                    LoggedHours = t.LoggedHours,
+                    CreatedAt = t.CreatedAt
+                })
                 .ToListAsync();
 
-            var tasksDto = dbTasks.Select(t => new TaskResponse
-            {
-                Id = t.Id,
-                Code = t.Code,
-                Title = t.Title,
-                Description = t.Description,
-                ProjectId = t.ProjectId,
-                ProjectName = t.Project != null ? t.Project.Name : "—",
-                AssigneeId = t.AssigneeId,
-                AssigneeName = t.Assignee != null ? t.Assignee.Name : "Unknown",
-                AssigneeAvatar = t.Assignee != null ? t.Assignee.Avatar : "??",
-                AssigneeColor = t.Assignee != null ? t.Assignee.Color : "#6366f1",
-                Status = t.Status.ToString().ToLower(),
-                Priority = t.Priority.ToString().ToLower(),
-                StartDate = t.StartDate,
-                DueDate = t.DueDate,
-                CompletedAt = t.CompletedAt,
-                EstimatedHours = t.EstimatedHours,
-                LoggedHours = t.LoggedHours,
-                CreatedAt = t.CreatedAt
-            }).ToList();
-
-            // 2. Lấy danh sách Active Projects (tối đa 5 dự án)
-            var dbProjects = await userProjectQuery
+            // 2. Lấy danh sách Active Projects (tối đa 5 dự án) dùng Direct Projection
+            var projectsDto = await userProjectQuery
                 .Where(p => p.Status == ProjectStatus.Active)
-                .Include(p => p.Owner)
-                .Include(p => p.Members)
                 .OrderByDescending(p => p.CreatedAt)
                 .Take(5)
+                .Select(p => new ProjectResponse
+                {
+                    Id = p.Id,
+                    Code = p.Code,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Status = p.Status.ToString().ToLower(),
+                    Priority = p.Priority.ToString().ToLower(),
+                    StartDate = p.StartDate,
+                    EndDate = p.EndDate,
+                    Progress = p.Progress,
+                    OwnerId = p.OwnerId,
+                    OwnerName = p.Owner != null ? p.Owner.Name : "Unknown",
+                    CreatedAt = p.CreatedAt,
+                    Members = p.Members.Select(m => new UserDto
+                    {
+                        Id = m.Id,
+                        Name = m.Name,
+                        Email = m.Email,
+                        Role = m.Role,
+                        Avatar = m.Avatar,
+                        Color = m.Color
+                    }).ToList()
+                })
                 .ToListAsync();
 
-            var projectsDto = dbProjects.Select(p => new ProjectResponse
-            {
-                Id = p.Id,
-                Code = p.Code,
-                Name = p.Name,
-                Description = p.Description,
-                Status = p.Status.ToString().ToLower(),
-                Priority = p.Priority.ToString().ToLower(),
-                StartDate = p.StartDate,
-                EndDate = p.EndDate,
-                Progress = p.Progress,
-                OwnerId = p.OwnerId,
-                OwnerName = p.Owner != null ? p.Owner.Name : "Unknown",
-                CreatedAt = p.CreatedAt,
-                Members = p.Members.Select(m => new UserDto
-                {
-                    Id = m.Id,
-                    Name = m.Name,
-                    Email = m.Email,
-                    Role = m.Role,
-                    Avatar = m.Avatar,
-                    Color = m.Color
-                }).ToList()
-            }).ToList();
-
-            // 3. Lấy 8 Hoạt động (AuditLogs) gần đây
-            var dbLogs = await auditLogQuery
-                .Include(l => l.User)
+            // 3. Lấy 8 Hoạt động (AuditLogs) gần đây dùng Direct Projection
+            var activitiesDto = await auditLogQuery
                 .OrderByDescending(l => l.CreatedAt)
                 .Take(8)
+                .Select(l => new AuditLogDto
+                {
+                    Id = l.Id,
+                    UserId = l.UserId,
+                    UserName = l.User != null ? l.User.Name : "System",
+                    Action = l.Action,
+                    Detail = l.Detail,
+                    Module = l.Action.Contains("Login") || l.Action.Contains("Register") || l.Action.Contains("Logout") ? "Auth" :
+                             l.Action.Contains("Task") ? "Task" :
+                             l.Action.Contains("Project") ? "Project" :
+                             l.Action.Contains("Request") || l.Action.Contains("Approve") || l.Action.Contains("Reject") ? "Request" : "System",
+                    CreatedAt = l.CreatedAt
+                })
                 .ToListAsync();
 
-            var activitiesDto = dbLogs.Select(l => new AuditLogDto
-            {
-                Id = l.Id,
-                UserId = l.UserId,
-                UserName = l.User != null ? l.User.Name : "System",
-                Action = l.Action,
-                Detail = l.Detail,
-                Module = l.Action.Contains("Login") || l.Action.Contains("Register") || l.Action.Contains("Logout") ? "Auth" :
-                         l.Action.Contains("Task") ? "Task" :
-                         l.Action.Contains("Project") ? "Project" :
-                         l.Action.Contains("Request") || l.Action.Contains("Approve") || l.Action.Contains("Reject") ? "Request" : "System",
-                CreatedAt = l.CreatedAt
-            }).ToList();
-
-            // 4. Lấy Logs thời gian trong tuần qua phục vụ vẽ biểu đồ (lọc 7 ngày qua)
+            // 4. Lấy Logs thời gian trong tuần qua phục vụ vẽ biểu đồ (lọc 7 ngày qua) dùng Direct Projection
             var startOfWeek = DateTime.UtcNow.Date.AddDays(-7);
-            var dbWeeklyTimeLogs = await userTimeLogQuery
+            var weeklyTimeLogsDto = await userTimeLogQuery
                 .Where(tl => tl.Date >= startOfWeek)
-                .Include(tl => tl.User)
                 .OrderBy(tl => tl.Date)
+                .Select(tl => new TimeLogDto
+                {
+                    Id = tl.Id,
+                    TaskId = tl.TaskId,
+                    UserId = tl.UserId,
+                    UserName = tl.User != null ? tl.User.Name : "Unknown",
+                    Hours = tl.Hours,
+                    LoggedDate = tl.Date,
+                    Description = tl.Note,
+                    CreatedAt = tl.CreatedAt
+                })
                 .ToListAsync();
-
-            var weeklyTimeLogsDto = dbWeeklyTimeLogs.Select(tl => new TimeLogDto
-            {
-                Id = tl.Id,
-                TaskId = tl.TaskId,
-                UserId = tl.UserId,
-                UserName = tl.User != null ? tl.User.Name : "Unknown",
-                Hours = tl.Hours,
-                LoggedDate = tl.Date,
-                Description = tl.Note,
-                CreatedAt = tl.CreatedAt
-            }).ToList();
 
             return new DashboardSummaryDto
             {
