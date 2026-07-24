@@ -562,24 +562,40 @@
       font-size: 13px;
     }
 
-    /* Touch target & spacing cho Stat Cards */
+    /* Touch target & spacing cho Stat Cards - Nới rộng khoảng thở Mobile */
     #dashboard-page .dashboard-summary-row {
-      margin-right: -4px;
-      margin-left: -4px;
+      margin-right: -6px;
+      margin-left: -6px;
+      margin-bottom: 24px !important;
     }
 
     #dashboard-page .dashboard-summary-row>[class*="col-"] {
-      padding-right: 4px;
-      padding-left: 4px;
-      margin-bottom: 10px;
+      padding-right: 6px;
+      padding-left: 6px;
+      margin-bottom: 12px;
+    }
+
+    #dashboard-page .dashboard-content-row {
+      margin-right: -6px;
+      margin-left: -6px;
+    }
+
+    #dashboard-page .dashboard-content-row>[class*="col-"] {
+      padding-right: 6px;
+      padding-left: 6px;
+      margin-bottom: 20px;
+    }
+
+    .dashboard-hero-banner {
+      margin-bottom: 24px;
     }
 
     .dashboard-stat-card {
-      min-height: 120px;
-      padding: 12px;
-      border-radius: 14px;
+      min-height: 124px;
+      padding: 14px 14px;
+      border-radius: 16px;
       border: 1px solid var(--fs-border);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
     }
 
     .dashboard-stat-card:active {
@@ -603,19 +619,21 @@
       border-radius: 8px;
     }
 
-    /* Chuyển Donut Chart Legend sang dạng Nằm ngang linh hoạt cho App Mobile */
+    /* Biểu đồ Trạng Thái & Hoạt Động Tuần Này cho App Mobile */
     .dashboard-chart-card {
       height: auto;
-      min-height: 310px;
-      padding: 16px;
-      border-radius: 16px;
-      margin-bottom: 16px;
+      min-height: 320px;
+      padding: 18px 16px;
+      border-radius: 18px;
+      margin-bottom: 20px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.02);
     }
 
     .dashboard-section-card {
-      padding: 16px;
-      border-radius: 16px;
-      margin-bottom: 16px;
+      padding: 18px 16px;
+      border-radius: 18px;
+      margin-bottom: 20px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.02);
     }
 
     .dashboard-status-chart-container {
@@ -653,9 +671,9 @@
     /* Task & Project List items Touch Targets (Min 44px) */
     .dashboard-list-item {
       padding: 12px 14px;
-      min-height: 52px;
-      border-radius: 12px;
-      margin-bottom: 8px;
+      min-height: 54px;
+      border-radius: 14px;
+      margin-bottom: 10px;
     }
 
     .dashboard-task-title,
