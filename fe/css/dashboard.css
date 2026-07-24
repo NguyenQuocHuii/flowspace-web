@@ -239,6 +239,45 @@
   margin-top: 8px;
 }
 
+/* Responsive UI Spec */
+@media (max-width: 991.98px) {
+  .dashboard-hero-banner { flex-direction: column; align-items: flex-start; gap: 16px; padding: 20px; }
+  .dashboard-hero-actions { width: 100%; justify-content: flex-start; }
+  .dashboard-chart-card { height: 300px; }
+}
+
+@media (max-width: 575.98px) {
+  .dashboard-stat-card { min-height: 136px; padding: 14px; }
+  .fs-stat-value { font-size: 26px; }
+  .dashboard-status-chart-container { flex-direction: column; gap: 12px; }
+}
+
+/* ─── Enterprise Skeleton Shimmer Loading ──────────────────── */
+.fs-skeleton {
+  background: linear-gradient(90deg, var(--fs-bg-secondary) 25%, var(--fs-bg-tertiary) 37%, var(--fs-bg-secondary) 63%);
+  background-size: 400% 100%;
+  animation: fs-skeleton-loading 1.4s ease infinite;
+  border-radius: 8px;
+  display: inline-block;
+  color: transparent !important;
+  user-select: none;
+}
+
+.fs-skeleton-text {
+  height: 32px;
+  width: 64px;
+}
+
+.fs-skeleton-sub {
+  height: 14px;
+  width: 100px;
+}
+
+@keyframes fs-skeleton-loading {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
 /* Task List Alignment Fix */
 .dashboard-task-item {
   display: flex;
