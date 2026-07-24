@@ -1,60 +1,78 @@
 <div class="page-enter dashboard-page" id="dashboard-page">
-  <div class="fs-page-header">
-    <div>
-      <h1 class="fs-page-title" id="dash-greeting">Chào mừng trở lại</h1>
-      <p class="fs-page-subtitle" id="dash-date">Đang tải ngày làm việc…</p>
+  <!-- Hero Welcome Banner -->
+  <div class="dashboard-hero-banner mb-4">
+    <div class="dashboard-hero-content">
+      <div class="dashboard-hero-badge"><i class="bi bi-stars me-1"></i> Workspace Overview</div>
+      <h1 class="dashboard-hero-title" id="dash-greeting">Chào mừng trở lại</h1>
+      <p class="dashboard-hero-subtitle" id="dash-date">Đang tải ngày làm việc…</p>
     </div>
-    <div class="d-flex align-items-center gap-2">
-      <button class="btn btn-outline-neutral btn-sm" id="dash-seed-btn" type="button" title="Nạp lại bộ dữ liệu doanh nghiệp mẫu">
-        <i class="bi bi-database-add me-1" aria-hidden="true"></i> Seed dữ liệu
+    <div class="dashboard-hero-actions">
+      <button class="btn btn-glass btn-sm" id="dash-seed-btn" type="button" title="Nạp lại bộ dữ liệu doanh nghiệp mẫu">
+        <i class="bi bi-database-add me-1.5" aria-hidden="true"></i> Seed dữ liệu
       </button>
-      <button class="btn btn-primary btn-sm" id="dash-new-task-btn" type="button">
-        <i class="bi bi-plus-lg" aria-hidden="true"></i> Tạo công việc
+      <button class="btn btn-primary btn-sm shadow-accent" id="dash-new-task-btn" type="button">
+        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i> Tạo công việc mới
       </button>
     </div>
   </div>
 
   <div id="dashboard-status" aria-live="polite"></div>
 
-  <section aria-label="Tổng quan công việc" class="row g-3 mb-4 dashboard-summary-row">
+  <!-- Key Metrics Row -->
+  <section aria-label="Tổng quan công việc" class="row g-3.5 mb-4 dashboard-summary-row">
     <div class="col-6 col-xl-3">
       <article class="fs-stat-card dashboard-stat-card">
-        <div class="fs-stat-icon dashboard-icon-accent"><i class="bi bi-folder2-open" aria-hidden="true"></i></div>
+        <div class="dashboard-stat-top">
+          <span class="fs-stat-label">Dự án đang chạy</span>
+          <div class="fs-stat-icon dashboard-icon-accent"><i class="bi bi-folder2-open" aria-hidden="true"></i></div>
+        </div>
         <div class="fs-stat-value" id="stat-projects">—</div>
-        <div class="fs-stat-label">Dự án đang chạy</div>
         <div class="fs-stat-change" id="stat-projects-sub">Đang tải...</div>
       </article>
     </div>
     <div class="col-6 col-xl-3">
       <article class="fs-stat-card dashboard-stat-card">
-        <div class="fs-stat-icon dashboard-icon-info"><i class="bi bi-check-square" aria-hidden="true"></i></div>
+        <div class="dashboard-stat-top">
+          <span class="fs-stat-label">Công việc đang làm</span>
+          <div class="fs-stat-icon dashboard-icon-info"><i class="bi bi-check2-square" aria-hidden="true"></i></div>
+        </div>
         <div class="fs-stat-value" id="stat-tasks">—</div>
-        <div class="fs-stat-label">Công việc đang làm</div>
         <div class="fs-stat-change" id="stat-tasks-sub">Đang tải...</div>
       </article>
     </div>
     <div class="col-6 col-xl-3">
       <article class="fs-stat-card dashboard-stat-card">
-        <div class="fs-stat-icon dashboard-icon-danger"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></div>
+        <div class="dashboard-stat-top">
+          <span class="fs-stat-label">Công việc quá hạn</span>
+          <div class="fs-stat-icon dashboard-icon-danger"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></div>
+        </div>
         <div class="fs-stat-value text-danger" id="stat-overdue">—</div>
-        <div class="fs-stat-label">Công việc quá hạn</div>
         <div class="fs-stat-change" id="stat-overdue-sub">Đang tải...</div>
       </article>
     </div>
     <div class="col-6 col-xl-3">
       <article class="fs-stat-card dashboard-stat-card">
-        <div class="fs-stat-icon dashboard-icon-success"><i class="bi bi-clock" aria-hidden="true"></i></div>
+        <div class="dashboard-stat-top">
+          <span class="fs-stat-label">Giờ làm tuần này</span>
+          <div class="fs-stat-icon dashboard-icon-success"><i class="bi bi-clock-history" aria-hidden="true"></i></div>
+        </div>
         <div class="fs-stat-value" id="stat-hours">—</div>
-        <div class="fs-stat-label">Giờ làm tuần này</div>
         <div class="fs-stat-change" id="stat-hours-sub">Đang tải...</div>
       </article>
     </div>
   </section>
 
-  <section aria-label="Biểu đồ công việc" class="row g-3 mb-4 dashboard-content-row">
+  <!-- Visual Analytics Row -->
+  <section aria-label="Biểu đồ công việc" class="row g-3.5 mb-4 dashboard-content-row">
     <div class="col-12 col-lg-8">
       <article class="fs-card dashboard-chart-card">
-        <div class="fs-card-header"><h2 class="fs-h6 m-0"><i class="bi bi-bar-chart-line me-2 text-primary" aria-hidden="true"></i>Hoạt động tuần này</h2><span class="fs-small">Giờ làm theo ngày</span></div>
+        <div class="fs-card-header">
+          <h2 class="fs-h6 m-0 d-flex align-items-center gap-2">
+            <span class="dashboard-card-icon-wrap"><i class="bi bi-bar-chart-line-fill text-primary" aria-hidden="true"></i></span>
+            <span>Hoạt động tuần này</span>
+          </h2>
+          <span class="dashboard-header-badge">Giờ làm theo ngày</span>
+        </div>
         <div class="dashboard-chart-body">
           <canvas id="dash-activity-chart" aria-label="Biểu đồ giờ làm theo ngày" role="img"></canvas>
           <div id="dash-activity-empty" class="dashboard-empty-chart d-none"></div>
@@ -63,7 +81,12 @@
     </div>
     <div class="col-12 col-lg-4">
       <article class="fs-card dashboard-chart-card">
-        <div class="fs-card-header"><h2 class="fs-h6 m-0"><i class="bi bi-pie-chart me-2 text-primary" aria-hidden="true"></i>Trạng thái công việc</h2></div>
+        <div class="fs-card-header">
+          <h2 class="fs-h6 m-0 d-flex align-items-center gap-2">
+            <span class="dashboard-card-icon-wrap"><i class="bi bi-pie-chart-fill text-primary" aria-hidden="true"></i></span>
+            <span>Trạng thái công việc</span>
+          </h2>
+        </div>
         <div class="dashboard-status-chart-container">
           <div class="dashboard-status-chart-wrap">
             <canvas id="dash-status-chart" aria-label="Biểu đồ trạng thái công việc" role="img"></canvas>
@@ -75,13 +98,100 @@
     </div>
   </section>
 
-  <section aria-label="Công việc và dự án" class="row g-3 mb-4 dashboard-content-row">
-    <div class="col-12 col-lg-6"><article class="fs-card"><div class="fs-card-header"><h2 class="fs-h6 m-0"><i class="bi bi-person-check me-2 text-primary" aria-hidden="true"></i>Công việc của tôi</h2><button class="btn btn-ghost btn-xs" type="button" data-dashboard-route="tasks">Xem tất cả <i class="bi bi-arrow-right" aria-hidden="true"></i></button></div><div id="dash-my-tasks"><div class="fs-empty"><div class="fs-spinner mx-auto"></div></div></div></article></div>
-    <div class="col-12 col-lg-6"><article class="fs-card"><div class="fs-card-header"><h2 class="fs-h6 m-0"><i class="bi bi-folder2 me-2 text-primary" aria-hidden="true"></i>Dự án đang chạy</h2><button class="btn btn-ghost btn-xs" type="button" data-dashboard-route="projects">Xem tất cả <i class="bi bi-arrow-right" aria-hidden="true"></i></button></div><div id="dash-active-projects"><div class="fs-empty"><div class="fs-spinner mx-auto"></div></div></div></article></div>
+  <!-- Work & Projects Progress Row -->
+  <section aria-label="Công việc và dự án" class="row g-3.5 mb-4 dashboard-content-row">
+    <div class="col-12 col-lg-6">
+      <article class="fs-card dashboard-section-card">
+        <div class="fs-card-header">
+          <h2 class="fs-h6 m-0 d-flex align-items-center gap-2">
+            <span class="dashboard-card-icon-wrap"><i class="bi bi-person-check-fill text-primary" aria-hidden="true"></i></span>
+            <span>Công việc của tôi</span>
+          </h2>
+          <button class="btn btn-ghost btn-xs dashboard-link-btn" type="button" data-dashboard-route="tasks">
+            Xem tất cả <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div id="dash-my-tasks">
+          <div class="fs-empty"><div class="fs-spinner mx-auto"></div></div>
+        </div>
+      </article>
+    </div>
+    <div class="col-12 col-lg-6">
+      <article class="fs-card dashboard-section-card">
+        <div class="fs-card-header">
+          <h2 class="fs-h6 m-0 d-flex align-items-center gap-2">
+            <span class="dashboard-card-icon-wrap"><i class="bi bi-folder-fill text-primary" aria-hidden="true"></i></span>
+            <span>Dự án đang chạy</span>
+          </h2>
+          <button class="btn btn-ghost btn-xs dashboard-link-btn" type="button" data-dashboard-route="projects">
+            Xem tất cả <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div id="dash-active-projects">
+          <div class="fs-empty"><div class="fs-spinner mx-auto"></div></div>
+        </div>
+      </article>
+    </div>
   </section>
 
-  <section aria-label="Hoạt động gần đây" class="row g-3 dashboard-content-row">
-    <div class="col-12 col-lg-7"><article class="fs-card"><div class="fs-card-header"><h2 class="fs-h6 m-0"><i class="bi bi-activity me-2 text-primary" aria-hidden="true"></i>Hoạt động gần đây</h2></div><div id="dash-activity-feed"><div class="fs-empty"><div class="fs-spinner mx-auto"></div></div></div></article></div>
-    <div class="col-12 col-lg-5"><article class="fs-card"><div class="fs-card-header"><h2 class="fs-h6 m-0"><i class="bi bi-lightning me-2 text-primary" aria-hidden="true"></i>Truy cập nhanh</h2></div><div class="d-flex flex-column gap-2"><button class="btn btn-ghost text-start d-flex align-items-center gap-3 py-2 dashboard-quick-action" type="button" data-dashboard-route="tasks"><span class="fs-stat-icon dashboard-icon-accent"><i class="bi bi-check-square" aria-hidden="true"></i></span><span><strong>Quản lý công việc</strong><small class="d-block fs-small">Xem và cập nhật task</small></span></button><button class="btn btn-ghost text-start d-flex align-items-center gap-3 py-2 dashboard-quick-action" type="button" data-dashboard-route="kanban"><span class="fs-stat-icon dashboard-icon-info"><i class="bi bi-kanban" aria-hidden="true"></i></span><span><strong>Kanban Board</strong><small class="d-block fs-small">Kéo thả task theo tiến độ</small></span></button><button class="btn btn-ghost text-start d-flex align-items-center gap-3 py-2 dashboard-quick-action" type="button" data-dashboard-route="chat"><span class="fs-stat-icon dashboard-icon-success"><i class="bi bi-chat-dots" aria-hidden="true"></i></span><span><strong>Chat nội bộ</strong><small class="d-block fs-small">Nhắn tin với đồng nghiệp</small></span></button><button class="btn btn-ghost text-start d-flex align-items-center gap-3 py-2 dashboard-quick-action" type="button" data-dashboard-route="timetracking"><span class="fs-stat-icon dashboard-icon-warning"><i class="bi bi-stopwatch" aria-hidden="true"></i></span><span><strong>Time Tracking</strong><small class="d-block fs-small">Ghi nhận giờ làm việc</small></span></button></div></article></div>
+  <!-- Activity Timeline & Quick Launch -->
+  <section aria-label="Hoạt động gần đây" class="row g-3.5 dashboard-content-row">
+    <div class="col-12 col-lg-7">
+      <article class="fs-card dashboard-section-card">
+        <div class="fs-card-header">
+          <h2 class="fs-h6 m-0 d-flex align-items-center gap-2">
+            <span class="dashboard-card-icon-wrap"><i class="bi bi-activity text-primary" aria-hidden="true"></i></span>
+            <span>Hoạt động gần đây</span>
+          </h2>
+        </div>
+        <div id="dash-activity-feed">
+          <div class="fs-empty"><div class="fs-spinner mx-auto"></div></div>
+        </div>
+      </article>
+    </div>
+    <div class="col-12 col-lg-5">
+      <article class="fs-card dashboard-section-card">
+        <div class="fs-card-header">
+          <h2 class="fs-h6 m-0 d-flex align-items-center gap-2">
+            <span class="dashboard-card-icon-wrap"><i class="bi bi-lightning-charge-fill text-warning" aria-hidden="true"></i></span>
+            <span>Truy cập nhanh</span>
+          </h2>
+        </div>
+        <div class="d-flex flex-column gap-2.5">
+          <button class="btn btn-ghost text-start d-flex align-items-center gap-3 py-2.5 dashboard-quick-action" type="button" data-dashboard-route="tasks">
+            <span class="fs-stat-icon dashboard-icon-accent"><i class="bi bi-check-square" aria-hidden="true"></i></span>
+            <span class="flex-grow-1">
+              <strong class="d-block text-dark">Quản lý công việc</strong>
+              <small class="d-block fs-small text-muted">Xem và cập nhật danh sách task</small>
+            </span>
+            <i class="bi bi-chevron-right text-muted fs-small"></i>
+          </button>
+          <button class="btn btn-ghost text-start d-flex align-items-center gap-3 py-2.5 dashboard-quick-action" type="button" data-dashboard-route="kanban">
+            <span class="fs-stat-icon dashboard-icon-info"><i class="bi bi-kanban" aria-hidden="true"></i></span>
+            <span class="flex-grow-1">
+              <strong class="d-block text-dark">Kanban Board</strong>
+              <small class="d-block fs-small text-muted">Kéo thả task theo tiến độ</small>
+            </span>
+            <i class="bi bi-chevron-right text-muted fs-small"></i>
+          </button>
+          <button class="btn btn-ghost text-start d-flex align-items-center gap-3 py-2.5 dashboard-quick-action" type="button" data-dashboard-route="chat">
+            <span class="fs-stat-icon dashboard-icon-success"><i class="bi bi-chat-dots" aria-hidden="true"></i></span>
+            <span class="flex-grow-1">
+              <strong class="d-block text-dark">Chat nội bộ</strong>
+              <small class="d-block fs-small text-muted">Nhắn tin làm việc với đồng nghiệp</small>
+            </span>
+            <i class="bi bi-chevron-right text-muted fs-small"></i>
+          </button>
+          <button class="btn btn-ghost text-start d-flex align-items-center gap-3 py-2.5 dashboard-quick-action" type="button" data-dashboard-route="timetracking">
+            <span class="fs-stat-icon dashboard-icon-warning"><i class="bi bi-stopwatch" aria-hidden="true"></i></span>
+            <span class="flex-grow-1">
+              <strong class="d-block text-dark">Time Tracking</strong>
+              <small class="d-block fs-small text-muted">Ghi nhận và theo dõi giờ làm việc</small>
+            </span>
+            <i class="bi bi-chevron-right text-muted fs-small"></i>
+          </button>
+        </div>
+      </article>
+    </div>
   </section>
 </div>
