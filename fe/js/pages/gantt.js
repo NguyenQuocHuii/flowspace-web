@@ -1,36 +1,35 @@
 /**
- * FlowSpace — Gantt Chart Module
- * Module 3: Custom HTML/CSS Gantt connected to REST API (/api/v1/tasks)
+ * FlowSpace — Gantt Chart Module (SaaS Enterprise Edition)
  */
 (function (FS, $) {
   'use strict';
 
   const COLORS = ['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#f97316'];
   const STATUS_COLORS = {
-    active: '#6366f1', on_hold: '#f59e0b', done: '#10b981'
+    todo: '#94a3b8', active: '#3b82f6', done: '#10b981', overdue: '#ef4444'
   };
 
   FS.pages.gantt = {
-    _zoom: 'week', // 'week' | 'month'
+    _zoom: 'week', // 'day' | 'week' | 'month' | 'quarter'
     _projectFilter: '',
+    _statusFilter: '',
+    _searchQuery: '',
     _tasksData: [],
     _projectsData: [],
+    _criticalPath: new Set(),
+    _searchTimeout: null,
 
     async init() {
-      // 1. Instant 0ms SWR render with local seed data (NO SPINNER!)
+      // 1. Render immediately from local seed data for zero-latency feel
       this._tasksData = FS.db.get('tasks') || [];
       this._projectsData = FS.db.get('projects') || [];
+      
       this._populateFilters();
       this._render();
       this._bindEvents();
 
-      // 2. Fetch live data from backend API in background & sync seamlessly
+      // 2. Fetch live data from backend api
       await this._loadData();
-    },
-
-    _getAuthHeaders() {
-      const session = FS.auth.getSession();
-      return session && session.token ? { 'Authorization': 'Bearer ' + session.token } : {};
     },
 
     async _loadData() {
@@ -38,7 +37,7 @@
         try {
           await FS.loadUsersCache();
         } catch (e) {
-          console.warn('loadUsersCache failed in gantt page:', e);
+          console.warn('loadUsersCache failed:', e);
         }
 
         const [tasksRes, projsRes] = await Promise.all([
@@ -46,7 +45,7 @@
           FS.apiCall({ url: FS.API_BASE + '/api/v1/projects', type: 'GET' })
         ]);
 
-        if (tasksRes && tasksRes.success && Array.isArray(tasksRes.data) && tasksRes.data.length > 0) {
+        if (tasksRes?.success && Array.isArray(tasksRes.data) && tasksRes.data.length > 0) {
           const apiTasks = tasksRes.data.map(t => ({
             id: t.id,
             code: t.code,
@@ -60,21 +59,18 @@
             startDate: t.startDate,
             dueDate: t.dueDate,
             estimatedHours: t.estimatedHours || 0,
-            loggedHours: t.loggedHours || 0
+            loggedHours: t.loggedHours || 0,
+            dependsOn: t.dependsOn || []
           }));
-
           const mergedMap = new Map();
-          const seedData = FS.db.get('tasks') || [];
-          for (const s of seedData) mergedMap.set(s.id, s);
-          for (const a of apiTasks) mergedMap.set(a.id, a);
-
+          (FS.db.get('tasks') || []).forEach(s => mergedMap.set(s.id, s));
+          apiTasks.forEach(a => mergedMap.set(a.id, a));
           this._tasksData = Array.from(mergedMap.values());
-          $('#gantt-offline-banner').remove();
         } else if (!this._tasksData.length) {
           this._tasksData = FS.db.get('tasks') || [];
         }
 
-        if (projsRes && projsRes.success && Array.isArray(projsRes.data) && projsRes.data.length > 0) {
+        if (projsRes?.success && Array.isArray(projsRes.data) && projsRes.data.length > 0) {
           this._projectsData = projsRes.data;
         } else if (!this._projectsData.length) {
           this._projectsData = FS.db.get('projects') || [];
@@ -82,9 +78,6 @@
 
       } catch (err) {
         console.warn('Gantt API load failed:', err);
-        if (!this._tasksData.length) {
-          this._tasksData = FS.db.get('tasks') || [];
-        }
       } finally {
         this._populateFilters();
         this._render();
@@ -168,36 +161,43 @@
 
     _drawDependencyLines() {
       const svg = document.getElementById('gantt-svg-layer');
-      if (!svg) return;
+      const container = document.getElementById('gantt-timeline-container');
+      if (!svg || !container) return;
       svg.innerHTML = '';
       
-      const container = document.getElementById('gantt-container');
-      if (!container) return;
       const containerRect = container.getBoundingClientRect();
       const scrollLeft = container.scrollLeft;
+      const scrollTop = container.scrollTop;
       
       const tasks = this._tasksData;
-      const criticalSet = this._calculateCriticalPath(tasks);
+      const criticalSet = this._criticalPath;
+      const headerHeight = 56;
       
       tasks.forEach(task => {
         if (task.dependsOn && task.dependsOn.length > 0) {
-          const targetEls = document.querySelectorAll(`.gantt-bar[data-task-id="${task.id}"]`);
+          const targetEls = document.querySelectorAll(`.g-task-bar[data-task-id="${task.id}"]`);
           if (!targetEls.length) return;
           const targetEl = targetEls[0];
           const targetRect = targetEl.getBoundingClientRect();
+          
+          if (targetRect.top === 0) return; // not rendered or hidden
+          
           const targetX = targetRect.left - containerRect.left + scrollLeft;
-          const targetY = targetRect.top - containerRect.top + (targetRect.height / 2);
+          const targetY = targetRect.top - containerRect.top + scrollTop + (targetRect.height / 2) - headerHeight;
           
           task.dependsOn.forEach(depId => {
-            const sourceEls = document.querySelectorAll(`.gantt-bar[data-task-id="${depId}"]`);
+            const sourceEls = document.querySelectorAll(`.g-task-bar[data-task-id="${depId}"]`);
             if (!sourceEls.length) return;
             const sourceEl = sourceEls[sourceEls.length - 1];
             const sourceRect = sourceEl.getBoundingClientRect();
+            
+            if (sourceRect.top === 0) return;
+            
             const sourceX = sourceRect.right - containerRect.left + scrollLeft;
-            const sourceY = sourceRect.top - containerRect.top + (sourceRect.height / 2);
+            const sourceY = sourceRect.top - containerRect.top + scrollTop + (sourceRect.height / 2) - headerHeight;
             
             const isCritical = criticalSet.has(task.id) && criticalSet.has(depId);
-            const color = isCritical ? '#ef4444' : '#94a3b8';
+            const color = isCritical ? '#ef4444' : '#cbd5e1';
             const strokeWidth = isCritical ? 2 : 1.5;
             
             let pathD = `M ${sourceX} ${sourceY}`;
@@ -227,26 +227,60 @@
 
     _populateFilters() {
       const projects = this._projectsData || [];
-      $('#gantt-filter-project').html('<option value="">Tất cả dự án</option>' +
-        projects.map(p => `<option value="${p.id}">${FS.str.escape(p.name)}</option>`).join('')
-      );
+      const filterHtml = '<option value="">Tất cả dự án</option>' +
+        projects.map(p => `<option value="${p.id}">${FS.str.escape(p.name)}</option>`).join('');
+      const $proj = $('#gantt-filter-project');
+      if ($proj.html() !== filterHtml) {
+        $proj.html(filterHtml);
+      }
+    },
+
+    _updateKPIs(filteredTasks, filteredProjects) {
+      $('#gantt-stat-projects').text(filteredProjects.length);
+      $('#gantt-stat-tasks').text(filteredTasks.length);
+      const activeCount = filteredTasks.filter(t => t.status === 'active').length;
+      $('#gantt-stat-active').text(activeCount);
+      const overdueCount = filteredTasks.filter(t => FS.date.isOverdue(t.dueDate) && t.status !== 'done').length;
+      $('#gantt-stat-overdue').text(overdueCount);
     },
 
     _render() {
       const now = new Date();
-      const tasks = this._tasksData;
+      now.setHours(0,0,0,0);
+      
       let projects = this._projectsData || [];
+      let tasks = this._tasksData || [];
 
+      // Filter Projects
       if (this._projectFilter) {
         projects = projects.filter(p => p.id === this._projectFilter);
       }
-      
+
+      // Filter Tasks
+      const q = this._searchQuery.toLowerCase();
+      const statusF = this._statusFilter;
+      tasks = tasks.filter(t => {
+        let match = true;
+        if (this._projectFilter && t.projectId !== this._projectFilter) match = false;
+        if (statusF && t.status !== statusF) match = false;
+        if (q && !t.title.toLowerCase().includes(q) && !(t.code && t.code.toLowerCase().includes(q))) match = false;
+        return match;
+      });
+
+      this._updateKPIs(tasks, projects);
       this._criticalPath = this._calculateCriticalPath(tasks);
 
-      const days = this._zoom === 'week' ? 28 : 60;
+      // Setup Dates Array based on Zoom
+      let days = 28;
+      let startOffset = 7;
+      let cellWidth = 36;
+      
+      if (this._zoom === 'day') { days = 14; startOffset = 3; cellWidth = 60; }
+      if (this._zoom === 'month') { days = 90; startOffset = 15; cellWidth = 24; }
+      if (this._zoom === 'quarter') { days = 180; startOffset = 30; cellWidth = 16; }
+      
       const startDate = new Date(now);
-      startDate.setDate(startDate.getDate() - 7);
-
+      startDate.setDate(startDate.getDate() - startOffset);
       const dates = [];
       for (let i = 0; i < days; i++) {
         const d = new Date(startDate);
@@ -257,157 +291,191 @@
       const dayNames = ['CN','T2','T3','T4','T5','T6','T7'];
       const monthNames = ['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'];
 
-      let headerHtml = '<tr class="gantt-header-row"><th class="gantt-task-header">Công việc / Dự án</th>';
-      if (this._zoom === 'week') {
-        headerHtml += dates.map(d => {
-          const isToday = d.toDateString() === now.toDateString();
-          const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-          return `<th class="gantt-header-cell${isToday?' text-accent':''}${isWeekend?' text-muted':''}" style="min-width:36px">
-            <div>${dayNames[d.getDay()]}</div>
-            <div style="font-size:14px;font-weight:${isToday?700:400}">${d.getDate()}</div>
-          </th>`;
-        }).join('');
-      } else {
-        headerHtml += dates.map(d => {
-          const isToday = d.toDateString() === now.toDateString();
-          const isFirstOfMonth = d.getDate() === 1;
-          return `<th class="gantt-header-cell${isToday?' text-accent':''}" style="min-width:30px;padding:6px 2px">
-            <div style="font-size:10px;color:${isFirstOfMonth?'var(--fs-accent)':'var(--fs-text-muted)'};font-weight:${isFirstOfMonth?700:500}">
-              ${isFirstOfMonth ? 'T' + (d.getMonth() + 1) : ''}
-            </div>
-            <div style="font-size:12px;font-weight:${isToday?700:400}">${d.getDate()}</div>
-          </th>`;
-        }).join('');
-      }
-      headerHtml += '</tr>';
+      // Render Header
+      let headerHtml = '';
+      dates.forEach(d => {
+        const isToday = d.getTime() === now.getTime();
+        const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+        
+        let topLbl = '', botLbl = '';
+        if (this._zoom === 'day' || this._zoom === 'week') {
+          topLbl = dayNames[d.getDay()];
+          botLbl = d.getDate();
+        } else {
+          const isFirst = d.getDate() === 1;
+          topLbl = isFirst ? `T${d.getMonth()+1}` : '';
+          botLbl = d.getDate();
+        }
+        
+        headerHtml += `<div class="g-t-header-cell${isToday?' today':''}${isWeekend?' weekend':''}" style="width:${cellWidth}px">
+          <div class="top-lbl" style="color:${topLbl.startsWith('T')?'var(--fs-accent)':''}">${topLbl}</div>
+          <div class="bot-lbl">${botLbl}</div>
+        </div>`;
+      });
+      $('#gantt-timeline-header').html(headerHtml);
 
-      let rowsHtml = '';
+      // Render Body (Sidebar + Timeline)
+      let sidebarHtml = '';
+      let timelineHtml = '';
       let colorIdx = 0;
 
       projects.forEach(project => {
-        const color = STATUS_COLORS[project.status] || COLORS[colorIdx++ % COLORS.length];
         const projTasks = tasks.filter(t => t.projectId === project.id);
+        if (projTasks.length === 0 && (this._searchQuery || this._statusFilter)) return; // hide empty projects when searching
+        
+        const color = STATUS_COLORS[project.status] || COLORS[colorIdx++ % COLORS.length];
+        
+        // Sidebar Row for Project
+        sidebarHtml += `<div class="g-row g-row-project">
+          <div class="g-col-name">
+            <i class="bi bi-folder-fill" style="color:${color}"></i>
+            <span class="title">${FS.str.escape(project.name)}</span>
+          </div>
+          <div class="g-col-assignee"></div>
+          <div class="g-col-status"></div>
+        </div>`;
 
-        rowsHtml += `<tr class="gantt-row gantt-project-row">
-          <td class="gantt-task-cell">
-            <div class="d-flex align-items-center gap-2">
-              <div style="width:10px;height:10px;border-radius:2px;background:${color};flex-shrink:0"></div>
-              <div>
-                <div class="gantt-task-name">${FS.str.escape(project.name)}</div>
-                <div class="gantt-task-meta">${project.code} · ${projTasks.length} tasks</div>
-              </div>
-            </div>
-          </td>`;
-
+        // Timeline Row for Project
+        let projTimelineHtml = '';
         dates.forEach(d => {
-          const isToday = d.toDateString() === now.toDateString();
+          const isToday = d.getTime() === now.getTime();
           const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-          const projStart = project.startDate ? new Date(project.startDate) : null;
-          const projEnd   = project.endDate   ? new Date(project.endDate)   : null;
-
+          
           let barHtml = '';
-          if (projStart && projEnd) {
-            const dayStart = new Date(projStart); dayStart.setHours(0,0,0,0);
-            const dayEnd   = new Date(projEnd);   dayEnd.setHours(23,59,59);
-            const cellDay  = new Date(d);         cellDay.setHours(12,0,0,0);
-            if (cellDay >= dayStart && cellDay <= dayEnd) {
-              const isFirst = cellDay.toDateString() === dayStart.toDateString();
-              const isLast  = cellDay.toDateString() === dayEnd.toDateString();
-              barHtml = `<div style="position:absolute;top:50%;transform:translateY(-50%);height:8px;
-                left:${isFirst?'8px':'0'};right:${isLast?'8px':'0'};
-                background:${color}30;
-                border-radius:${isFirst?'4px 0 0 4px':'0'}${isLast?' 0 4px 4px 0':''}"></div>`;
+          const pStart = project.startDate ? new Date(project.startDate) : null;
+          const pEnd = project.endDate ? new Date(project.endDate) : null;
+          
+          if (pStart && pEnd) {
+            pStart.setHours(0,0,0,0); pEnd.setHours(23,59,59,999);
+            const dMid = new Date(d); dMid.setHours(12,0,0,0);
+            if (dMid >= pStart && dMid <= pEnd) {
+              const isFirst = dMid.toDateString() === pStart.toDateString();
+              const isLast = dMid.toDateString() === new Date(pEnd.getFullYear(), pEnd.getMonth(), pEnd.getDate()).toDateString();
+              barHtml = `<div class="g-project-bar" style="left:${isFirst?'8px':'0'}; right:${isLast?'8px':'0'}"></div>`;
             }
           }
-          rowsHtml += `<td class="gantt-day-cell${isToday?' today':''}" style="${isWeekend?'background:#fafafa':''}">
-            ${isToday ? '<div class="gantt-today-line"></div>' : ''}
+          
+          projTimelineHtml += `<div class="g-t-cell${isToday?' today':''}${isWeekend?' weekend':''}" style="width:${cellWidth}px">
+            ${isToday ? '<div class="g-today-line"></div>' : ''}
             ${barHtml}
-          </td>`;
+          </div>`;
         });
-        rowsHtml += '</tr>';
+        timelineHtml += `<div class="g-t-row g-t-row-project">${projTimelineHtml}</div>`;
 
-        projTasks.slice(0, 5).forEach(task => {
-          const assigneeName = task.assigneeName || (FS.user.get(task.assigneeId)?.name || '—');
-          rowsHtml += `<tr class="gantt-row" data-task-id="${task.id}" style="cursor:pointer">
-            <td class="gantt-task-cell" style="padding-left:28px">
-              <div class="d-flex align-items-center gap-2">
-                <i class="bi bi-${task.status==='done'?'check-circle-fill text-success':'circle'}" style="font-size:12px;flex-shrink:0"></i>
-                <div style="min-width:0">
-                  <div class="gantt-task-name truncate" style="max-width:250px;${task.status==='done'?'text-decoration:line-through;color:var(--fs-text-muted)':''}">${FS.str.escape(task.title)}</div>
-                  <div class="gantt-task-meta">${FS.str.escape(assigneeName)}</div>
-                </div>
-              </div>
-            </td>`;
+        // Task Rows
+        projTasks.forEach(task => {
+          const user = FS.user.get(task.assigneeId);
+          const assigneeName = task.assigneeName || (user?.name || '—');
+          const assigneeInitials = (user?.name ? user.name.substring(0,2) : '--').toUpperCase();
+          const statusClass = 'g-status-' + task.status;
+          const statusText = task.status === 'todo' ? 'Chưa bắt đầu' : 
+                            (task.status === 'active' ? 'Đang làm' : 
+                            (task.status === 'done' ? 'Hoàn thành' : 'Quá hạn'));
 
+          // Sidebar Row for Task
+          sidebarHtml += `<div class="g-row" data-task-id="${task.id}">
+            <div class="g-col-name" style="padding-left:16px;">
+              <i class="bi bi-${task.status==='done'?'check-circle-fill text-success':'circle'}" style="color:var(--fs-text-muted);font-size:12px;"></i>
+              <span class="title" style="${task.status==='done'?'text-decoration:line-through;color:var(--fs-text-muted)':''}">${FS.str.escape(task.title)}</span>
+            </div>
+            <div class="g-col-assignee">
+              <div class="g-avatar" title="${FS.str.escape(assigneeName)}">${assigneeInitials}</div>
+            </div>
+            <div class="g-col-status">
+              <div class="g-status-badge ${statusClass}">${statusText}</div>
+            </div>
+          </div>`;
+
+          // Timeline Row for Task
+          let taskTimelineHtml = '';
           dates.forEach(d => {
-            const isToday   = d.toDateString() === now.toDateString();
+            const isToday = d.getTime() === now.getTime();
             const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-            const taskStart = task.startDate ? new Date(task.startDate) : null;
-            const taskEnd   = task.dueDate   ? new Date(task.dueDate)   : null;
-
+            
             let barHtml = '';
-            if (taskStart && taskEnd) {
-              const dayStart = new Date(taskStart); dayStart.setHours(0,0,0,0);
-              const dayEnd   = new Date(taskEnd);   dayEnd.setHours(23,59,59);
-              const cellDay  = new Date(d);         cellDay.setHours(12,0,0,0);
-
-              if (cellDay >= dayStart && cellDay <= dayEnd) {
-                const isFirst = cellDay.toDateString() === dayStart.toDateString();
-                const isLast  = cellDay.toDateString() === dayEnd.toDateString();
-                const barColor = task.status === 'done' ? '#10b981' :
-                                 (FS.date.isOverdue(task.dueDate) ? '#ef4444' : color);
+            const tStart = task.startDate ? new Date(task.startDate) : null;
+            const tEnd = task.dueDate ? new Date(task.dueDate) : null;
+            
+            if (tStart && tEnd) {
+              tStart.setHours(0,0,0,0); tEnd.setHours(23,59,59,999);
+              const dMid = new Date(d); dMid.setHours(12,0,0,0);
+              
+              if (dMid >= tStart && dMid <= tEnd) {
+                const isFirst = dMid.toDateString() === tStart.toDateString();
+                const isLast = dMid.toDateString() === new Date(tEnd.getFullYear(), tEnd.getMonth(), tEnd.getDate()).toDateString();
+                
+                const isCritical = this._criticalPath.has(task.id);
+                const isOverdue = FS.date.isOverdue(task.dueDate) && task.status !== 'done';
+                let barColor = STATUS_COLORS[task.status] || color;
+                if (isOverdue) barColor = STATUS_COLORS.overdue;
+                if (isCritical) barColor = '#dc2626'; // critical red
+                
                 const progress = task.estimatedHours
                   ? Math.min(100, Math.round(((task.loggedHours||0) / task.estimatedHours) * 100))
                   : (task.status === 'done' ? 100 : 0);
-
-                const isCritical = this._criticalPath.has(task.id);
-                const criticalClass = isCritical ? ' critical' : '';
-                const radiusStyle = (isFirst && isLast) ? '6px' : (isFirst ? '6px 0 0 6px' : (isLast ? '0 6px 6px 0' : '0'));
+                  
+                let borderRadius = '';
+                if (isFirst && isLast) borderRadius = '6px';
+                else if (isFirst) borderRadius = '6px 0 0 6px';
+                else if (isLast) borderRadius = '0 6px 6px 0';
+                else borderRadius = '0';
 
                 barHtml = `
-                  <div class="gantt-bar-wrapper" style="left:${isFirst?'2px':'0'};right:${isLast?'2px':'0'}">
-                    <div class="gantt-bar${criticalClass}" data-task-id="${task.id}" style="background:${barColor};border-radius:${radiusStyle}">
-                      ${isFirst ? `<span style="font-size:10px;font-weight:600;pointer-events:none">${progress}%</span>` : ''}
+                  <div class="g-task-bar-wrapper" style="left:${isFirst?'4px':'0'}; right:${isLast?'4px':'0'}">
+                    ${isFirst ? '<div class="g-dep-handle g-dep-left"></div>' : ''}
+                    <div class="g-task-bar" data-task-id="${task.id}" style="background:${barColor}; border-radius:${borderRadius};" title="${FS.str.escape(task.title)}">
+                      <div class="g-task-progress" style="width:${progress}%"></div>
+                      ${isFirst ? `<div class="g-task-title-inner">
+                        <span style="opacity:0.9">${progress}%</span>
+                      </div>` : ''}
                     </div>
+                    ${isLast ? '<div class="g-dep-handle g-dep-right"></div>' : ''}
                   </div>`;
               }
             }
-
-            rowsHtml += `<td class="gantt-day-cell${isToday?' today':''}" style="${isWeekend?'background:#fafafa':''}">
-              ${isToday ? '<div class="gantt-today-line"></div>' : ''}
+            
+            taskTimelineHtml += `<div class="g-t-cell${isToday?' today':''}${isWeekend?' weekend':''}" style="width:${cellWidth}px">
+              ${isToday ? '<div class="g-today-line"></div>' : ''}
               ${barHtml}
-            </td>`;
+            </div>`;
           });
-          rowsHtml += '</tr>';
+          timelineHtml += `<div class="g-t-row" data-task-id="${task.id}">${taskTimelineHtml}</div>`;
         });
       });
 
-      const tableHtml = `
-        <table class="gantt-table">
-          <thead>${headerHtml}</thead>
-          <tbody>${rowsHtml}</tbody>
-        </table>`;
+      $('#gantt-sidebar-content').html(sidebarHtml);
+      $('#gantt-timeline-content').html(timelineHtml);
 
-      const $container = document.getElementById('gantt-container');
-      if ($container) {
-        $container.innerHTML = tableHtml;
-        const todayIdx = dates.findIndex(d => d.toDateString() === now.toDateString());
-        if (todayIdx > 0) {
-          const cellWidth = this._zoom === 'week' ? 36 : 24;
-          $container.scrollLeft = Math.max(0, (todayIdx - 3) * cellWidth);
-        }
+      // Auto scroll to today
+      const todayIdx = dates.findIndex(d => d.getTime() === now.getTime());
+      if (todayIdx > 0) {
+        const $tc = $('#gantt-timeline-container');
+        // setTimeout to ensure DOM is rendered before scroll
+        setTimeout(() => {
+          $tc.scrollLeft(Math.max(0, (todayIdx - 3) * cellWidth));
+        }, 10);
       }
 
-      setTimeout(() => this._drawDependencyLines(), 50);
+      setTimeout(() => this._drawDependencyLines(), 60);
     },
 
     _bindEvents() {
       const self = this;
 
+      // Filter events
       $('#gantt-filter-project').off('change').on('change', function () {
         self._projectFilter = this.value; self._render();
       });
+      $('#gantt-filter-status').off('change').on('change', function () {
+        self._statusFilter = this.value; self._render();
+      });
+      $('#gantt-search').off('input').on('input', function() {
+        self._searchQuery = this.value;
+        clearTimeout(self._searchTimeout);
+        self._searchTimeout = setTimeout(() => self._render(), 300);
+      });
 
+      // Zoom events
       $(document).off('click.gantt-zoom').on('click.gantt-zoom', '.gantt-zoom', function () {
         $('.gantt-zoom').removeClass('active');
         $(this).addClass('active');
@@ -415,18 +483,32 @@
         self._render();
       });
 
-      $(document).off('click.gantt-task').on('click.gantt-task', '#gantt-container tr[data-task-id] .gantt-task-name', function () {
-        const row = $(this).closest('tr');
-        FS.taskDetail.open(row.data('task-id'));
+      // Open task detail on click
+      $(document).off('click.gantt-task').on('click.gantt-task', '.g-row[data-task-id], .g-task-bar[data-task-id]', function (e) {
+        if (isDragging) return; // Ignore if dragging
+        const taskId = $(this).data('task-id');
+        if (taskId) FS.taskDetail.open(taskId);
       });
+
+      // Sync scroll between timeline and sidebar
+      const $sidebar = $('#gantt-sidebar-content');
+      const $timeline = $('#gantt-timeline-container');
       
+      $timeline.off('scroll.gantt-sync').on('scroll.gantt-sync', function() {
+        $sidebar.scrollTop($(this).scrollTop());
+        self._drawDependencyLines();
+      });
+
+      $(window).off('resize.gantt').on('resize.gantt', () => self._drawDependencyLines());
+
+      // Simple Dragging Simulation for Timeline Bars
       let isDragging = false;
       let startX = 0;
       let currentTask = null;
       let initialStart = null;
       let initialEnd = null;
       
-      $(document).off('mousedown.gantt-bar').on('mousedown.gantt-bar', '.gantt-bar', function(e) {
+      $(document).off('mousedown.gantt-bar').on('mousedown.gantt-bar', '.g-task-bar', function(e) {
         e.stopPropagation();
         isDragging = true;
         startX = e.clientX;
@@ -441,7 +523,11 @@
       $(document).off('mousemove.gantt').on('mousemove.gantt', function(e) {
         if (!isDragging || !currentTask || !initialStart || !initialEnd) return;
         const deltaX = e.clientX - startX;
-        const cellWidth = self._zoom === 'week' ? 36 : 24;
+        let cellWidth = 36;
+        if (self._zoom === 'day') cellWidth = 60;
+        if (self._zoom === 'month') cellWidth = 24;
+        if (self._zoom === 'quarter') cellWidth = 16;
+        
         const shiftDays = Math.round(deltaX / cellWidth);
         
         if (shiftDays !== 0) {
@@ -453,7 +539,6 @@
           currentTask.startDate = newStart.toISOString();
           currentTask.dueDate = newEnd.toISOString();
           
-          // Send API update bằng FS.apiCall
           FS.apiCall({
             url: FS.API_BASE + '/api/v1/tasks/' + currentTask.id,
             type: 'PUT',
@@ -481,13 +566,26 @@
       
       $(document).off('mouseup.gantt').on('mouseup.gantt', function() {
         if (isDragging) {
-          isDragging = false;
+          setTimeout(() => { isDragging = false; }, 100); // prevent click event
           currentTask = null;
         }
       });
       
-      $('#gantt-container').off('scroll.gantt').on('scroll.gantt', () => self._drawDependencyLines());
-      $(window).off('resize.gantt').on('resize.gantt', () => self._drawDependencyLines());
+      // Fullscreen logic
+      $('#gantt-btn-fullscreen').on('click', () => {
+        const elem = document.getElementById('gantt-page');
+        if (!document.fullscreenElement) {
+          elem.requestFullscreen().catch(err => {
+            console.warn(`Error attempting to enable fullscreen: ${err.message}`);
+          });
+        } else {
+          document.exitFullscreen();
+        }
+      });
+
+      $('#gantt-btn-refresh').on('click', () => {
+        self._loadData();
+      });
     }
   };
 

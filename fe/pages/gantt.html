@@ -1,140 +1,443 @@
 <!-- ============================================================
-     FlowSpace — Gantt Chart Page
+     FlowSpace — Gantt Chart Page (Enterprise SaaS Edition)
      ============================================================ -->
 <div class="page-enter" id="gantt-page">
 
-  <div class="fs-page-header">
+  <!-- Header -->
+  <div class="fs-page-header gantt-page-header">
     <div>
+      <div class="fs-breadcrumb" style="font-size:12px; color:var(--fs-text-muted); margin-bottom:4px; display:flex; gap:6px; align-items:center;">
+        <span>FlowSpace</span> <i class="bi bi-chevron-right" style="font-size:10px"></i> <span>Gantt Chart</span>
+      </div>
       <h1 class="fs-page-title">Gantt Chart</h1>
-      <p class="fs-page-subtitle">Timeline dự án và phân công công việc</p>
     </div>
     <div class="d-flex align-items-center gap-2">
-      <select class="fs-filter-select" id="gantt-filter-project">
-        <option value="">Tất cả dự án</option>
-      </select>
-      <div class="fs-view-toggle-group">
-        <button class="view-toggle gantt-zoom active" data-zoom="week" title="Xem theo Tuần">Tuần</button>
-        <button class="view-toggle gantt-zoom" data-zoom="month" title="Xem theo Tháng">Tháng</button>
-      </div>
+      <button class="btn btn-sm btn-outline-secondary" id="gantt-btn-refresh" title="Làm mới">
+        <i class="bi bi-arrow-clockwise"></i>
+      </button>
+      <button class="btn btn-sm btn-outline-secondary" id="gantt-btn-fullscreen" title="Toàn màn hình">
+        <i class="bi bi-arrows-fullscreen"></i>
+      </button>
+      <button class="btn btn-sm btn-primary" id="gantt-btn-export">
+        <i class="bi bi-download me-1"></i> Export
+      </button>
     </div>
   </div>
 
-  <!-- Gantt Container -->
-  <div class="fs-card" style="padding:0;overflow:hidden;position:relative">
-    <svg id="gantt-svg-layer" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:4;overflow:visible"></svg>
-    <div id="gantt-container" style="overflow-x:auto;position:relative;z-index:2">
-      <!-- Rendered by JS -->
+  <!-- KPI Dashboard -->
+  <div class="gantt-dashboard-row mb-4">
+    <div class="fs-stat-card">
+      <div class="fs-stat-title">Tổng Dự Án</div>
+      <div class="fs-stat-value" id="gantt-stat-projects">-</div>
+      <div class="fs-stat-icon" style="background:rgba(99,102,241,0.1);color:#6366f1"><i class="bi bi-folder"></i></div>
+    </div>
+    <div class="fs-stat-card">
+      <div class="fs-stat-title">Tổng Công Việc</div>
+      <div class="fs-stat-value" id="gantt-stat-tasks">-</div>
+      <div class="fs-stat-icon" style="background:rgba(16,185,129,0.1);color:#10b981"><i class="bi bi-check-square"></i></div>
+    </div>
+    <div class="fs-stat-card">
+      <div class="fs-stat-title">Đang Thực Hiện</div>
+      <div class="fs-stat-value" id="gantt-stat-active">-</div>
+      <div class="fs-stat-icon" style="background:rgba(59,130,246,0.1);color:#3b82f6"><i class="bi bi-play-circle"></i></div>
+    </div>
+    <div class="fs-stat-card">
+      <div class="fs-stat-title">Quá Hạn</div>
+      <div class="fs-stat-value text-danger" id="gantt-stat-overdue">-</div>
+      <div class="fs-stat-icon" style="background:rgba(239,68,68,0.1);color:#ef4444"><i class="bi bi-exclamation-triangle"></i></div>
     </div>
   </div>
+
+  <!-- Toolbar -->
+  <div class="gantt-toolbar d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+    <div class="d-flex align-items-center gap-2 flex-grow-1" style="min-width: 280px;">
+      <div class="fs-search-box flex-grow-1" style="max-width:300px;">
+        <i class="bi bi-search fs-search-icon"></i>
+        <input type="text" class="fs-search-input" id="gantt-search" placeholder="Tìm kiếm công việc...">
+      </div>
+      <select class="fs-filter-select" id="gantt-filter-project">
+        <option value="">Tất cả dự án</option>
+      </select>
+      <select class="fs-filter-select" id="gantt-filter-status">
+        <option value="">Trạng thái</option>
+        <option value="todo">Chưa bắt đầu</option>
+        <option value="active">Đang làm</option>
+        <option value="done">Hoàn thành</option>
+      </select>
+    </div>
+    
+    <div class="fs-view-toggle-group">
+      <button class="view-toggle gantt-zoom" data-zoom="day" title="Xem theo Ngày">Day</button>
+      <button class="view-toggle gantt-zoom active" data-zoom="week" title="Xem theo Tuần">Week</button>
+      <button class="view-toggle gantt-zoom" data-zoom="month" title="Xem theo Tháng">Month</button>
+      <button class="view-toggle gantt-zoom" data-zoom="quarter" title="Xem theo Quý">Quarter</button>
+    </div>
+  </div>
+
+  <!-- Gantt Container (CSS Grid Layout) -->
+  <div class="gantt-wrapper fs-card">
+    
+    <!-- Sidebar Tree (Left) -->
+    <div class="gantt-sidebar" id="gantt-sidebar">
+      <div class="gantt-sidebar-header">
+        <div class="col-name">Tên Công Việc</div>
+        <div class="col-assignee">Phụ Trách</div>
+        <div class="col-status">Trạng Thái</div>
+      </div>
+      <div class="gantt-sidebar-content" id="gantt-sidebar-content">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+    
+    <!-- Timeline Grid (Right) -->
+    <div class="gantt-timeline-container" id="gantt-timeline-container">
+      <svg id="gantt-svg-layer"></svg>
+      <div class="gantt-timeline-header" id="gantt-timeline-header">
+        <!-- Rendered by JS -->
+      </div>
+      <div class="gantt-timeline-content" id="gantt-timeline-content">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+    
+  </div>
+
+  <!-- Mobile FAB -->
+  <button class="btn btn-primary rounded-circle shadow-lg gantt-fab d-md-none" id="gantt-mobile-add" style="position:fixed; bottom:24px; right:24px; width:56px; height:56px; z-index:100;">
+    <i class="bi bi-plus" style="font-size:28px; line-height:1;"></i>
+  </button>
 
 </div>
 
 <style>
-.gantt-table { min-width: 100%; border-collapse: separate; border-spacing: 0; }
-.gantt-task-col { width: 300px; min-width: 300px; }
-@media (max-width: 767.98px) {
-  .gantt-task-col,
-  .gantt-task-header,
-  .gantt-task-cell {
-    width: 135px !important;
-    min-width: 135px !important;
-    padding: 6px 8px !important;
-  }
-  .gantt-task-name {
-    font-size: 11px !important;
-    max-width: 105px !important;
-  }
-  .gantt-task-meta {
-    display: none !important;
-  }
-  .gantt-day-cell {
-    min-width: 28px !important;
-  }
+/* ============================================================
+   Gantt Chart SaaS Enterprise 2026 Variables & Styles
+   ============================================================ */
+:root {
+  --gantt-sidebar-width: 380px;
+  --gantt-cell-height: 44px;
+  --gantt-header-height: 56px;
+  
+  /* Status Colors */
+  --g-status-todo: #94a3b8;
+  --g-status-active: #3b82f6;
+  --g-status-done: #10b981;
+  --g-status-overdue: #ef4444;
+  --g-status-blocked: #f97316;
+  --g-status-review: #8b5cf6;
 }
-.gantt-header-row { position: sticky; top: 0; z-index: 20; background: var(--fs-bg-secondary); }
-.gantt-header-cell {
-  padding: 10px 8px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: var(--fs-text-muted);
-  border-bottom: 1.5px solid var(--fs-border);
-  border-right: 1px solid var(--fs-border);
-  white-space: nowrap;
-  text-align: center;
-  background: var(--fs-bg-secondary);
+
+/* Dashboard Cards */
+.gantt-dashboard-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
 }
-.gantt-task-header {
-  position: sticky;
-  left: 0;
-  top: 0;
-  z-index: 30;
-  padding: 10px 14px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: var(--fs-text-muted);
-  border-bottom: 1.5px solid var(--fs-border);
-  border-right: 2px solid var(--fs-border);
-  background: var(--fs-bg-secondary);
-  width: 300px;
-  min-width: 300px;
-  box-shadow: 2px 0 8px rgba(0,0,0,0.06);
-}
-.gantt-row { border-bottom: 1px solid var(--fs-border); transition: var(--fs-transition); }
-.gantt-row:hover { background: var(--fs-bg-hover); }
-.gantt-row:hover .gantt-task-cell { background: var(--fs-bg-hover) !important; }
-.gantt-task-cell {
-  position: sticky;
-  left: 0;
-  z-index: 15;
-  padding: 10px 14px;
-  border-right: 2px solid var(--fs-border);
-  border-bottom: 1px solid var(--fs-border);
-  vertical-align: middle;
-  width: 300px;
-  min-width: 300px;
+.fs-stat-card {
   background: var(--fs-bg);
-  box-shadow: 2px 0 8px rgba(0,0,0,0.06);
+  border: 1px solid var(--fs-border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
-.gantt-task-name { font-size: 13px; font-weight: 600; color: var(--fs-text); }
-.gantt-task-meta { font-size: 11px; color: var(--fs-text-muted); margin-top: 2px; }
-.gantt-day-cell { position: relative; height: 44px; border-right: 1px solid var(--fs-border); border-bottom: 1px solid var(--fs-border); min-width: 32px; }
-.gantt-day-cell.today { background: rgba(99, 102, 241, 0.06); }
-.gantt-bar-wrapper { position: absolute; top: 50%; transform: translateY(-50%); height: 22px; }
-.gantt-bar {
-  height: 100%;
-  opacity: 0.92;
-  cursor: pointer;
-  user-select: none;
-  transition: all 0.15s ease;
+.fs-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+.fs-stat-title { font-size: 13px; color: var(--fs-text-muted); font-weight: 600; margin-bottom: 8px; }
+.fs-stat-value { font-size: 24px; font-weight: 700; color: var(--fs-text); line-height: 1; }
+.fs-stat-icon {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
-  padding: 0 6px;
-  font-size: 10px;
+  justify-content: center;
+  font-size: 20px;
+}
+
+/* Wrapper */
+.gantt-wrapper {
+  display: flex;
+  height: calc(100vh - 280px);
+  min-height: 400px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--fs-border);
+  border-radius: 12px;
+  background: var(--fs-bg);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+}
+
+/* Sidebar */
+.gantt-sidebar {
+  width: var(--gantt-sidebar-width);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--fs-border);
+  background: var(--fs-bg-secondary);
+  z-index: 10;
+}
+.gantt-sidebar-header {
+  height: var(--gantt-header-height);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--fs-border);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--fs-text-muted);
+  background: var(--fs-bg-secondary);
+}
+.gantt-sidebar-header .col-name { flex: 1; }
+.gantt-sidebar-header .col-assignee { width: 80px; text-align: center; }
+.gantt-sidebar-header .col-status { width: 90px; text-align: center; }
+
+.gantt-sidebar-content {
+  flex: 1;
+  overflow-y: hidden; /* Synced with timeline scroll */
+  background: var(--fs-bg);
+}
+
+/* Sidebar Rows */
+.g-row {
+  display: flex;
+  align-items: center;
+  height: var(--gantt-cell-height);
+  padding: 0 16px;
+  border-bottom: 1px solid var(--fs-border);
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.g-row:hover { background: var(--fs-bg-hover); }
+.g-row-project { background: var(--fs-bg-secondary); font-weight: 600; }
+.g-row-project:hover { background: var(--fs-bg-secondary); filter: brightness(0.97); }
+
+.g-col-name { flex: 1; display: flex; align-items: center; gap: 8px; overflow: hidden; }
+.g-col-name .title { font-size: 13px; color: var(--fs-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.g-col-assignee { width: 80px; display: flex; justify-content: center; }
+.g-col-status { width: 90px; display: flex; justify-content: center; }
+
+/* Status Badges */
+.g-status-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.g-status-todo { background: rgba(148,163,184,0.1); color: var(--g-status-todo); }
+.g-status-active { background: rgba(59,130,246,0.1); color: var(--g-status-active); }
+.g-status-done { background: rgba(16,185,129,0.1); color: var(--g-status-done); }
+.g-status-overdue { background: rgba(239,68,68,0.1); color: var(--g-status-overdue); }
+
+/* Avatars */
+.g-avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--fs-border); color: var(--fs-text-muted);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+}
+
+/* Timeline Container */
+.gantt-timeline-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  position: relative;
+  background: var(--fs-bg);
+}
+
+/* Timeline Grid Layout */
+.gantt-timeline-header {
+  display: flex;
+  height: var(--gantt-header-height);
+  border-bottom: 1px solid var(--fs-border);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--fs-bg-secondary);
+  width: max-content;
+}
+.gantt-timeline-content {
+  position: relative;
+  min-height: min-content;
+  width: max-content;
+}
+
+/* SVG Dependency Layer */
+#gantt-svg-layer {
+  position: absolute;
+  top: var(--gantt-header-height);
+  left: 0;
+  width: 100%;
+  height: calc(100% - var(--gantt-header-height));
+  pointer-events: none;
+  z-index: 15;
+  overflow: visible;
+}
+
+/* Timeline Cells */
+.g-t-header-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid var(--fs-border);
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--fs-text-muted);
+}
+.g-t-header-cell.weekend { background: rgba(0,0,0,0.02); }
+.g-t-header-cell.today { color: var(--fs-accent); font-weight: 700; background: rgba(99,102,241,0.05); }
+.g-t-header-cell .top-lbl { font-size: 10px; text-transform: uppercase; font-weight: 600; margin-bottom: 2px; }
+.g-t-header-cell .bot-lbl { font-size: 13px; font-weight: 500; }
+.g-t-header-cell.today .bot-lbl { font-weight: 700; }
+
+.g-t-row {
+  display: flex;
+  height: var(--gantt-cell-height);
+  border-bottom: 1px solid var(--fs-border);
+  position: relative;
+}
+.g-t-row:hover { background: var(--fs-bg-hover); }
+.g-t-row-project { background: var(--fs-bg-secondary); }
+
+.g-t-cell {
+  border-right: 1px solid var(--fs-border);
+  flex-shrink: 0;
+  position: relative;
+}
+.g-t-cell.weekend { background: rgba(0,0,0,0.02); }
+.g-t-cell.today { background: rgba(99,102,241,0.03); }
+
+/* Today Line */
+.g-today-line {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 2px;
+  background: var(--fs-danger);
+  z-index: 12;
+  pointer-events: none;
+  box-shadow: 0 0 6px rgba(239,68,68,0.4);
+}
+.g-today-line::before {
+  content: '';
+  position: absolute;
+  top: -4px; left: -3px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--fs-danger);
+}
+
+/* Task Bars */
+.g-task-bar-wrapper {
+  position: absolute;
+  top: 6px;
+  height: calc(var(--gantt-cell-height) - 12px);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s, opacity 0.2s;
+}
+.g-task-bar {
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
   color: #fff;
+  font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
-  box-sizing: border-box;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  position: relative;
+  transition: filter 0.2s, box-shadow 0.2s;
 }
-.gantt-bar:hover { opacity: 1; filter: brightness(1.08); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-.gantt-bar.critical {
-  box-shadow: 0 0 8px rgba(239,68,68,0.4);
-  opacity: 1;
+.g-task-bar:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  z-index: 11;
 }
-.gantt-project-row { background: var(--fs-bg-secondary); }
-.gantt-project-row .gantt-task-cell { background: var(--fs-bg-secondary) !important; }
-.gantt-project-row .gantt-task-name { font-weight: 700; color: var(--fs-accent); font-size: 13px; }
-.gantt-today-line {
+
+/* Progress Overlay */
+.g-task-progress {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--fs-danger);
-  opacity: 0.7;
-  z-index: 3;
+  top: 0; left: 0; bottom: 0;
+  background: rgba(255,255,255,0.25);
+  border-radius: 6px 0 0 6px;
   pointer-events: none;
 }
+.g-task-bar[style*="100%"] .g-task-progress { border-radius: 6px; }
+.g-task-title-inner { position: relative; z-index: 2; display: flex; align-items: center; gap: 6px; }
+
+/* Dependency Handles */
+.g-dep-handle {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--fs-text-muted);
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 12;
+}
+.g-task-bar-wrapper:hover .g-dep-handle { opacity: 1; }
+.g-dep-left { left: -4px; }
+.g-dep-right { right: -4px; }
+
+/* Project Bar (Summary) */
+.g-project-bar {
+  height: 8px;
+  background: var(--fs-accent);
+  opacity: 0.5;
+  border-radius: 4px;
+  position: absolute;
+  top: 50%; transform: translateY(-50%);
+  width: 100%;
+}
+.g-project-bar::before, .g-project-bar::after {
+  content: ''; position: absolute; top: 0;
+  border-style: solid;
+}
+.g-project-bar::before {
+  left: 0; border-width: 8px 8px 0 0; border-color: var(--fs-accent) transparent transparent transparent;
+}
+.g-project-bar::after {
+  right: 0; border-width: 8px 0 0 8px; border-color: var(--fs-accent) transparent transparent transparent;
+}
+
+/* Mobile Responsive */
+@media (max-width: 991.98px) {
+  .gantt-sidebar { width: 220px; }
+  .gantt-sidebar-header .col-assignee, .gantt-sidebar-header .col-status,
+  .g-col-assignee, .g-col-status { display: none; }
+}
+
+@media (max-width: 767.98px) {
+  .gantt-wrapper { flex-direction: column; height: calc(100vh - 200px); border-radius: 8px; }
+  .gantt-sidebar { width: 100%; height: auto; flex-shrink: 0; border-right: none; border-bottom: 1px solid var(--fs-border); }
+  .gantt-sidebar-header { display: none; }
+  .gantt-sidebar-content { overflow-y: auto; max-height: 150px; }
+  .gantt-timeline-container { flex: 1; min-height: 300px; }
+  .gantt-page-header { flex-direction: column; align-items: flex-start !important; gap: 12px; }
+  .gantt-toolbar { flex-direction: column; align-items: stretch !important; }
+  .fs-view-toggle-group { width: 100%; display: flex; }
+  .fs-view-toggle-group .view-toggle { flex: 1; text-align: center; }
+}
+</style>
