@@ -51,6 +51,7 @@ namespace FlowSpace.Application.Services
                 .Select(m => new GanttMilestoneDto
                 {
                     Id = m.Id,
+                    ProjectId = m.ProjectId,
                     Name = m.Name,
                     Date = m.Date,
                     Status = m.Status.ToString().ToLower(),
@@ -298,6 +299,7 @@ namespace FlowSpace.Application.Services
             var milestone = new Milestone
             {
                 Id = Guid.NewGuid(),
+                ProjectId = request.ProjectId,
                 Name = request.Name,
                 Date = request.Date,
                 OwnerId = request.OwnerId,
@@ -320,6 +322,7 @@ namespace FlowSpace.Application.Services
             return new GanttMilestoneDto
             {
                 Id = milestone.Id,
+                ProjectId = milestone.ProjectId,
                 Name = milestone.Name,
                 Date = milestone.Date,
                 Status = milestone.Status.ToString().ToLower(),
