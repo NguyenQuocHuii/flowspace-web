@@ -38,7 +38,7 @@
     },
 
     _isGuid(value) {
-      return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
+      return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ''));
     },
 
     _sameId(a, b) {
@@ -54,9 +54,10 @@
         userId: l.userId,
         userName: l.userName || '',
         hours: Number(l.hours) || 0,
-        note: l.note || l.description || '',
+        note: l.description || l.note || '',
         date: l.loggedDate || l.date || '',
         projectName: l.projectName || '',
+        projectId: l.projectId || '',
         createdAt: l.createdAt,
         source: 'api'
       };
@@ -74,9 +75,10 @@
     _canEditLog(log) {
       if (!this._isOwner(log)) return false;
       if (log.approved) return false;
-      const task = FS.db.find('tasks', log.taskId);
-      if (task) {
-        const project = FS.db.find('projects', task.projectId);
+      // Check project closure via task lookup or direct projectId on the log
+      const projectId = log.projectId || (FS.db.find('tasks', log.taskId) || {}).projectId;
+      if (projectId) {
+        const project = FS.db.find('projects', projectId);
         if (project && (project.isClosed || project.status === 'closed')) return false;
       }
       // Disallow if accounting period is locked
