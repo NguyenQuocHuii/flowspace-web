@@ -140,6 +140,31 @@
   margin-left: -7px;
   box-shadow: 0 0 0 2px #fff, 0 2px 4px rgba(0,0,0,0.2);
   z-index: 2;
+  cursor: ew-resize;
+  transition: transform 0.15s;
+}
+.g-milestone-diamond:hover {
+  transform: rotate(45deg) scale(1.25);
+}
+
+.g-task-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  z-index: 3;
+  cursor: col-resize;
+}
+.g-handle-left {
+  left: 0;
+  border-radius: 6px 0 0 6px;
+}
+.g-handle-right {
+  right: 0;
+  border-radius: 0 6px 6px 0;
+}
+.g-task-handle:hover {
+  background: rgba(255, 255, 255, 0.4);
 }
 
 .gantt-dashboard-row {

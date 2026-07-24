@@ -49,6 +49,14 @@ namespace FlowSpace.Api.Controllers
             if (result == null) return FailResponse<GanttMilestoneDto>("Failed to create milestone", StatusCodes.Status400BadRequest);
             return OkResponse(result, "Milestone created");
         }
+
+        [HttpPut("milestones/{id:guid}")]
+        public async Task<ActionResult<ApiResponse<GanttMilestoneDto>>> UpdateMilestone(Guid id, [FromBody] DateTime date)
+        {
+            var result = await _ganttService.UpdateMilestoneAsync(id, date);
+            if (result == null) return FailResponse<GanttMilestoneDto>("Milestone not found", StatusCodes.Status404NotFound);
+            return OkResponse(result, "Milestone updated");
+        }
         
         [HttpDelete("milestones/{id:guid}")]
         public async Task<ActionResult<ApiResponse<bool>>> DeleteMilestone(Guid id)
@@ -56,6 +64,14 @@ namespace FlowSpace.Api.Controllers
             var success = await _ganttService.DeleteMilestoneAsync(id);
             if (!success) return FailResponse<bool>("Milestone not found", StatusCodes.Status404NotFound);
             return OkResponse(true, "Milestone deleted");
+        }
+
+        [HttpPatch("tasks/{taskId:guid}/reschedule")]
+        public async Task<ActionResult<ApiResponse<GanttTaskDto>>> RescheduleTask(Guid taskId, [FromBody] RescheduleTaskRequest request)
+        {
+            var result = await _ganttService.RescheduleTaskAsync(taskId, request);
+            if (result == null) return FailResponse<GanttTaskDto>("Reschedule failed or dependency constraint violated", StatusCodes.Status400BadRequest);
+            return OkResponse(result, "Task rescheduled successfully");
         }
     }
 }

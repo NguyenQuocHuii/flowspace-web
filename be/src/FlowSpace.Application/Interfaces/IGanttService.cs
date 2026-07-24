@@ -10,6 +10,8 @@ namespace FlowSpace.Application.Interfaces
         Task<GanttDependencyDto?> CreateDependencyAsync(GanttDependencyDto request);
         Task<bool> DeleteDependencyAsync(Guid id);
         Task<GanttMilestoneDto?> CreateMilestoneAsync(GanttMilestoneDto request);
+        Task<GanttMilestoneDto?> UpdateMilestoneAsync(Guid milestoneId, DateTime date);
         Task<bool> DeleteMilestoneAsync(Guid id);
+        Task<GanttTaskDto?> RescheduleTaskAsync(Guid taskId, RescheduleTaskRequest request);
     }
 }

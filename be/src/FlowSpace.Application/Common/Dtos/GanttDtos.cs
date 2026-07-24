@@ -57,4 +57,11 @@ namespace FlowSpace.Application.Common.Dtos
         public string UserName { get; set; } = string.Empty;
         public int AllocationPercentage { get; set; }
     }
+
+    public class RescheduleTaskRequest
+    {
+        public DateTime? StartDate { get; set; }
+        public DateTime? DueDate { get; set; }
+        public int? Progress { get; set; }
+    }
 }

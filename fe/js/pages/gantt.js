@@ -1,5 +1,6 @@
 /**
- * FlowSpace — Gantt Chart Module (SaaS Enterprise Edition)
+ * FlowSpace — Gantt Chart Module (SaaS Enterprise Edition 2026)
+ * Complete Implementation with CPM, Handles, Reschedule API & Rollback
  */
 (function (FS, $) {
   'use strict';
@@ -21,9 +22,10 @@
     _resourcesData: [],
     _criticalPath: new Set(),
     _searchTimeout: null,
+    _rescheduleDebounce: null,
 
     async init() {
-      // 1. Render immediately from local seed data
+      // 1. Initial local render
       this._tasksData = FS.db.get('tasks') || [];
       this._projectsData = FS.db.get('projects') || [];
       
@@ -31,7 +33,7 @@
       this._render();
       this._bindEvents();
 
-      // 2. Fetch live data from backend api
+      // 2. Load live data from API
       await this._loadProjects();
     },
 
@@ -63,29 +65,15 @@
           this._milestonesData = res.data.milestones || [];
           this._linksData = res.data.links || [];
           this._resourcesData = res.data.resources || [];
+          
+          // Real CPM from Server
+          this._criticalPath = new Set(res.data.criticalPath || []);
         }
       } catch (err) {
         console.warn('Gantt API load failed, using local fallback:', err);
       } finally {
         this._render();
       }
-    },
-
-    _calculateCriticalPath(tasks, links) {
-      // Critical path logic based on links (FS, SS, FF, SF) and duration
-      // Simplified for UI rendering
-      const criticalSet = new Set();
-      // Mock logic: if task is overdue or on critical chain
-      tasks.forEach(t => {
-        if (t.status !== 'done' && FS.date.isOverdue(t.dueDate)) {
-          criticalSet.add(t.id);
-        }
-      });
-      // Add tasks that have dependencies connected to critical ones
-      links.forEach(l => {
-        if (criticalSet.has(l.target)) criticalSet.add(l.source);
-      });
-      return criticalSet;
     },
 
     _drawDependencyLines() {
@@ -116,9 +104,8 @@
         
         const isCritical = criticalSet.has(link.source) && criticalSet.has(link.target);
         const color = isCritical ? '#ef4444' : '#94a3b8';
-        const strokeWidth = isCritical ? 2 : 1.5;
+        const strokeWidth = isCritical ? 2.5 : 1.5;
 
-        // FS dependency logic (Finish to Start)
         let sourceX = sourceRect.right - containerRect.left + scrollLeft;
         let sourceY = sourceRect.top - containerRect.top + scrollTop + (sourceRect.height / 2) - headerHeight;
         
@@ -146,6 +133,7 @@
         path.setAttribute("fill", "transparent");
         path.setAttribute("stroke", color);
         path.setAttribute("stroke-width", strokeWidth);
+        if (isCritical) path.setAttribute("stroke-dasharray", "none");
         
         const arrow = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
         let points = `${targetX-5},${targetY-4} ${targetX},${targetY} ${targetX-5},${targetY+4}`;
@@ -191,12 +179,10 @@
       let tasks = this._tasksData || [];
       let milestones = this._milestonesData || [];
 
-      // Filter Projects
       if (this._projectFilter) {
         projects = projects.filter(p => p.id === this._projectFilter);
       }
 
-      // Filter Tasks
       const q = this._searchQuery.toLowerCase();
       const statusF = this._statusFilter;
       tasks = tasks.filter(t => {
@@ -208,9 +194,7 @@
       });
 
       this._updateKPIs(tasks, projects);
-      this._criticalPath = this._calculateCriticalPath(tasks, this._linksData);
 
-      // Setup Dates Array based on Zoom
       let days = 28;
       let startOffset = 7;
       let cellWidth = 36;
@@ -229,7 +213,6 @@
       }
 
       const dayNames = ['CN','T2','T3','T4','T5','T6','T7'];
-      const monthNames = ['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'];
 
       // Render Header
       let headerHtml = '';
@@ -307,7 +290,7 @@
             mDate.setHours(0,0,0,0);
             
             if (d.getTime() === mDate.getTime()) {
-              diamondHtml = `<div class="g-milestone-diamond" title="${FS.str.escape(milestone.name)}"></div>`;
+              diamondHtml = `<div class="g-milestone-diamond" data-milestone-id="${milestone.id}" title="${FS.str.escape(milestone.name)} (${mDate.toLocaleDateString()})"></div>`;
             }
             
             mTimelineHtml += `<div class="g-t-cell${isToday?' today':''}${isWeekend?' weekend':''}" style="width:${cellWidth}px">
@@ -379,14 +362,14 @@
 
                 barHtml = `
                   <div class="g-task-bar-wrapper" style="left:${isFirst?'4px':'0'}; right:${isLast?'4px':'0'}">
-                    ${isFirst ? '<div class="g-dep-handle g-dep-left"></div>' : ''}
-                    <div class="g-task-bar" data-task-id="${task.id}" style="background:${barColor}; border-radius:${borderRadius};" title="${FS.str.escape(task.title)}">
+                    ${isFirst ? `<div class="g-task-handle g-handle-left" data-task-id="${task.id}"></div>` : ''}
+                    <div class="g-task-bar${isCritical?' g-critical':''}" data-task-id="${task.id}" style="background:${barColor}; border-radius:${borderRadius};" title="${FS.str.escape(task.title)}">
                       <div class="g-task-progress" style="width:${progress}%"></div>
                       ${isFirst ? `<div class="g-task-title-inner">
                         <span style="opacity:0.9">${progress}%</span>
                       </div>` : ''}
                     </div>
-                    ${isLast ? '<div class="g-dep-handle g-dep-right"></div>' : ''}
+                    ${isLast ? `<div class="g-task-handle g-handle-right" data-task-id="${task.id}"></div>` : ''}
                   </div>`;
               }
             }
@@ -403,7 +386,6 @@
       $('#gantt-sidebar-content').html(sidebarHtml);
       $('#gantt-timeline-content').html(timelineHtml);
 
-      // Auto scroll to today
       const todayIdx = dates.findIndex(d => d.getTime() === now.getTime());
       if (todayIdx > 0) {
         const $tc = $('#gantt-timeline-container');
@@ -454,69 +436,150 @@
 
       $(window).off('resize.gantt').on('resize.gantt', () => self._drawDependencyLines());
 
-      // Simple Dragging Simulation for Timeline Bars
+      // =========================================================
+      // Advanced Drag & Drop: Move, Resize Left, Resize Right
+      // =========================================================
       let isDragging = false;
+      let dragMode = 'move'; // 'move' | 'resize-left' | 'resize-right' | 'milestone'
       let startX = 0;
       let currentTask = null;
-      let initialStart = null;
-      let initialEnd = null;
+      let currentMilestone = null;
+      let originalStart = null;
+      let originalEnd = null;
+      let originalMilestoneDate = null;
       
-      $(document).off('mousedown.gantt-bar').on('mousedown.gantt-bar', '.g-task-bar', function(e) {
-        e.stopPropagation();
-        isDragging = true;
-        startX = e.clientX;
-        const taskId = $(this).data('task-id');
-        currentTask = self._tasksData.find(t => t.id === taskId);
-        if (currentTask && currentTask.startDate && currentTask.dueDate) {
-          initialStart = new Date(currentTask.startDate);
-          initialEnd = new Date(currentTask.dueDate);
-        }
-      });
+      // Mousedown on Bar Handles vs Bar Body vs Milestone
+      $(document).off('mousedown.gantt-drag')
+        .on('mousedown.gantt-drag', '.g-handle-left, .g-handle-right, .g-task-bar, .g-milestone-diamond', function(e) {
+          e.stopPropagation();
+          isDragging = true;
+          startX = e.clientX;
+
+          const $el = $(this);
+          if ($el.hasClass('g-handle-left')) {
+            dragMode = 'resize-left';
+            const taskId = $el.data('task-id');
+            currentTask = self._tasksData.find(t => t.id === taskId);
+          } else if ($el.hasClass('g-handle-right')) {
+            dragMode = 'resize-right';
+            const taskId = $el.data('task-id');
+            currentTask = self._tasksData.find(t => t.id === taskId);
+          } else if ($el.hasClass('g-milestone-diamond')) {
+            dragMode = 'milestone';
+            const mId = $el.data('milestone-id');
+            currentMilestone = self._milestonesData.find(m => m.id === mId);
+            if (currentMilestone) {
+              originalMilestoneDate = new Date(currentMilestone.date);
+            }
+          } else {
+            dragMode = 'move';
+            const taskId = $el.data('task-id');
+            currentTask = self._tasksData.find(t => t.id === taskId);
+          }
+
+          if (currentTask && currentTask.startDate && currentTask.dueDate) {
+            originalStart = new Date(currentTask.startDate);
+            originalEnd = new Date(currentTask.dueDate);
+          }
+        });
       
       $(document).off('mousemove.gantt').on('mousemove.gantt', function(e) {
-        if (!isDragging || !currentTask || !initialStart || !initialEnd) return;
-        const deltaX = e.clientX - startX;
+        if (!isDragging) return;
+        
         let cellWidth = 36;
         if (self._zoom === 'day') cellWidth = 60;
         if (self._zoom === 'month') cellWidth = 24;
         if (self._zoom === 'quarter') cellWidth = 16;
         
+        const deltaX = e.clientX - startX;
         const shiftDays = Math.round(deltaX / cellWidth);
         
-        if (shiftDays !== 0) {
-          const newStart = new Date(initialStart);
-          newStart.setDate(initialStart.getDate() + shiftDays);
-          const newEnd = new Date(initialEnd);
-          newEnd.setDate(initialEnd.getDate() + shiftDays);
+        if (shiftDays === 0) return;
+
+        if (dragMode === 'milestone' && currentMilestone && originalMilestoneDate) {
+          const newDate = new Date(originalMilestoneDate);
+          newDate.setDate(originalMilestoneDate.getDate() + shiftDays);
+          currentMilestone.date = newDate.toISOString();
+          self._render();
+          return;
+        }
+
+        if (!currentTask || !originalStart || !originalEnd) return;
+
+        if (dragMode === 'move') {
+          const newStart = new Date(originalStart);
+          newStart.setDate(originalStart.getDate() + shiftDays);
+          const newEnd = new Date(originalEnd);
+          newEnd.setDate(originalEnd.getDate() + shiftDays);
           
           currentTask.startDate = newStart.toISOString();
           currentTask.dueDate = newEnd.toISOString();
-          
-          self._render();
-          startX = e.clientX;
-          initialStart = new Date(currentTask.startDate);
-          initialEnd = new Date(currentTask.dueDate);
-          
-          // Async API update
-          FS.apiCall({
-            url: FS.API_BASE + '/api/v1/tasks/' + currentTask.id,
-            type: 'PUT',
-            data: {
-              title: currentTask.title,
-              startDate: currentTask.startDate,
-              dueDate: currentTask.dueDate
-            }
-          }).catch(err => {
-            console.error('Drag Gantt update failed:', err);
-          });
+        } else if (dragMode === 'resize-left') {
+          const newStart = new Date(originalStart);
+          newStart.setDate(originalStart.getDate() + shiftDays);
+          if (newStart < originalEnd) {
+            currentTask.startDate = newStart.toISOString();
+          }
+        } else if (dragMode === 'resize-right') {
+          const newEnd = new Date(originalEnd);
+          newEnd.setDate(originalEnd.getDate() + shiftDays);
+          if (newEnd > originalStart) {
+            currentTask.dueDate = newEnd.toISOString();
+          }
         }
+        
+        self._render();
       });
       
       $(document).off('mouseup.gantt').on('mouseup.gantt', function() {
-        if (isDragging) {
-          setTimeout(() => { isDragging = false; }, 100); 
-          currentTask = null;
+        if (!isDragging) return;
+        isDragging = false;
+        
+        // Finalize Reschedule call with Rollback logic
+        if (dragMode === 'milestone' && currentMilestone) {
+          FS.apiCall({
+            url: FS.API_BASE + '/api/v1/gantt/milestones/' + currentMilestone.id,
+            type: 'PUT',
+            data: JSON.stringify(currentMilestone.date),
+            contentType: 'application/json'
+          }).catch(err => {
+            console.error('Milestone update failed, rolling back:', err);
+            if (originalMilestoneDate) currentMilestone.date = originalMilestoneDate.toISOString();
+            self._render();
+          });
+        } else if (currentTask && originalStart && originalEnd) {
+          const backupStart = originalStart.toISOString();
+          const backupEnd = originalEnd.toISOString();
+          
+          FS.apiCall({
+            url: FS.API_BASE + '/api/v1/gantt/tasks/' + currentTask.id + '/reschedule',
+            type: 'PATCH',
+            data: {
+              startDate: currentTask.startDate,
+              dueDate: currentTask.dueDate,
+              progress: currentTask.progress
+            }
+          }).then(res => {
+            if (!res?.success) {
+              throw new Error(res?.message || 'Reschedule rejected');
+            }
+          }).catch(err => {
+            console.error('Reschedule rejected by server (Constraint/Cycle):', err);
+            // Rollback UI
+            currentTask.startDate = backupStart;
+            currentTask.dueDate = backupEnd;
+            self._render();
+            if (typeof FS.toast?.error === 'function') {
+              FS.toast.error('Không thể dời lịch: Vi phạm quy tắc phụ thuộc (Dependency constraint)!');
+            }
+          });
         }
+
+        currentTask = null;
+        currentMilestone = null;
+        originalStart = null;
+        originalEnd = null;
+        originalMilestoneDate = null;
       });
       
       $('#gantt-btn-fullscreen').on('click', () => {
