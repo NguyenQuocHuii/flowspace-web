@@ -637,6 +637,10 @@
     margin-bottom: var(--fs-gap-card);
   }
 
+  #dashboard-page .dashboard-summary-row>[class*="col-"]:last-child {
+    margin-bottom: 0;
+  }
+
   #dashboard-page .dashboard-content-row {
     margin-right: -6px;
     margin-left: -6px;
@@ -646,6 +650,10 @@
     padding-right: 6px;
     padding-left: 6px;
     margin-bottom: var(--fs-gap-card);
+  }
+
+  #dashboard-page .dashboard-content-row>[class*="col-"]:last-child {
+    margin-bottom: 0;
   }
 
   .dashboard-hero-banner {
