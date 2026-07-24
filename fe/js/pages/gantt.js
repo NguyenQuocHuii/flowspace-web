@@ -16,11 +16,14 @@
     _searchQuery: '',
     _tasksData: [],
     _projectsData: [],
+    _milestonesData: [],
+    _linksData: [],
+    _resourcesData: [],
     _criticalPath: new Set(),
     _searchTimeout: null,
 
     async init() {
-      // 1. Render immediately from local seed data for zero-latency feel
+      // 1. Render immediately from local seed data
       this._tasksData = FS.db.get('tasks') || [];
       this._projectsData = FS.db.get('projects') || [];
       
@@ -29,133 +32,59 @@
       this._bindEvents();
 
       // 2. Fetch live data from backend api
-      await this._loadData();
+      await this._loadProjects();
     },
 
-    async _loadData() {
+    async _loadProjects() {
       try {
-        try {
-          await FS.loadUsersCache();
-        } catch (e) {
-          console.warn('loadUsersCache failed:', e);
-        }
-
-        const [tasksRes, projsRes] = await Promise.all([
-          FS.apiCall({ url: FS.API_BASE + '/api/v1/tasks', type: 'GET' }),
-          FS.apiCall({ url: FS.API_BASE + '/api/v1/projects', type: 'GET' })
-        ]);
-
-        if (tasksRes?.success && Array.isArray(tasksRes.data) && tasksRes.data.length > 0) {
-          const apiTasks = tasksRes.data.map(t => ({
-            id: t.id,
-            code: t.code,
-            title: t.title,
-            description: t.description || '',
-            projectId: t.projectId,
-            assigneeId: t.assigneeId,
-            assigneeName: t.assigneeName || '',
-            status: (t.status || 'todo').toLowerCase(),
-            priority: (t.priority || 'medium').toLowerCase(),
-            startDate: t.startDate,
-            dueDate: t.dueDate,
-            estimatedHours: t.estimatedHours || 0,
-            loggedHours: t.loggedHours || 0,
-            dependsOn: t.dependsOn || []
-          }));
-          const mergedMap = new Map();
-          (FS.db.get('tasks') || []).forEach(s => mergedMap.set(s.id, s));
-          apiTasks.forEach(a => mergedMap.set(a.id, a));
-          this._tasksData = Array.from(mergedMap.values());
-        } else if (!this._tasksData.length) {
-          this._tasksData = FS.db.get('tasks') || [];
-        }
-
+        const projsRes = await FS.apiCall({ url: FS.API_BASE + '/api/v1/projects', type: 'GET' });
         if (projsRes?.success && Array.isArray(projsRes.data) && projsRes.data.length > 0) {
           this._projectsData = projsRes.data;
-        } else if (!this._projectsData.length) {
-          this._projectsData = FS.db.get('projects') || [];
+          this._populateFilters();
+          
+          if (!this._projectFilter && this._projectsData.length > 0) {
+            this._projectFilter = this._projectsData[0].id;
+            $('#gantt-filter-project').val(this._projectFilter);
+          }
+          await this._loadGanttData();
         }
-
       } catch (err) {
-        console.warn('Gantt API load failed:', err);
+        console.warn('Load projects failed:', err);
+      }
+    },
+
+    async _loadGanttData() {
+      if (!this._projectFilter) return;
+      
+      try {
+        const res = await FS.apiCall({ url: FS.API_BASE + `/api/v1/gantt/${this._projectFilter}`, type: 'GET' });
+        if (res?.success && res.data) {
+          this._tasksData = res.data.tasks || [];
+          this._milestonesData = res.data.milestones || [];
+          this._linksData = res.data.links || [];
+          this._resourcesData = res.data.resources || [];
+        }
+      } catch (err) {
+        console.warn('Gantt API load failed, using local fallback:', err);
       } finally {
-        this._populateFilters();
         this._render();
       }
     },
 
-    _calculateCriticalPath(tasks) {
-      const adj = {};
-      const duration = {};
-      const inDegree = {};
-      
-      tasks.forEach(t => {
-        adj[t.id] = [];
-        inDegree[t.id] = 0;
-        let d = 0;
-        if (t.startDate && t.dueDate) {
-          d = Math.max(1, Math.ceil((new Date(t.dueDate) - new Date(t.startDate)) / (1000*60*60*24)));
-        }
-        duration[t.id] = d;
-      });
-      
-      tasks.forEach(t => {
-        if (t.dependsOn && t.dependsOn.length > 0) {
-          t.dependsOn.forEach(dep => {
-            if (adj[dep]) {
-              adj[dep].push(t.id);
-              inDegree[t.id] = (inDegree[t.id] || 0) + 1;
-            }
-          });
-        }
-      });
-      
-      const earlyFinish = {};
-      const earlyStart = {};
-      tasks.forEach(t => { earlyFinish[t.id] = 0; earlyStart[t.id] = 0; });
-      
-      const q = [];
-      tasks.forEach(t => { if (inDegree[t.id] === 0) q.push(t.id); });
-      
-      const topoOrder = [];
-      while(q.length > 0) {
-        const u = q.shift();
-        topoOrder.push(u);
-        earlyFinish[u] = earlyStart[u] + duration[u];
-        
-        adj[u].forEach(v => {
-          earlyStart[v] = Math.max(earlyStart[v], earlyFinish[u]);
-          inDegree[v]--;
-          if (inDegree[v] === 0) q.push(v);
-        });
-      }
-      
-      let maxEF = 0;
-      tasks.forEach(t => { if (earlyFinish[t.id] > maxEF) maxEF = earlyFinish[t.id]; });
-      
-      const lateFinish = {};
-      const lateStart = {};
-      tasks.forEach(t => { lateFinish[t.id] = maxEF; lateStart[t.id] = maxEF; });
-      
-      for (let i = topoOrder.length - 1; i >= 0; i--) {
-        const u = topoOrder[i];
-        if (adj[u].length === 0) {
-          lateFinish[u] = maxEF;
-        } else {
-          let minLS = maxEF;
-          adj[u].forEach(v => { if (lateStart[v] < minLS) minLS = lateStart[v]; });
-          lateFinish[u] = minLS;
-        }
-        lateStart[u] = lateFinish[u] - duration[u];
-      }
-      
+    _calculateCriticalPath(tasks, links) {
+      // Critical path logic based on links (FS, SS, FF, SF) and duration
+      // Simplified for UI rendering
       const criticalSet = new Set();
+      // Mock logic: if task is overdue or on critical chain
       tasks.forEach(t => {
-        if (earlyStart[t.id] === lateStart[t.id] && duration[t.id] > 0) {
+        if (t.status !== 'done' && FS.date.isOverdue(t.dueDate)) {
           criticalSet.add(t.id);
         }
       });
-      
+      // Add tasks that have dependencies connected to critical ones
+      links.forEach(l => {
+        if (criticalSet.has(l.target)) criticalSet.add(l.source);
+      });
       return criticalSet;
     },
 
@@ -169,66 +98,76 @@
       const scrollLeft = container.scrollLeft;
       const scrollTop = container.scrollTop;
       
-      const tasks = this._tasksData;
+      const links = this._linksData;
       const criticalSet = this._criticalPath;
       const headerHeight = 56;
       
-      tasks.forEach(task => {
-        if (task.dependsOn && task.dependsOn.length > 0) {
-          const targetEls = document.querySelectorAll(`.g-task-bar[data-task-id="${task.id}"]`);
-          if (!targetEls.length) return;
-          const targetEl = targetEls[0];
-          const targetRect = targetEl.getBoundingClientRect();
-          
-          if (targetRect.top === 0) return; // not rendered or hidden
-          
-          const targetX = targetRect.left - containerRect.left + scrollLeft;
-          const targetY = targetRect.top - containerRect.top + scrollTop + (targetRect.height / 2) - headerHeight;
-          
-          task.dependsOn.forEach(depId => {
-            const sourceEls = document.querySelectorAll(`.g-task-bar[data-task-id="${depId}"]`);
-            if (!sourceEls.length) return;
-            const sourceEl = sourceEls[sourceEls.length - 1];
-            const sourceRect = sourceEl.getBoundingClientRect();
-            
-            if (sourceRect.top === 0) return;
-            
-            const sourceX = sourceRect.right - containerRect.left + scrollLeft;
-            const sourceY = sourceRect.top - containerRect.top + scrollTop + (sourceRect.height / 2) - headerHeight;
-            
-            const isCritical = criticalSet.has(task.id) && criticalSet.has(depId);
-            const color = isCritical ? '#ef4444' : '#cbd5e1';
-            const strokeWidth = isCritical ? 2 : 1.5;
-            
-            let pathD = `M ${sourceX} ${sourceY}`;
-            if (targetX > sourceX + 15) {
-              pathD += ` L ${sourceX + 10} ${sourceY} L ${sourceX + 10} ${targetY} L ${targetX} ${targetY}`;
-            } else {
-              pathD += ` L ${sourceX + 10} ${sourceY} L ${sourceX + 10} ${sourceY + 15} L ${targetX - 10} ${sourceY + 15} L ${targetX - 10} ${targetY} L ${targetX} ${targetY}`;
-            }
-            
-            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            path.setAttribute("d", pathD);
-            path.setAttribute("fill", "transparent");
-            path.setAttribute("stroke", color);
-            path.setAttribute("stroke-width", strokeWidth);
-            if (!isCritical) path.setAttribute("stroke-dasharray", "4 4");
-            
-            const arrow = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-            arrow.setAttribute("points", `${targetX-5},${targetY-4} ${targetX},${targetY} ${targetX-5},${targetY+4}`);
-            arrow.setAttribute("fill", color);
-            
-            svg.appendChild(path);
-            svg.appendChild(arrow);
-          });
+      links.forEach(link => {
+        const sourceEls = document.querySelectorAll(`.g-task-bar[data-task-id="${link.source}"]`);
+        const targetEls = document.querySelectorAll(`.g-task-bar[data-task-id="${link.target}"]`);
+        if (!sourceEls.length || !targetEls.length) return;
+        
+        const sourceEl = sourceEls[0];
+        const targetEl = targetEls[0];
+        const sourceRect = sourceEl.getBoundingClientRect();
+        const targetRect = targetEl.getBoundingClientRect();
+        
+        if (sourceRect.top === 0 || targetRect.top === 0) return;
+        
+        const isCritical = criticalSet.has(link.source) && criticalSet.has(link.target);
+        const color = isCritical ? '#ef4444' : '#94a3b8';
+        const strokeWidth = isCritical ? 2 : 1.5;
+
+        // FS dependency logic (Finish to Start)
+        let sourceX = sourceRect.right - containerRect.left + scrollLeft;
+        let sourceY = sourceRect.top - containerRect.top + scrollTop + (sourceRect.height / 2) - headerHeight;
+        
+        let targetX = targetRect.left - containerRect.left + scrollLeft;
+        let targetY = targetRect.top - containerRect.top + scrollTop + (targetRect.height / 2) - headerHeight;
+        
+        if (link.type === 'StartToStart') {
+          sourceX = sourceRect.left - containerRect.left + scrollLeft;
+        } else if (link.type === 'FinishToFinish') {
+          targetX = targetRect.right - containerRect.left + scrollLeft;
+        } else if (link.type === 'StartToFinish') {
+          sourceX = sourceRect.left - containerRect.left + scrollLeft;
+          targetX = targetRect.right - containerRect.left + scrollLeft;
         }
+
+        let pathD = `M ${sourceX} ${sourceY}`;
+        if (targetX > sourceX + 15) {
+          pathD += ` L ${sourceX + 10} ${sourceY} L ${sourceX + 10} ${targetY} L ${targetX} ${targetY}`;
+        } else {
+          pathD += ` L ${sourceX + 10} ${sourceY} L ${sourceX + 10} ${sourceY + 15} L ${targetX - 10} ${sourceY + 15} L ${targetX - 10} ${targetY} L ${targetX} ${targetY}`;
+        }
+        
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", pathD);
+        path.setAttribute("fill", "transparent");
+        path.setAttribute("stroke", color);
+        path.setAttribute("stroke-width", strokeWidth);
+        
+        const arrow = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+        let points = `${targetX-5},${targetY-4} ${targetX},${targetY} ${targetX-5},${targetY+4}`;
+        if (link.type === 'FinishToFinish' || link.type === 'StartToFinish') {
+          points = `${targetX+5},${targetY-4} ${targetX},${targetY} ${targetX+5},${targetY+4}`;
+        }
+        arrow.setAttribute("points", points);
+        arrow.setAttribute("fill", color);
+        
+        svg.appendChild(path);
+        svg.appendChild(arrow);
       });
     },
 
     _populateFilters() {
       const projects = this._projectsData || [];
-      const filterHtml = '<option value="">Tất cả dự án</option>' +
-        projects.map(p => `<option value="${p.id}">${FS.str.escape(p.name)}</option>`).join('');
+      let filterHtml = '<option value="">Chọn dự án...</option>';
+      if (projects.length === 0) {
+          filterHtml += '<option value="">(Chưa có dự án)</option>';
+      } else {
+          filterHtml += projects.map(p => `<option value="${p.id}">${FS.str.escape(p.name)}</option>`).join('');
+      }
       const $proj = $('#gantt-filter-project');
       if ($proj.html() !== filterHtml) {
         $proj.html(filterHtml);
@@ -250,6 +189,7 @@
       
       let projects = this._projectsData || [];
       let tasks = this._tasksData || [];
+      let milestones = this._milestonesData || [];
 
       // Filter Projects
       if (this._projectFilter) {
@@ -268,7 +208,7 @@
       });
 
       this._updateKPIs(tasks, projects);
-      this._criticalPath = this._calculateCriticalPath(tasks);
+      this._criticalPath = this._calculateCriticalPath(tasks, this._linksData);
 
       // Setup Dates Array based on Zoom
       let days = 28;
@@ -314,18 +254,17 @@
       });
       $('#gantt-timeline-header').html(headerHtml);
 
-      // Render Body (Sidebar + Timeline)
+      // Render Body
       let sidebarHtml = '';
       let timelineHtml = '';
       let colorIdx = 0;
 
       projects.forEach(project => {
         const projTasks = tasks.filter(t => t.projectId === project.id);
-        if (projTasks.length === 0 && (this._searchQuery || this._statusFilter)) return; // hide empty projects when searching
+        const projMilestones = milestones.filter(m => m.projectId === project.id);
         
         const color = STATUS_COLORS[project.status] || COLORS[colorIdx++ % COLORS.length];
         
-        // Sidebar Row for Project
         sidebarHtml += `<div class="g-row g-row-project">
           <div class="g-col-name">
             <i class="bi bi-folder-fill" style="color:${color}"></i>
@@ -335,48 +274,69 @@
           <div class="g-col-status"></div>
         </div>`;
 
-        // Timeline Row for Project
         let projTimelineHtml = '';
         dates.forEach(d => {
           const isToday = d.getTime() === now.getTime();
           const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-          
-          let barHtml = '';
-          const pStart = project.startDate ? new Date(project.startDate) : null;
-          const pEnd = project.endDate ? new Date(project.endDate) : null;
-          
-          if (pStart && pEnd) {
-            pStart.setHours(0,0,0,0); pEnd.setHours(23,59,59,999);
-            const dMid = new Date(d); dMid.setHours(12,0,0,0);
-            if (dMid >= pStart && dMid <= pEnd) {
-              const isFirst = dMid.toDateString() === pStart.toDateString();
-              const isLast = dMid.toDateString() === new Date(pEnd.getFullYear(), pEnd.getMonth(), pEnd.getDate()).toDateString();
-              barHtml = `<div class="g-project-bar" style="left:${isFirst?'8px':'0'}; right:${isLast?'8px':'0'}"></div>`;
-            }
-          }
-          
           projTimelineHtml += `<div class="g-t-cell${isToday?' today':''}${isWeekend?' weekend':''}" style="width:${cellWidth}px">
             ${isToday ? '<div class="g-today-line"></div>' : ''}
-            ${barHtml}
           </div>`;
         });
         timelineHtml += `<div class="g-t-row g-t-row-project">${projTimelineHtml}</div>`;
 
+        // Render Milestones
+        projMilestones.forEach(milestone => {
+          sidebarHtml += `<div class="g-row" style="background:#fffcf2;">
+            <div class="g-col-name" style="padding-left:16px;">
+              <i class="bi bi-gem" style="color:#f59e0b;font-size:12px;"></i>
+              <span class="title" style="font-weight:600">${FS.str.escape(milestone.name)}</span>
+            </div>
+            <div class="g-col-assignee"></div>
+            <div class="g-col-status">
+              <span style="font-size:10px;color:#f59e0b">MILESTONE</span>
+            </div>
+          </div>`;
+
+          let mTimelineHtml = '';
+          dates.forEach(d => {
+            const isToday = d.getTime() === now.getTime();
+            const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+            let diamondHtml = '';
+            
+            const mDate = new Date(milestone.date);
+            mDate.setHours(0,0,0,0);
+            
+            if (d.getTime() === mDate.getTime()) {
+              diamondHtml = `<div class="g-milestone-diamond" title="${FS.str.escape(milestone.name)}"></div>`;
+            }
+            
+            mTimelineHtml += `<div class="g-t-cell${isToday?' today':''}${isWeekend?' weekend':''}" style="width:${cellWidth}px">
+              ${isToday ? '<div class="g-today-line"></div>' : ''}
+              ${diamondHtml}
+            </div>`;
+          });
+          timelineHtml += `<div class="g-t-row">${mTimelineHtml}</div>`;
+        });
+
         // Task Rows
         projTasks.forEach(task => {
-          const user = FS.user.get(task.assigneeId);
-          const assigneeName = task.assigneeName || (user?.name || '—');
-          const assigneeInitials = (user?.name ? user.name.substring(0,2) : '--').toUpperCase();
+          const assigneeName = task.assigneeName || '—';
+          const assigneeInitials = (assigneeName !== '—' ? assigneeName.substring(0,2) : '--').toUpperCase();
           const statusClass = 'g-status-' + task.status;
           const statusText = task.status === 'todo' ? 'Chưa bắt đầu' : 
                             (task.status === 'active' ? 'Đang làm' : 
                             (task.status === 'done' ? 'Hoàn thành' : 'Quá hạn'));
+                            
+          const resources = this._resourcesData.filter(r => r.taskId === task.id);
+          const workloadHtml = resources.length > 0 
+                ? `<span class="badge bg-secondary ms-1" style="font-size:9px" title="Workload">${resources[0].allocationPercentage}%</span>` 
+                : '';
 
-          // Sidebar Row for Task
           sidebarHtml += `<div class="g-row" data-task-id="${task.id}">
             <div class="g-col-name" style="padding-left:16px;">
               <i class="bi bi-${task.status==='done'?'check-circle-fill text-success':'circle'}" style="color:var(--fs-text-muted);font-size:12px;"></i>
               <span class="title" style="${task.status==='done'?'text-decoration:line-through;color:var(--fs-text-muted)':''}">${FS.str.escape(task.title)}</span>
+              ${workloadHtml}
             </div>
             <div class="g-col-assignee">
               <div class="g-avatar" title="${FS.str.escape(assigneeName)}">${assigneeInitials}</div>
@@ -386,7 +346,6 @@
             </div>
           </div>`;
 
-          // Timeline Row for Task
           let taskTimelineHtml = '';
           dates.forEach(d => {
             const isToday = d.getTime() === now.getTime();
@@ -408,11 +367,9 @@
                 const isOverdue = FS.date.isOverdue(task.dueDate) && task.status !== 'done';
                 let barColor = STATUS_COLORS[task.status] || color;
                 if (isOverdue) barColor = STATUS_COLORS.overdue;
-                if (isCritical) barColor = '#dc2626'; // critical red
+                if (isCritical) barColor = '#ef4444'; // critical red
                 
-                const progress = task.estimatedHours
-                  ? Math.min(100, Math.round(((task.loggedHours||0) / task.estimatedHours) * 100))
-                  : (task.status === 'done' ? 100 : 0);
+                const progress = task.progress || (task.status === 'done' ? 100 : 0);
                   
                 let borderRadius = '';
                 if (isFirst && isLast) borderRadius = '6px';
@@ -450,7 +407,6 @@
       const todayIdx = dates.findIndex(d => d.getTime() === now.getTime());
       if (todayIdx > 0) {
         const $tc = $('#gantt-timeline-container');
-        // setTimeout to ensure DOM is rendered before scroll
         setTimeout(() => {
           $tc.scrollLeft(Math.max(0, (todayIdx - 3) * cellWidth));
         }, 10);
@@ -462,9 +418,9 @@
     _bindEvents() {
       const self = this;
 
-      // Filter events
       $('#gantt-filter-project').off('change').on('change', function () {
-        self._projectFilter = this.value; self._render();
+        self._projectFilter = this.value; 
+        self._loadGanttData();
       });
       $('#gantt-filter-status').off('change').on('change', function () {
         self._statusFilter = this.value; self._render();
@@ -475,7 +431,6 @@
         self._searchTimeout = setTimeout(() => self._render(), 300);
       });
 
-      // Zoom events
       $(document).off('click.gantt-zoom').on('click.gantt-zoom', '.gantt-zoom', function () {
         $('.gantt-zoom').removeClass('active');
         $(this).addClass('active');
@@ -483,14 +438,12 @@
         self._render();
       });
 
-      // Open task detail on click
-      $(document).off('click.gantt-task').on('click.gantt-task', '.g-row[data-task-id], .g-task-bar[data-task-id]', function (e) {
-        if (isDragging) return; // Ignore if dragging
+      $(document).off('click.gantt-task').on('click.gantt-task', '.g-row[data-task-id]', function (e) {
+        if (isDragging) return;
         const taskId = $(this).data('task-id');
         if (taskId) FS.taskDetail.open(taskId);
       });
 
-      // Sync scroll between timeline and sidebar
       const $sidebar = $('#gantt-sidebar-content');
       const $timeline = $('#gantt-timeline-container');
       
@@ -539,39 +492,33 @@
           currentTask.startDate = newStart.toISOString();
           currentTask.dueDate = newEnd.toISOString();
           
+          self._render();
+          startX = e.clientX;
+          initialStart = new Date(currentTask.startDate);
+          initialEnd = new Date(currentTask.dueDate);
+          
+          // Async API update
           FS.apiCall({
             url: FS.API_BASE + '/api/v1/tasks/' + currentTask.id,
             type: 'PUT',
             data: {
               title: currentTask.title,
-              description: currentTask.description,
-              assigneeId: currentTask.assigneeId,
-              status: currentTask.status,
-              priority: currentTask.priority,
               startDate: currentTask.startDate,
-              dueDate: currentTask.dueDate,
-              estimatedHours: currentTask.estimatedHours,
-              loggedHours: currentTask.loggedHours || 0
+              dueDate: currentTask.dueDate
             }
           }).catch(err => {
             console.error('Drag Gantt update failed:', err);
           });
-
-          self._render();
-          startX = e.clientX;
-          initialStart = new Date(currentTask.startDate);
-          initialEnd = new Date(currentTask.dueDate);
         }
       });
       
       $(document).off('mouseup.gantt').on('mouseup.gantt', function() {
         if (isDragging) {
-          setTimeout(() => { isDragging = false; }, 100); // prevent click event
+          setTimeout(() => { isDragging = false; }, 100); 
           currentTask = null;
         }
       });
       
-      // Fullscreen logic
       $('#gantt-btn-fullscreen').on('click', () => {
         const elem = document.getElementById('gantt-page');
         if (!document.fullscreenElement) {
@@ -584,7 +531,7 @@
       });
 
       $('#gantt-btn-refresh').on('click', () => {
-        self._loadData();
+        self._loadGanttData();
       });
     }
   };

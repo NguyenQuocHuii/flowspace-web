@@ -19,6 +19,7 @@ namespace FlowSpace.Application
             services.AddScoped<FlowSpace.Application.Interfaces.ITimeLogService, FlowSpace.Application.Services.TimeLogService>();
             services.AddScoped<FlowSpace.Application.Interfaces.IWorkflowService, FlowSpace.Application.Services.WorkflowService>();
             services.AddScoped<FlowSpace.Application.Interfaces.IDashboardService, FlowSpace.Application.Services.DashboardService>();
+            services.AddScoped<FlowSpace.Application.Interfaces.IGanttService, FlowSpace.Application.Services.GanttService>();
             return services;
         }
     }

@@ -33,6 +33,9 @@ namespace FlowSpace.Persistence.Contexts
         public DbSet<Notification> Notifications => Set<Notification>();
         public DbSet<Category> Categories => Set<Category>();
         public DbSet<RequestType> RequestTypes => Set<RequestType>();
+        public DbSet<TaskDependency> TaskDependencies => Set<TaskDependency>();
+        public DbSet<Milestone> Milestones => Set<Milestone>();
+        public DbSet<TaskResource> TaskResources => Set<TaskResource>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -276,6 +279,56 @@ namespace FlowSpace.Persistence.Contexts
                       .WithMany()
                       .HasForeignKey(r => r.RequestTypeId)
                       .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // TaskDependency configuration
+            modelBuilder.Entity<TaskDependency>(entity =>
+            {
+                entity.ToTable("TaskDependencies");
+                entity.HasOne(td => td.Predecessor)
+                      .WithMany(t => t.SuccessorLinks)
+                      .HasForeignKey(td => td.PredecessorId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(td => td.Successor)
+                      .WithMany(t => t.PredecessorLinks)
+                      .HasForeignKey(td => td.SuccessorId)
+                      .OnDelete(DeleteBehavior.Cascade);
+                      
+                entity.Property(td => td.Type).HasConversion<string>();
+            });
+
+            // Milestone configuration
+            modelBuilder.Entity<Milestone>(entity =>
+            {
+                entity.ToTable("Milestones");
+                entity.Property(m => m.Status).HasConversion<string>();
+
+                entity.HasOne(m => m.Project)
+                      .WithMany()
+                      .HasForeignKey(m => m.ProjectId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(m => m.Owner)
+                      .WithMany()
+                      .HasForeignKey(m => m.OwnerId)
+                      .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // TaskResource configuration
+            modelBuilder.Entity<TaskResource>(entity =>
+            {
+                entity.ToTable("TaskResources");
+                
+                entity.HasOne(tr => tr.Task)
+                      .WithMany(t => t.Resources)
+                      .HasForeignKey(tr => tr.TaskId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(tr => tr.User)
+                      .WithMany()
+                      .HasForeignKey(tr => tr.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(FlowSpaceDbContext).Assembly);

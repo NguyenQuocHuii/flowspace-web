@@ -67,6 +67,13 @@ namespace FlowSpace.Domain.Entities
 
         public ICollection<Subtask> Subtasks { get; set; } = new List<Subtask>();
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
-        public ICollection<TaskItem> Dependencies { get; set; } = new List<TaskItem>();
+        
+        [InverseProperty(nameof(TaskDependency.Successor))]
+        public ICollection<TaskDependency> PredecessorLinks { get; set; } = new List<TaskDependency>();
+
+        [InverseProperty(nameof(TaskDependency.Predecessor))]
+        public ICollection<TaskDependency> SuccessorLinks { get; set; } = new List<TaskDependency>();
+
+        public ICollection<TaskResource> Resources { get; set; } = new List<TaskResource>();
     }
 }
