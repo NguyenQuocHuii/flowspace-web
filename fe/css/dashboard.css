@@ -30,6 +30,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 18px 24px;
+  margin-bottom: 24px !important;
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.07) 0%, rgba(139, 92, 246, 0.03) 50%, rgba(248, 250, 252, 0) 100%);
   border: 1px solid rgba(99, 102, 241, 0.14);
   border-radius: 18px;
