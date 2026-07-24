@@ -565,8 +565,12 @@
     .dashboard-hero-actions .btn {
       width: 100%;
       justify-content: center;
-      padding: 10px 16px;
+      padding: 10px 14px;
       font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      box-sizing: border-box;
     }
 
     /* Touch target & spacing cho Stat Cards - Nới rộng khoảng thở Mobile */
