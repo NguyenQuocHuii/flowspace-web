@@ -362,14 +362,14 @@
 
                 barHtml = `
                   <div class="g-task-bar-wrapper" style="left:${isFirst?'4px':'0'}; right:${isLast?'4px':'0'}">
-                    ${isFirst ? `<div class="g-task-handle g-handle-left" data-task-id="${task.id}"></div>` : ''}
+                    ${isFirst ? `<div class="g-bar-handle g-bar-handle-left" data-task-id="${task.id}"></div>` : ''}
                     <div class="g-task-bar${isCritical?' g-critical':''}" data-task-id="${task.id}" style="background:${barColor}; border-radius:${borderRadius};" title="${FS.str.escape(task.title)}">
                       <div class="g-task-progress" style="width:${progress}%"></div>
                       ${isFirst ? `<div class="g-task-title-inner">
                         <span style="opacity:0.9">${progress}%</span>
                       </div>` : ''}
                     </div>
-                    ${isLast ? `<div class="g-task-handle g-handle-right" data-task-id="${task.id}"></div>` : ''}
+                    ${isLast ? `<div class="g-bar-handle g-bar-handle-right" data-task-id="${task.id}"></div>` : ''}
                   </div>`;
               }
             }
@@ -450,17 +450,17 @@
       
       // Mousedown on Bar Handles vs Bar Body vs Milestone
       $(document).off('mousedown.gantt-drag')
-        .on('mousedown.gantt-drag', '.g-handle-left, .g-handle-right, .g-task-bar, .g-milestone-diamond', function(e) {
+        .on('mousedown.gantt-drag', '.g-bar-handle-left, .g-bar-handle-right, .g-task-bar, .g-milestone-diamond', function(e) {
           e.stopPropagation();
           isDragging = true;
           startX = e.clientX;
 
           const $el = $(this);
-          if ($el.hasClass('g-handle-left')) {
+          if ($el.hasClass('g-bar-handle-left')) {
             dragMode = 'resize-left';
             const taskId = $el.data('task-id');
             currentTask = self._tasksData.find(t => t.id === taskId);
-          } else if ($el.hasClass('g-handle-right')) {
+          } else if ($el.hasClass('g-bar-handle-right')) {
             dragMode = 'resize-right';
             const taskId = $el.data('task-id');
             currentTask = self._tasksData.find(t => t.id === taskId);
@@ -517,13 +517,21 @@
         } else if (dragMode === 'resize-left') {
           const newStart = new Date(originalStart);
           newStart.setDate(originalStart.getDate() + shiftDays);
-          if (newStart < originalEnd) {
+          // Min 1 day duration: NewStart <= DueDate - 1 day
+          const maxAllowedStart = new Date(originalEnd);
+          maxAllowedStart.setDate(originalEnd.getDate() - 1);
+
+          if (newStart <= maxAllowedStart) {
             currentTask.startDate = newStart.toISOString();
           }
         } else if (dragMode === 'resize-right') {
           const newEnd = new Date(originalEnd);
           newEnd.setDate(originalEnd.getDate() + shiftDays);
-          if (newEnd > originalStart) {
+          // Min 1 day duration: NewDue >= StartDate + 1 day
+          const minAllowedEnd = new Date(originalStart);
+          minAllowedEnd.setDate(originalStart.getDate() + 1);
+
+          if (newEnd >= minAllowedEnd) {
             currentTask.dueDate = newEnd.toISOString();
           }
         }
@@ -535,7 +543,6 @@
         if (!isDragging) return;
         isDragging = false;
         
-        // Finalize Reschedule call with Rollback logic
         if (dragMode === 'milestone' && currentMilestone) {
           FS.apiCall({
             url: FS.API_BASE + '/api/v1/gantt/milestones/' + currentMilestone.id,
@@ -546,6 +553,7 @@
             console.error('Milestone update failed, rolling back:', err);
             if (originalMilestoneDate) currentMilestone.date = originalMilestoneDate.toISOString();
             self._render();
+            FS.toast('Không thể cập nhật cột mốc (Milestone)!', 'error');
           });
         } else if (currentTask && originalStart && originalEnd) {
           const backupStart = originalStart.toISOString();
@@ -570,14 +578,14 @@
               self._loadGanttData();
             }
           }).catch(err => {
-            console.error('Reschedule rejected by server (Constraint/Cycle):', err);
-            // Rollback UI
+            console.error('Reschedule rejected by server:', err);
+            // Rollback UI to original snapshot
             currentTask.startDate = backupStart;
             currentTask.dueDate = backupEnd;
             self._render();
-            if (typeof FS.toast?.error === 'function') {
-              FS.toast.error(err.responseJSON?.message || err.message || 'Không thể dời lịch: Vi phạm quy tắc phụ thuộc (Dependency constraint)!');
-            }
+            
+            const msg = err.responseJSON?.message || err.message || 'Không thể dời lịch: Vi phạm quy tắc phụ thuộc (Dependency constraint)!';
+            FS.toast(msg, 'error');
           });
         }
 

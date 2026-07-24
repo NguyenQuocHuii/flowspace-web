@@ -150,7 +150,7 @@ builder.Services.AddAuthentication(authOptions =>
         {
             var accessToken = context.Request.Query["access_token"];
             var path = context.HttpContext.Request.Path;
-            if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/hubs/chat") || path.StartsWithSegments("/hubs/notifications")))
+            if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/hubs/chat") || path.StartsWithSegments("/hubs/notifications") || path.StartsWithSegments("/hubs/gantt")))
             {
                 context.Token = accessToken;
             }
@@ -264,5 +264,6 @@ app.MapControllers();
 // Map SignalR Hubs
 app.MapHub<FlowSpace.Api.Hubs.ChatHub>("/hubs/chat");
 app.MapHub<FlowSpace.Api.Hubs.NotificationHub>("/hubs/notifications");
+app.MapHub<FlowSpace.Api.Hubs.GanttHub>("/hubs/gantt");
 
 app.Run();

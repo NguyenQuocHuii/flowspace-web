@@ -147,24 +147,31 @@
   transform: rotate(45deg) scale(1.25);
 }
 
-.g-task-handle {
+.g-bar-handle {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 8px;
-  z-index: 3;
-  cursor: col-resize;
+  width: 6px;
+  z-index: 4;
+  cursor: ew-resize;
 }
-.g-handle-left {
+.g-bar-handle-left {
   left: 0;
   border-radius: 6px 0 0 6px;
 }
-.g-handle-right {
+.g-bar-handle-right {
   right: 0;
   border-radius: 0 6px 6px 0;
 }
-.g-task-handle:hover {
-  background: rgba(255, 255, 255, 0.4);
+.g-bar-handle:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.g-task-bar {
+  cursor: grab;
+}
+.g-task-bar:active {
+  cursor: grabbing;
 }
 
 .gantt-dashboard-row {
